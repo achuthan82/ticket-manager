@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<!-- saved from url=(0078)https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html# -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - DocuPrompt Hub</title>
+    
+    <script src="./Admin Dashboard - DocuPrompt Hub_files/saved_resource"></script>
+    <script src="./Admin Dashboard - DocuPrompt Hub_files/chart.js.download"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            100: '#D6E5F5',
+                            300: '#4A7EC3',
+                            500: '#2A5A9D',
+                            700: '#1A3A6C',
+                            900: '#0D1F3D'
+                        },
+                        accent: {
+                            100: '#D6F4FA',
+                            300: '#6CD9EA',
+                            500: '#00B4D8',
+                            700: '#008B94'
+                        },
+                        neutral: {
+                            50: '#FFFFFF',
+                            100: '#F8F9FA',
+                            300: '#CED4DA',
+                            500: '#6C757D',
+                            700: '#3D4551',
+                            900: '#1A1F26'
+                        },
+                        success: '#28A745',
+                        warning: '#FFC107',
+                        error: '#DC3545',
+                        info: '#17A2B8'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'mono': ['Roboto Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+    <link href="./Admin Dashboard - DocuPrompt Hub_files/css2" rel="stylesheet">
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Smooth transitions */
+        * {
+            transition: all 0.2s ease;
+        }
+        
+        /* Chart container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.16 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Inter, system-ui, -apple-system, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:Roboto Mono, monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.bottom-0{bottom:0px}.left-0{left:0px}.left-4{left:1rem}.right-0{right:0px}.top-0{top:0px}.top-4{top:1rem}.z-40{z-index:40}.z-50{z-index:50}.mb-4{margin-bottom:1rem}.mb-8{margin-bottom:2rem}.ml-auto{margin-left:auto}.mr-2{margin-right:0.5rem}.mr-3{margin-right:0.75rem}.mt-6{margin-top:1.5rem}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-10{height:2.5rem}.h-12{height:3rem}.h-2{height:0.5rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-screen{height:100vh}.w-10{width:2.5rem}.w-12{width:3rem}.w-2{width:0.5rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-64{width:16rem}.w-full{width:100%}.flex-1{flex:1 1 0%}.flex-shrink-0{flex-shrink:0}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-6{gap:1.5rem}.space-x-2 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.5rem * var(--tw-space-x-reverse));margin-left:calc(0.5rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-3 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.75rem * var(--tw-space-x-reverse));margin-left:calc(0.75rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-4 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(1rem * var(--tw-space-x-reverse));margin-left:calc(1rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.rounded{border-radius:0.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-neutral-100{--tw-border-opacity:1;border-color:rgb(248 249 250 / var(--tw-border-opacity, 1))}.border-neutral-300{--tw-border-opacity:1;border-color:rgb(206 212 218 / var(--tw-border-opacity, 1))}.border-primary-700{--tw-border-opacity:1;border-color:rgb(26 58 108 / var(--tw-border-opacity, 1))}.bg-accent-100{--tw-bg-opacity:1;background-color:rgb(214 244 250 / var(--tw-bg-opacity, 1))}.bg-accent-500{--tw-bg-opacity:1;background-color:rgb(0 180 216 / var(--tw-bg-opacity, 1))}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-blue-100{--tw-bg-opacity:1;background-color:rgb(219 234 254 / var(--tw-bg-opacity, 1))}.bg-error{--tw-bg-opacity:1;background-color:rgb(220 53 69 / var(--tw-bg-opacity, 1))}.bg-gray-100{--tw-bg-opacity:1;background-color:rgb(243 244 246 / var(--tw-bg-opacity, 1))}.bg-green-100{--tw-bg-opacity:1;background-color:rgb(220 252 231 / var(--tw-bg-opacity, 1))}.bg-neutral-100{--tw-bg-opacity:1;background-color:rgb(248 249 250 / var(--tw-bg-opacity, 1))}.bg-neutral-200{--tw-bg-opacity:1;background-color:rgb(229 229 229 / var(--tw-bg-opacity, 1))}.bg-primary-100{--tw-bg-opacity:1;background-color:rgb(214 229 245 / var(--tw-bg-opacity, 1))}.bg-primary-500{--tw-bg-opacity:1;background-color:rgb(42 90 157 / var(--tw-bg-opacity, 1))}.bg-primary-700{--tw-bg-opacity:1;background-color:rgb(26 58 108 / var(--tw-bg-opacity, 1))}.bg-primary-900{--tw-bg-opacity:1;background-color:rgb(13 31 61 / var(--tw-bg-opacity, 1))}.bg-purple-100{--tw-bg-opacity:1;background-color:rgb(243 232 255 / var(--tw-bg-opacity, 1))}.bg-success{--tw-bg-opacity:1;background-color:rgb(40 167 69 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-yellow-100{--tw-bg-opacity:1;background-color:rgb(254 249 195 / var(--tw-bg-opacity, 1))}.p-2{padding:0.5rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.pt-6{padding-top:1.5rem}.text-left{text-align:left}.font-sans{font-family:Inter, system-ui, -apple-system, sans-serif}.text-2xl{font-size:1.5rem;line-height:2rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-semibold{font-weight:600}.text-accent-100{--tw-text-opacity:1;color:rgb(214 244 250 / var(--tw-text-opacity, 1))}.text-accent-700{--tw-text-opacity:1;color:rgb(0 139 148 / var(--tw-text-opacity, 1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216 / var(--tw-text-opacity, 1))}.text-gray-700{--tw-text-opacity:1;color:rgb(55 65 81 / var(--tw-text-opacity, 1))}.text-green-700{--tw-text-opacity:1;color:rgb(21 128 61 / var(--tw-text-opacity, 1))}.text-neutral-500{--tw-text-opacity:1;color:rgb(108 117 125 / var(--tw-text-opacity, 1))}.text-neutral-700{--tw-text-opacity:1;color:rgb(61 69 81 / var(--tw-text-opacity, 1))}.text-neutral-900{--tw-text-opacity:1;color:rgb(26 31 38 / var(--tw-text-opacity, 1))}.text-primary-500{--tw-text-opacity:1;color:rgb(42 90 157 / var(--tw-text-opacity, 1))}.text-primary-700{--tw-text-opacity:1;color:rgb(26 58 108 / var(--tw-text-opacity, 1))}.text-primary-900{--tw-text-opacity:1;color:rgb(13 31 61 / var(--tw-text-opacity, 1))}.text-purple-700{--tw-text-opacity:1;color:rgb(126 34 206 / var(--tw-text-opacity, 1))}.text-success{--tw-text-opacity:1;color:rgb(40 167 69 / var(--tw-text-opacity, 1))}.text-warning{--tw-text-opacity:1;color:rgb(255 193 7 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-yellow-700{--tw-text-opacity:1;color:rgb(161 98 7 / var(--tw-text-opacity, 1))}.opacity-50{opacity:0.5}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.hover\:bg-accent-700:hover{--tw-bg-opacity:1;background-color:rgb(0 139 148 / var(--tw-bg-opacity, 1))}.hover\:bg-neutral-100:hover{--tw-bg-opacity:1;background-color:rgb(248 249 250 / var(--tw-bg-opacity, 1))}.hover\:bg-neutral-50:hover{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.hover\:bg-primary-700:hover{--tw-bg-opacity:1;background-color:rgb(26 58 108 / var(--tw-bg-opacity, 1))}.hover\:text-primary-500:hover{--tw-text-opacity:1;color:rgb(42 90 157 / var(--tw-text-opacity, 1))}.hover\:text-primary-700:hover{--tw-text-opacity:1;color:rgb(26 58 108 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}@media (min-width: 768px){.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:col-span-2{grid-column:span 2 / span 2}.lg\:block{display:block}.lg\:hidden{display:none}.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}}</style><style type="text/css">
+        #dse-quicksearchdiv * {
+            box-sizing: content-box;
+        }
+
+        #dse-quicksearchdiv svg {
+            box-sizing: content-box;
+        }
+
+        #dse-disabledpopup * {
+            box-sizing: content-box;
+        }
+
+        #dse-search:before {
+            left: -4px !important;
+            top: 38% !important;
+            height: 6px !important;
+            width: 6px !important;
+            border: 1px solid #484644 !important;
+            border-right: none !important;
+            border-top: none !important;
+            content: ' ' !important;
+            background: #484644 !important;
+            position: absolute !important;
+            transform: rotate(45deg) !important;
+        }
+
+        #dse-disabledpopup:before {
+            left: -4px !important;
+            top: 38% !important;
+            height: 6px !important;
+            width: 6px !important;
+            border: 1px solid #484644 !important;
+            border-right: none !important;
+            border-top: none !important;
+            content: ' ' !important;
+            background: #484644 !important;
+            position: absolute !important;
+            transform: rotate(45deg) !important;
+        }
+
+        .topArrow #dse-search:before {
+            left: 50% !important;
+            top: -4px !important;
+            height: 6px !important;
+            width: 6px !important;
+            border: 1px solid #484644 !important;
+            border-top: none !important;
+            border-left: none !important;
+            content: ' ' !important;
+            background: #484644 !important;
+            position: absolute !important;
+            transform: rotate(225deg) !important;
+        }
+
+        .topArrow #dse-disabledpopup:before {
+            left: 50% !important;
+            top: -4px !important;
+            height: 6px !important;
+            width: 6px !important;
+            border: 1px solid #484644 !important;
+            border-top: none !important;
+            border-left: none !important;
+            content: ' ' !important;
+            background: #484644 !important;
+            position: absolute !important;
+            transform: rotate(225deg) !important;
+        }
+
+        #dse-disabledpopup:hover:before,
+        #dse-search:hover:before,
+        #dse-moreoptions:hover,
+        #dse-search:hover,
+        #dse-copy:hover,
+        #dse-disabledpopup:hover,
+        #dse-lookup:hover,
+        #dse-disableFeature:hover {
+            background-color: #666 !important;
+        }
+
+        #dse-disabledpopup:active:before,
+        #dse-search:active:before,
+        #dse-moreoptions:active,
+        #dse-search:active,
+        #dse-copy:active,
+        #dse-disabledpopup:active,
+        #dse-lookup:active,
+        #dse-disableFeature:active {
+            background-color: #666 !important;
+        }
+    </style></head>
+<body class="font-sans bg-neutral-100 text-neutral-900">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-primary-900 text-white flex-shrink-0 hidden lg:block">
+            <div class="p-6">
+                <div class="flex items-center mb-8">
+                    <div class="bg-accent-500 text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl mr-3">
+                        D
+                    </div>
+                    <span class="text-xl font-bold">DocuPrompt Hub</span>
+                </div>
+                
+                <nav class="space-y-1">
+                    <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-primary-700 text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                    
+                    <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-primary-700 text-accent-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span>Documents</span>
+                    </a>
+                    
+                    <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-primary-700 text-accent-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                        </svg>
+                        <span>Prompts</span>
+                        <span class="ml-auto bg-accent-500 text-white text-xs px-2 py-1 rounded-full">42</span>
+                    </a>
+                    
+                    <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-primary-700 text-accent-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <span>Users</span>
+                    </a>
+                    
+                    <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-primary-700 text-accent-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span>Analytics</span>
+                    </a>
+                    
+                    <div class="pt-6 mt-6 border-t border-primary-700">
+                        <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-primary-700 text-accent-100">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>Settings</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+            
+            <!-- User Profile -->
+            <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-primary-700">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-accent-500 flex items-center justify-center font-semibold">
+                        JD
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-semibold">John Doe</div>
+                        <div class="text-xs text-accent-100">Administrator</div>
+                    </div>
+                    <button class="text-accent-100 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Mobile Sidebar Toggle -->
+        <button onclick="toggleSidebar()" class="lg:hidden fixed top-4 left-4 z-50 bg-primary-900 text-white p-2 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+        
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b border-neutral-300">
+                <div class="px-6 py-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl font-bold text-primary-900">Dashboard Overview</h1>
+                            <p class="text-neutral-500">Welcome back! Here's what's happening today.</p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <!-- Notifications -->
+                            <button class="relative p-2 text-neutral-500 hover:text-primary-500">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                </svg>
+                                <span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+                            </button>
+                            
+                            <!-- Date/Time -->
+                            <div class="text-sm text-neutral-500">
+                                <span id="current-date">Thursday, July 24, 2025 at 10:07 PM</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Dashboard Content -->
+            <div class="p-6">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Total Documents -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-neutral-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-primary-100 text-primary-700 w-12 h-12 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <span class="text-sm text-success bg-green-100 px-2 py-1 rounded">+12%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-primary-900">1,284</h3>
+                        <p class="text-neutral-500 text-sm">Total Documents</p>
+                    </div>
+                    
+                    <!-- Active Users -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-neutral-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-accent-100 text-accent-700 w-12 h-12 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </div>
+                            <span class="text-sm text-success bg-green-100 px-2 py-1 rounded">+5%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-primary-900">324</h3>
+                        <p class="text-neutral-500 text-sm">Active Users</p>
+                    </div>
+                    
+                    <!-- Total Prompts -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-neutral-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-primary-100 text-primary-700 w-12 h-12 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                                </svg>
+                            </div>
+                            <span class="text-sm text-warning bg-yellow-100 px-2 py-1 rounded">+2%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-primary-900">42</h3>
+                        <p class="text-neutral-500 text-sm">Active Prompts</p>
+                    </div>
+                    
+                    <!-- Processing Time -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-neutral-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-accent-100 text-accent-700 w-12 h-12 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <span class="text-sm text-success bg-green-100 px-2 py-1 rounded">-8%</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-primary-900">2.4s</h3>
+                        <p class="text-neutral-500 text-sm">Avg. Processing Time</p>
+                    </div>
+                </div>
+                
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Document Activity Chart -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-neutral-300">
+                        <h3 class="text-lg font-semibold mb-4">Document Activity</h3>
+                        <div class="chart-container">
+                            <canvas id="documentChart" width="688" height="375" style="display: block; box-sizing: border-box; height: 300px; width: 550px;"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- User Activity Chart -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-neutral-300">
+                        <h3 class="text-lg font-semibold mb-4">User Activity</h3>
+                        <div class="chart-container">
+                            <canvas id="userChart" width="688" height="375" style="display: block; box-sizing: border-box; height: 300px; width: 550px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity & Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Recent Documents -->
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-neutral-300">
+                        <div class="p-6 border-b border-neutral-300">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-semibold">Recent Documents</h3>
+                                <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="text-primary-500 hover:text-primary-700 text-sm">View All</a>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-neutral-300">
+                                        <th class="text-left p-4 font-medium text-neutral-500">Document</th>
+                                        <th class="text-left p-4 font-medium text-neutral-500">Type</th>
+                                        <th class="text-left p-4 font-medium text-neutral-500">User</th>
+                                        <th class="text-left p-4 font-medium text-neutral-500">Status</th>
+                                        <th class="text-left p-4 font-medium text-neutral-500">Modified</th>
+                                        <th class="text-left p-4 font-medium text-neutral-500">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-neutral-100 hover:bg-neutral-50">
+                                        <td class="p-4">
+                                            <div class="flex items-center">
+                                                <div class="bg-primary-100 text-primary-700 w-10 h-10 rounded flex items-center justify-center mr-3">
+                                                    📄
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium">Contract_Amendment_2025.docx</div>
+                                                    <div class="text-sm text-neutral-500">Version 3</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="p-4">
+                                            <span class="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded">Legal</span>
+                                        </td>
+                                        <td class="p-4">Sarah Johnson</td>
+                                        <td class="p-4">
+                                            <span class="text-sm bg-yellow-100 text-yellow-700 px-2 py-1 rounded">In Progress</span>
+                                        </td>
+                                        <td class="p-4 text-sm text-neutral-500">5 mins ago</td>
+                                        <td class="p-4">
+                                            <button class="text-primary-500 hover:text-primary-700">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-neutral-100 hover:bg-neutral-50">
+                                        <td class="p-4">
+                                            <div class="flex items-center">
+                                                <div class="bg-accent-100 text-accent-700 w-10 h-10 rounded flex items-center justify-center mr-3">
+                                                    📖
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium">The_Silent_Echo_Chapter_12.doc</div>
+                                                    <div class="text-sm text-neutral-500">Version 8</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="p-4">
+                                            <span class="text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded">Manuscript</span>
+                                        </td>
+                                        <td class="p-4">Michael Chen</td>
+                                        <td class="p-4">
+                                            <span class="text-sm bg-green-100 text-green-700 px-2 py-1 rounded">Completed</span>
+                                        </td>
+                                        <td class="p-4 text-sm text-neutral-500">2 hours ago</td>
+                                        <td class="p-4">
+                                            <button class="text-primary-500 hover:text-primary-700">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-neutral-100 hover:bg-neutral-50">
+                                        <td class="p-4">
+                                            <div class="flex items-center">
+                                                <div class="bg-primary-100 text-primary-700 w-10 h-10 rounded flex items-center justify-center mr-3">
+                                                    📄
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium">NDA_Template_v2.docx</div>
+                                                    <div class="text-sm text-neutral-500">Version 1</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="p-4">
+                                            <span class="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded">Legal</span>
+                                        </td>
+                                        <td class="p-4">Emma Davis</td>
+                                        <td class="p-4">
+                                            <span class="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Draft</span>
+                                        </td>
+                                        <td class="p-4 text-sm text-neutral-500">5 hours ago</td>
+                                        <td class="p-4">
+                                            <button class="text-primary-500 hover:text-primary-700">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-xl shadow-sm border border-neutral-300">
+                        <div class="p-6 border-b border-neutral-300">
+                            <h3 class="text-lg font-semibold">Quick Actions</h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <button class="w-full bg-primary-500 text-white px-4 py-3 rounded-lg hover:bg-primary-700 flex items-center justify-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span>Create New Prompt</span>
+                            </button>
+                            
+                            <button class="w-full bg-accent-500 text-white px-4 py-3 rounded-lg hover:bg-accent-700 flex items-center justify-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                <span>Upload Document</span>
+                            </button>
+                            
+                            <button class="w-full bg-white border border-neutral-300 text-neutral-700 px-4 py-3 rounded-lg hover:bg-neutral-100 flex items-center justify-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                                </svg>
+                                <span>Add User</span>
+                            </button>
+                            
+                            <button class="w-full bg-white border border-neutral-300 text-neutral-700 px-4 py-3 rounded-lg hover:bg-neutral-100 flex items-center justify-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <span>Generate Report</span>
+                            </button>
+                        </div>
+                        
+                        <!-- System Status -->
+                        <div class="p-6 border-t border-neutral-300">
+                            <h4 class="font-medium mb-4">System Status</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-neutral-500">API Status</span>
+                                    <span class="text-sm text-success flex items-center">
+                                        <span class="w-2 h-2 bg-success rounded-full mr-2"></span>
+                                        Operational
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-neutral-500">Database</span>
+                                    <span class="text-sm text-success flex items-center">
+                                        <span class="w-2 h-2 bg-success rounded-full mr-2"></span>
+                                        Healthy
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-neutral-500">Storage Used</span>
+                                    <span class="text-sm text-neutral-700">67.2%</span>
+                                </div>
+                                <div class="w-full bg-neutral-200 rounded-full h-2">
+                                    <div class="bg-primary-500 h-2 rounded-full" style="width: 67.2%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Mobile Sidebar -->
+    <div id="mobile-sidebar" class="lg:hidden fixed inset-0 z-40 hidden">
+        <div class="fixed inset-0 bg-black opacity-50" onclick="toggleSidebar()"></div>
+        <aside class="fixed top-0 left-0 bottom-0 w-64 bg-primary-900 text-white overflow-y-auto">
+            <!-- Same content as desktop sidebar -->
+            <div class="p-6">
+                <div class="flex items-center mb-8">
+                    <div class="bg-accent-500 text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl mr-3">
+                        D
+                    </div>
+                    <span class="text-xl font-bold">DocuPrompt Hub</span>
+                </div>
+                
+                <nav class="space-y-1">
+                    <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-primary-700 text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                    
+                    <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-primary-700 text-accent-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span>Documents</span>
+                    </a>
+                    
+                    <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-primary-700 text-accent-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                        </svg>
+                        <span>Prompts</span>
+                        <span class="ml-auto bg-accent-500 text-white text-xs px-2 py-1 rounded-full">42</span>
+                    </a>
+                    
+                    <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-primary-700 text-accent-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <span>Users</span>
+                    </a>
+                    
+                    <a href="https://artifacts.shieldnestleads.com/Docuhub/docuprompt-admin-dashboard.html#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-primary-700 text-accent-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span>Analytics</span>
+                    </a>
+                </nav>
+            </div>
+        </aside>
+    </div>
+    
+    <script>
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mobile-sidebar');
+            sidebar.classList.toggle('hidden');
+        }
+        
+        // Update current date/time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', options);
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 60000);
+        
+        // Initialize Charts
+        const ctx1 = document.getElementById('documentChart').getContext('2d');
+        const documentChart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Documents Created',
+                    data: [65, 78, 90, 81, 96, 85, 92],
+                    borderColor: '#2A5A9D',
+                    backgroundColor: 'rgba(42, 90, 157, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Documents Edited',
+                    data: [45, 52, 38, 65, 72, 60, 70],
+                    borderColor: '#00B4D8',
+                    backgroundColor: 'rgba(0, 180, 216, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        const ctx2 = document.getElementById('userChart').getContext('2d');
+        const userChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Active', 'Inactive', 'New'],
+                datasets: [{
+                    data: [324, 156, 45],
+                    backgroundColor: [
+                        '#2A5A9D',
+                        '#00B4D8',
+                        '#6CD9EA'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    </script>
+<script defer="" src="./Admin Dashboard - DocuPrompt Hub_files/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;ca64ce81bfb14646814ff4cf16afb6e7&quot;,&quot;r&quot;:1,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>
+
+<div id="dse-quicksearch" style="position: fixed; z-index: 10000; display: block; left: 203.925px; top: 45.6px;">
+    <div id="dse-disabledpopup" style="cursor: pointer; display: none; position: relative; width: fit-content; padding: 8px; line-height: 16px; border: 1px solid rgb(102, 102, 102); border-radius: 6px; background-color: rgb(72, 70, 68); font-style: normal; font-weight: normal; color: rgb(255, 255, 255); font-size: 13px; font-family: Roboto, Arial, Helvetica, sans-serif; box-shadow: rgba(0, 0, 0, 0.14) 0px 3px 4px 0px;">
+        <span style="
+            float: left;
+            padding: 0px 12px 0px 4px;
+            ">
+            You've turned off quick searches.
+        </span>
+        <span id="dse-undo" style="padding: 0px 4px 0px 8px;">
+            <span style="
+               width: 15px;
+               height: 15px;
+               float: left;
+               ">
+                <svg enable-background="new 0 0 16 16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m14.259 2.75c-1.159-1.16-2.688-1.744-4.207-1.743-1.52-.001-3.049.583-4.208 1.743l-2.843 2.827v-2.57c0-.552-.448-1-1-1h-.016c-.552 0-.984.448-.984 1v5c0 .552.432.993.984.993h5.016c.552 0 1-.441 1-.993s-.448-1-1-1h-2.601l2.859-2.843c.774-.773 1.779-1.156 2.793-1.157 1.014.001 2.019.384 2.793 1.157.772.774 1.155 1.778 1.156 2.793-.001 1.014-.384 2.019-1.157 2.793l-4.543 4.543c-.391.391-.391 1.024 0 1.414.391.391 1.024.391 1.414 0l4.543-4.543c1.16-1.159 1.743-2.688 1.742-4.207.002-1.52-.582-3.048-1.741-4.207z" fill="#fff"></path>
+                    <path d="m0 0h16v16h-16z" fill="none"></path>
+                </svg>
+            </span>
+            Undo
+        </span>
+    </div>
+    <div id="dse-quicksearchdiv" style="display: none; position: relative; height: 32px; border: 1px solid rgb(102, 102, 102); border-radius: 6px; background-color: rgb(72, 70, 68); font-style: normal; font-weight: normal; color: rgb(255, 255, 255); font-size: 13px; font-family: Roboto, Arial, Helvetica, sans-serif; box-shadow: rgba(0, 0, 0, 0.14) 0px 3px 4px 0px;">
+        <div id="dse-search" style="border-radius: 5px 0px 0px 5px;height:-webkit-fill-available;height:-moz-fit-content;float: left;line-height: 15px;text-align: center;cursor: pointer;box-sizing: border-box;">
+            <span style="
+               float: left;
+               padding: 8px 12px 8px 8px;
+               height: -webkit-fill-available;
+               ">
+                Web
+                search
+            </span>
+        </div>
+        <div style="        border-left: 1px solid #D2D0CE;
+            float: left;
+            margin: 0px;
+            top: 0;
+            height: 32px;
+            "></div>
+        <div style="height:-webkit-fill-available;height:-moz-fit-content;float: left;padding: 8px 12px 8px 12px;line-height: 15px;text-align: center;cursor: pointer;" id="dse-copy">Copy</div>
+        <div style="        border-left: 1px solid #D2D0CE;
+            height: 32px;
+            float: left;
+            margin: 0px;
+            top: 0;
+            "></div>
+        <div id="dse-moreoptions" style="border-radius: 0px 5px 5px 0px;height:-webkit-fill-available;height:-moz-fit-content;width: 16px;float: left;padding: 8PX 8px 0px 8px;text-align: center; cursor: pointer;position: relative;">
+            <span style="width: 16px;">
+                <svg enable-background="new 0 0 16 16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m1.5 6.5c-.828 0-1.5.672-1.5 1.5s.672 1.5 1.5 1.5 1.5-.672 1.5-1.5-.672-1.5-1.5-1.5zm6.5 0c-.828 0-1.5.672-1.5 1.5s.672 1.5 1.5 1.5 1.5-.672 1.5-1.5-.672-1.5-1.5-1.5zm6.5 0c-.828 0-1.5.672-1.5 1.5s.672 1.5 1.5 1.5 1.5-.672 1.5-1.5-.672-1.5-1.5-1.5z" fill="#fff"></path>
+                    <path d="m0 0h16v16h-16z" fill="none"></path>
+                </svg>
+            </span>
+        </div>
+        <div>
+            <span style="width: 160px; border: 1px solid rgb(102, 102, 102); border-radius: 6px; position: absolute; top: 40px; left: 105px; box-shadow: rgba(0, 0, 0, 0.14) 0px 3px 4px 0px; background-color: rgb(72, 70, 68); overflow: hidden; display: none;" id="dse-popup">
+                <div style="padding: 8px 12px;line-height: 15px;font-size: 13px;cursor: pointer;text-align: left;" id="dse-lookup">
+                    Define
+                </div>
+                <hr style="        border: 0.5px solid #D2D0CE;
+                  margin: 0;
+                  cursor: default;
+                  height: 0px;
+                  background-color: #3b3a39;">
+                <div style="padding: 8px 12px;line-height: 15px;font-size: 13px;cursor: pointer;text-align: left;" id="dse-disableFeature">
+                    Turn off quick searches
+                </div>
+            </span>
+        </div>
+    </div>
+
+
+</div></body></html>

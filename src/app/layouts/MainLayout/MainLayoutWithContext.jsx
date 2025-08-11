@@ -1,0 +1,63 @@
+// Import Dependencies
+import { Outlet, useLocation } from "react-router";
+import { useContext } from "react";
+
+// Local Imports
+import DynamicHeader from "./Header/DynamicHeader";
+import DocuPromptSidebar from "./Sidebar/DocuPromptSidebar";
+import { DocumentsContext } from "app/contexts/documents/context";
+import { UsersContext } from "app/contexts/users/context";
+import { PromptsContext } from "app/contexts/prompts/context";
+import { useSidebarContext } from "app/contexts/sidebar/context";
+import clsx from "clsx";
+
+// ----------------------------------------------------------------------
+
+export default function MainLayoutWithContext() {
+  const { isExpanded } = useSidebarContext();
+  const { pathname } = useLocation();
+  
+  // Get context values for state management
+  const documentsContext = useContext(DocumentsContext);
+  const usersContext = useContext(UsersContext);
+  const promptsContext = useContext(PromptsContext);
+
+  // Determine which functions to pass based on current route
+  const getHeaderProps = () => {
+    console.log('Current pathname:', pathname);
+    console.log('Documents context:', documentsContext);
+    console.log('Users context:', usersContext);
+    console.log('Prompts context:', promptsContext);
+    
+    if (pathname.startsWith('/documents')) {
+      return {
+        onUploadClick: documentsContext?.openUploadModal
+      };
+    } else if (pathname.startsWith('/users')) {
+      return {
+        onInviteClick: usersContext?.openInviteModal,
+        onExportClick: usersContext?.exportUsers
+      };
+    } else if (pathname.startsWith('/prompts')) {
+      return {
+        onOpenModal: promptsContext?.openModal
+      };
+    }
+    return {};
+  };
+  
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <DocuPromptSidebar />
+      <main className={clsx(
+        "flex-1 overflow-y-auto bg-neutral-100 min-w-0 transition-all duration-300",
+        isExpanded ? "lg:ml-0" : "lg:ml-0"
+      )}>
+        <DynamicHeader {...getHeaderProps()} />
+        <div className="p-4 sm:p-6">
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
+} 
