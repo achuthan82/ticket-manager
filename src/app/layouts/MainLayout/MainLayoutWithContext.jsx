@@ -53,14 +53,14 @@ export default function MainLayoutWithContext() {
   };
   
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <DocuPromptSidebar />
       <main className={clsx(
-        "flex-1 bg-neutral-100 min-w-0 transition-all duration-300",
+        "flex-1 bg-neutral-100 min-w-0 transition-all duration-300 flex flex-col",
         isExpanded ? "lg:ml-0" : "lg:ml-0"
       )}>
         <DynamicHeader {...getHeaderProps()} />
-        <div className="p-4 sm:p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           <Outlet />
         </div>
         <NewTicketModal
