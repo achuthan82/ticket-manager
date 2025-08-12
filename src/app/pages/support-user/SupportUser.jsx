@@ -37,7 +37,16 @@ function StatusBadge({ status }) {
   );
 }
 
-function TicketCard({ id, title, excerpt, status, meta, created }) {
+function TicketCard({ id, title, excerpt, status, meta = [], created }) {
+  const updatedMeta = meta.find((m) => m.label === 'Updated');
+  const resolvedMeta = meta.find((m) => m.label === 'Resolved');
+  const headlineLabel = updatedMeta ? 'Updated' : resolvedMeta ? 'Resolved' : null;
+  const headlineValue = updatedMeta?.value ?? resolvedMeta?.value;
+
+  let displayMeta = meta.filter((m) => m.label !== 'Updated' && m.label !== 'Resolved');
+  if (created && !displayMeta.some((m) => m.label === 'Created')) {
+    displayMeta = [{ label: 'Created', value: created }, ...displayMeta];
+  }
   return (
     <button
       type="button"
@@ -47,13 +56,13 @@ function TicketCard({ id, title, excerpt, status, meta, created }) {
       <div className="flex flex-wrap items-center gap-3">
         <div className="text-base font-semibold text-neutral-900">{id} - {title}</div>
         <StatusBadge status={status} />
-        {created && (
-          <span className="text-xs text-neutral-500">Created {created}</span>
+        {headlineLabel && (
+          <span className="text-xs text-neutral-500">{headlineLabel} {headlineValue}</span>
         )}
       </div>
       <p className="mt-2 line-clamp-2 text-sm text-neutral-600">{excerpt}</p>
       <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-neutral-500">
-        {meta.map((m) => (
+        {displayMeta.map((m) => (
           <span key={m.label} className="flex items-center gap-1">
             <span>{m.label}:</span>
             <span className="text-neutral-700">{m.value}</span>
