@@ -6,10 +6,11 @@ import DocuPromptHeader from "./DocuPromptHeader";
 import DocumentsHeader from "./DocumentsHeader";
 import UsersHeader from "./UsersHeader";
 import PromptHeader from "./PromptHeader";
+import SupportUserHeader from "./SupportUserHeader";
 
 // ----------------------------------------------------------------------
 
-export default function DynamicHeader({ onUploadClick, onInviteClick, onExportClick, onOpenModal }) {
+export default function DynamicHeader({ onUploadClick, onInviteClick, onExportClick, onOpenModal, onAddUserClick }) {
   const { pathname } = useLocation();
 
   // Determine which header to show based on the current route
@@ -25,5 +26,10 @@ export default function DynamicHeader({ onUploadClick, onInviteClick, onExportCl
     return <DocuPromptHeader />;
   } else if (pathname.startsWith('/prompts')) {
     return <PromptHeader onOpenModal={onOpenModal}/>
+  } else if (pathname.startsWith('/support-user')) {
+    return <SupportUserHeader 
+      onAddUserClick={onAddUserClick}
+      onExportClick={onExportClick}
+    />
   }
 } 
