@@ -1,5 +1,7 @@
 import { NAV_TYPE_ITEM, } from "constants/app.constant";
 import DashboardsIcon from 'assets/dualicons/dashboards.svg?react'
+import TicketIcon from 'assets/dualicons/ticket.svg?react'
+import UserIcon from 'assets/dualicons/user.svg?react'
 // import { 
 // //   DocumentTextIcon, 
 // //   ChatBubbleLeftRightIcon, 
@@ -17,6 +19,23 @@ export const baseNavigation = [
         transKey: 'nav.dashboard.dashboard',
         Icon: DashboardsIcon,
     },
+    // adding support-ticket to the navigation
+    {
+        id:"aupport-ticket",
+        type:NAV_TYPE_ITEM,
+        path:"/support-ticket",
+        title:"Support Ticket",
+        transKey:"nav.support-ticket.support-ticket",
+        Icon: TicketIcon,
+    },
+    {
+        id: "support-user",
+        type:NAV_TYPE_ITEM,
+        path: "/support-user",
+        title:"Support User" ,
+        transKey : "nav.support-user.support-user",
+        Icon: UserIcon,
+    }
     // {
     //     id: 'documents',
     //     type: NAV_TYPE_ITEM,

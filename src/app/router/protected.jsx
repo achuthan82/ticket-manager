@@ -5,6 +5,8 @@ import { Navigate } from "react-router";
 import MainLayoutProvider from "app/layouts/MainLayout/MainLayoutProvider";
 import AuthGuard from "middleware/AuthGuard";
 
+
+
 // ----------------------------------------------------------------------
 
 const protectedRoutes = {
@@ -24,6 +26,21 @@ const protectedRoutes = {
           path: "dashboard",
           lazy: async () => ({
             Component: (await import("app/pages/dashboards/Dashboard")).default,
+          }),
+        },
+        {
+          path: "support-ticket",
+          lazy:async () =>
+          ({
+            Component: (await import("app/pages/support-ticket/SupportTicket")).default,
+          }),
+
+        },
+        {
+          path : "support-user",
+          lazy : async() =>
+             ({
+            Component : (await import("app/pages/support-user/SupportUser")).default,
           }),
         },
       ],
