@@ -7,6 +7,7 @@ import DocumentsHeader from "./DocumentsHeader";
 import UsersHeader from "./UsersHeader";
 import PromptHeader from "./PromptHeader";
 import SupportUserHeader from "./SupportUserHeader";
+import SupportTicketHeader from "./SupportTicketHeader";
 
 // ----------------------------------------------------------------------
 
@@ -31,5 +32,7 @@ export default function DynamicHeader({ onUploadClick, onInviteClick, onExportCl
       onAddUserClick={onAddUserClick}
       onExportClick={onExportClick}
     />
+  } else if (pathname.startsWith('/support-ticket')) {
+    return <SupportTicketHeader />
   }
 } 
