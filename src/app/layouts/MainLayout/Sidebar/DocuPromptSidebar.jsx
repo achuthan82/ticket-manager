@@ -78,11 +78,15 @@ export default function DocuPromptSidebar() {
                 onClick={!isExpanded ? toggle : undefined}
                 title={!isExpanded ? "Expand sidebar" : undefined}
               >
-                D
+                <img
+                  src="/shieldnest-icon.png"
+                  alt="ShieldNest"
+                  className="h-10 w-10 object-contain"
+                />
               </div>
               {isExpanded && (
                 <span className="text-xl font-bold ml-3 transition-opacity duration-300">
-                  DocuPrompt Hub
+                  Ticket Manager
                 </span>
               )}
             </div>
@@ -177,7 +181,7 @@ export default function DocuPromptSidebar() {
                 <>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold truncate">
-                      {user?.first_name + " " + user?.last_name || "User"}
+                      {user?.name || "User"}
                     </div>
                     <div className="text-xs text-[#D6F4FA] truncate">
                       {user?.role_id === 1 ? "Admin" : "User"}
