@@ -21,7 +21,7 @@ export const baseNavigation = [
     },
     // adding support-ticket to the navigation
     {
-        id:"aupport-ticket",
+        id:"support-ticket",
         type:NAV_TYPE_ITEM,
         path:"/support-ticket",
         title:"Support Ticket",
