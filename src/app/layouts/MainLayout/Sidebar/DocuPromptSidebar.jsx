@@ -177,8 +177,9 @@ export default function DocuPromptSidebar() {
                 "group relative flex items-center",
                 isExpanded ? "space-x-3" : "justify-center",
               )}
-            >
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#00B4D8] font-semibold">
+              >
+            {/* //// #00B4D8 */}
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#0c4a6e] font-semibold text-white">
                 {getUserInitials(user)}
               </div>
               {!isExpanded && (
