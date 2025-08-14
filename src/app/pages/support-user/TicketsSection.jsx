@@ -1,5 +1,6 @@
 // TicketsSection.jsx
 import { Select } from "components/ui";
+import { useNavigate } from "react-router";
 
 function StatusBadge({ status }) {
   const styles = {
@@ -16,6 +17,9 @@ function StatusBadge({ status }) {
 }
 
 function TicketCard({ id, title, excerpt, status, meta = [], created }) {
+
+  const navigate = useNavigate();
+
   const updatedMeta = meta.find((m) => m.label === 'Updated');
   const resolvedMeta = meta.find((m) => m.label === 'Resolved');
   const headlineLabel = updatedMeta ? 'Updated' : resolvedMeta ? 'Resolved' : null;
@@ -29,7 +33,7 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
   return (
     <button
       type="button"
-      onClick={() => console.log('Navigate to ticket', id)}
+      onClick={() => navigate(`/support-user/${id}`)}
       className="w-full rounded-xl border border-neutral-200 bg-white p-6 text-left shadow-sm transition-all hover:shadow-md"
     >
       <div className="flex flex-wrap items-center gap-3">

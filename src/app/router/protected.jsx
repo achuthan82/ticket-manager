@@ -21,7 +21,7 @@ const protectedRoutes = {
           index: true,
           element: <Navigate to="/dashboard" />,
         },
-    
+
         {
           path: "dashboard",
           lazy: async () => ({
@@ -30,19 +30,25 @@ const protectedRoutes = {
         },
         {
           path: "support-ticket",
-          lazy:async () =>
+          lazy: async () =>
           ({
             Component: (await import("app/pages/support-ticket/SupportTicket")).default,
           }),
 
         },
         {
-          path : "support-user",
-          lazy : async() =>
-             ({
-            Component : (await import("app/pages/support-user/SupportUser")).default,
+          path: "support-user",
+          lazy: async () =>
+          ({
+            Component: (await import("app/pages/support-user/SupportUser")).default,
           }),
         },
+        {
+          path: "support-user/:ticketId",
+          lazy: async () => ({
+            Component: (await import("app/pages/support-user/TicketChat")).default,
+          }),
+        }
       ],
     },
 
