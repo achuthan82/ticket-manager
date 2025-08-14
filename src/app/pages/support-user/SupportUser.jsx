@@ -77,11 +77,32 @@ export default function SupportUser() {
     },
   ], []);
 
+  const faqs = [
+  {
+    id: "faq-1",
+    question: "How do I update my payment method?",
+    answer:
+      "To update your payment method, go to Account Settings > Billing > Payment Methods. Click 'Update' next to your current card or 'Add New Payment Method' to add a different card.",
+  },
+  {
+    id: "faq-2",
+    question: "What is the lead response time guarantee?",
+    answer:
+      "Our lead response time guarantee ensures that all inquiries are addressed within the agreed SLA timeframe. This helps maintain high customer satisfaction and trust.",
+  },
+  {
+    id: "faq-3",
+    question: "Can I change my territory selection?",
+    answer:
+      "Territory changes are subject to availability. Please contact our support team to request a territory change.",
+  },
+];
+
   return (
     <div className="space-y-8">
       <HelpSection categories={categories} />
       <TicketsSection tickets={tickets} filter={filter} setFilter={setFilter} />
-      <Multiple/>
+      <Multiple faqs={faqs}/>
     </div>
   );
 }
