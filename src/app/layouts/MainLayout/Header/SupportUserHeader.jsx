@@ -25,7 +25,7 @@ export default function SupportUserHeader({ onAddUserClick }) {
                 Support User Management
               </h1>
               <p className="text-sm sm:text-base text-neutral-500 truncate">
-                Manage support users and their access permissions
+                Manage support users  
               </p>
             </div>
           </div>

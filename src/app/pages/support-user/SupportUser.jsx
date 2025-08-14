@@ -43,7 +43,7 @@ export default function SupportUser() {
 
   const tickets = useMemo(() => [
     {
-      id: '#TK-1018',
+      id: 'TK-1018',
       title: 'Territory not showing leads',
       excerpt: "I purchased the Miami territory but I'm not receiving any leads from that area. The dashboard shows...",
       status: 'open',
@@ -54,7 +54,7 @@ export default function SupportUser() {
       ],
     },
     {
-      id: '#TK-1012',
+      id: 'TK-1012',
       title: 'Billing clarification needed',
       excerpt: 'I was charged twice this month for my subscription. Can you please check and refund...?',
       status: 'resolved',
@@ -65,7 +65,7 @@ export default function SupportUser() {
       ],
     },
     {
-      id: '#TK-1024',
+      id: 'TK-1024',
       title: 'API rate limits causing delays',
       excerpt: 'Our integration spikes are failing due to rate limiting. Need temporary increase.',
       status: 'pending',
