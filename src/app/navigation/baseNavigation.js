@@ -18,6 +18,7 @@ export const baseNavigation = [
         title: 'Dashboard',
         transKey: 'nav.dashboard.dashboard',
         Icon: DashboardsIcon,
+        visible:[2]
     },
     // adding support-ticket to the navigation
     {
@@ -27,6 +28,7 @@ export const baseNavigation = [
         title:"Support Ticket",
         transKey:"nav.support-ticket.support-ticket",
         Icon: TicketIcon,
+        visible:[1]
     },
     {
         id: "support-user",
@@ -35,6 +37,7 @@ export const baseNavigation = [
         title:"Support User" ,
         transKey : "nav.support-user.support-user",
         Icon: UserIcon,
+        visible:[1,2]
     }
     // {
     //     id: 'documents',

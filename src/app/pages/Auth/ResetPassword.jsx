@@ -51,14 +51,14 @@ export default function ResetPassword() {
     },
   });
 
-   const onSubmit = (d) => {
+  const onSubmit = (d) => {
     setLoading(true);
     const config = {
       method: "patch",
       url: `${JWT_HOST_API}/auth/reset_password`,
       data: {
-        new_password:d.newPassword,
-        confirm_password:d.confirmPassword,
+        new_password: d.newPassword,
+        confirm_password: d.confirmPassword,
       },
       headers: {
         Authorization: `Bearer ${formattedToken}`,
@@ -75,7 +75,7 @@ export default function ResetPassword() {
         }
       })
       .catch(() => {
-        setLoading(false)
+        setLoading(false);
         toast.error("Please try again later");
       });
   };
@@ -87,9 +87,11 @@ export default function ResetPassword() {
           <div className="text-center">
             {/* <Logo className="mx-auto size-16" /> */}
             <div className="flex w-full justify-center">
-              <div className="flex h-16 w-16 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg bg-[#00B4D8] text-xl font-bold text-white transition-colors duration-200">
-                D
-              </div>
+              <img
+                src="/shieldnest-icon.png"
+                alt="ShieldNest"
+                className="h-20 w-20 object-contain opacity-80"
+              />
             </div>
             <div className="mt-4">
               <h2 className="dark:text-dark-100 text-2xl font-semibold text-gray-600">
@@ -128,8 +130,14 @@ export default function ResetPassword() {
                 </InputErrorMsg>
               </div> */}
 
-              <Button type="submit" className="mt-5 w-full" color="primary" disabled={loading}>
-                {loading &&<GhostSpinner className="size-4 border-2 mr-3" />} Reset Password
+              <Button
+                type="submit"
+                className="mt-5 w-full"
+                color="primary"
+                disabled={loading}
+              >
+                {loading && <GhostSpinner className="mr-3 size-4 border-2" />}{" "}
+                Reset Password
               </Button>
             </form>
           </Card>

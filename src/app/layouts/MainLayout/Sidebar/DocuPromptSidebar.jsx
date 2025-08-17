@@ -42,7 +42,57 @@ export default function DocuPromptSidebar() {
     setShowLogoutConfirm(false);
     await logout();
   };
-
+  const menuItems = (item, isActive, Icon) => {
+    if (item.visible.includes(user.role_id)) {
+      console.log('entered..')
+      return (
+        <Link
+          key={item.id}
+          to={item.path}
+          className={clsx(
+            "group relative flex items-center rounded-lg transition-colors duration-200",
+            isExpanded ? "space-x-3 px-4 py-3" : "justify-center p-3",
+            isActive
+              ? "border-r-[3px] border-r-[#0a5a78] bg-[#c9e0e5] text-[#1A3A6C]"
+              : "text-gray-700 hover:bg-[#d5e5c3] hover:text-gray-700",
+          )}
+          title={!isExpanded ? item.title : undefined}
+        >
+          <div className="relative flex-shrink-0">
+            <Icon className="h-5 w-5" />
+            {item.badge && !isExpanded && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#00B4D8] text-xs text-[10px] font-bold text-white">
+                {item.badge}
+              </span>
+            )}
+          </div>
+          {isExpanded && (
+            <>
+              <span className="flex-1 transition-opacity duration-300">
+                {item.title}
+              </span>
+              {item.badge && (
+                <span className="ml-auto rounded-full bg-[#00B4D8] px-2 py-1 text-xs text-white">
+                  {item.badge}
+                </span>
+              )}
+            </>
+          )}
+          {/* Tooltip for collapsed state */}
+          {!isExpanded && (
+            <div className="pointer-events-none absolute left-full z-50 ml-2 rounded bg-[#1A3A6C] px-2 py-1 text-sm whitespace-nowrap text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              {item.title}
+              {item.badge && (
+                <span className="ml-2 rounded-full bg-[#00B4D8] px-1.5 py-0.5 text-xs text-white">
+                  {item.badge}
+                </span>
+              )}
+            </div>
+          )}
+        </Link>
+      );
+    }
+  };
   return (
     <>
       {/* Mobile Overlay */}
@@ -116,52 +166,7 @@ export default function DocuPromptSidebar() {
               const isActive = isRouteActive(item.path, pathname);
               const Icon = item.Icon;
 
-              return (
-                <Link
-                  key={item.id}
-                  to={item.path}
-                  className={clsx(
-                    "group relative flex items-center rounded-lg transition-colors duration-200",
-                    isExpanded ? "space-x-3 px-4 py-3" : "justify-center p-3",
-                    isActive
-                      ? "bg-[#c9e0e5] text-[#1A3A6C] border-r-[3px] border-r-[#0a5a78]"
-                      : "text-gray-700 hover:bg-[#d5e5c3] hover:text-gray-700",
-                  )}
-                  title={!isExpanded ? item.title : undefined}
-                >
-                  <div className="relative flex-shrink-0">
-                    <Icon className="h-5 w-5" />
-                    {item.badge && !isExpanded && (
-                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#00B4D8] text-xs text-[10px] font-bold text-white">
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
-                  {isExpanded && (
-                    <>
-                      <span className="flex-1 transition-opacity duration-300">
-                        {item.title}
-                      </span>
-                      {item.badge && (
-                        <span className="ml-auto rounded-full bg-[#00B4D8] px-2 py-1 text-xs text-white">
-                          {item.badge}
-                        </span>
-                      )}
-                    </>
-                  )}
-                  {/* Tooltip for collapsed state */}
-                  {!isExpanded && (
-                    <div className="pointer-events-none absolute left-full z-50 ml-2 rounded bg-[#1A3A6C] px-2 py-1 text-sm whitespace-nowrap text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                      {item.title}
-                      {item.badge && (
-                        <span className="ml-2 rounded-full bg-[#00B4D8] px-1.5 py-0.5 text-xs text-white">
-                          {item.badge}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </Link>
-              );
+              return menuItems(item, isActive, Icon);
             })}
           </nav>
 
@@ -177,8 +182,8 @@ export default function DocuPromptSidebar() {
                 "group relative flex items-center",
                 isExpanded ? "space-x-3" : "justify-center",
               )}
-              >
-            {/* //// #00B4D8 */}
+            >
+              {/* //// #00B4D8 */}
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#0c4a6e] font-semibold text-white">
                 {getUserInitials(user)}
               </div>
@@ -202,7 +207,7 @@ export default function DocuPromptSidebar() {
                     </div>
                   </div>
                   <button
-                    className="flex-shrink-0 text-gray-700 transition-colors "
+                    className="flex-shrink-0 text-gray-700 transition-colors"
                     title="Logout"
                     onClick={handleLogoutClick}
                   >
