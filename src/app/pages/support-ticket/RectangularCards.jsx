@@ -10,8 +10,10 @@ import {
   HeartIcon,
 } from "@heroicons/react/24/outline";
 import ChatTemplate from "./ChatTemplate";
+import { useState } from "react";
 
 const RectangularCards = () => {
+  const[isModalOpen, setIsModalOpen] = useState(false)
   return (
     <div className="px-4 py-4">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-6">
@@ -103,7 +105,7 @@ const RectangularCards = () => {
       {/* Additional content will go here */}
       <div  className="mt-5">
         {/* chat template */}
-        <ChatTemplate/>
+        <ChatTemplate isModalOpen={isModalOpen} closeModal={() => setIsModalOpen(false)}/>
 
       </div>
     </div>

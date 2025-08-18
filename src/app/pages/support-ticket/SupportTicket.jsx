@@ -6,6 +6,7 @@ import RectangularCards from './RectangularCards'
 const SupportTicket = () => {
   return (
     <div >
+      
       {/* 6 Cards Grid */}
       <RectangularCards />
      
