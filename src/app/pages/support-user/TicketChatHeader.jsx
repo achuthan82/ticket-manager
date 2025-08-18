@@ -1,7 +1,7 @@
 import { Button } from '@headlessui/react'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 
-const TicketChatHeader = ({ticketId}) => {
+const TicketChatHeader = ({ticketId,backToTickets,closeTicket}) => {
   return (
     <>
     <header className="bg-white shadow-sm border-b border-neutral-300">
@@ -11,7 +11,7 @@ const TicketChatHeader = ({ticketId}) => {
               {/* Left section */}
               <div className="flex items-center space-x-3 sm:space-x-4">
                 {/* Back arrow */}
-                <Button className="text-neutral-500 hover:text-neutral-700">
+                <Button className="text-neutral-500 hover:text-neutral-700" onClick={backToTickets}>
                   <ArrowLeftIcon className="w-5 h-5"/>
                 </Button>
     
@@ -42,7 +42,7 @@ const TicketChatHeader = ({ticketId}) => {
               </div>
     
               {/* Right section */}
-              <button className="text-red-600 hover:text-red-800 text-sm font-medium">
+              <button className="text-red-600 hover:text-red-800 text-sm font-medium" onClick={closeTicket}>
                 Close Ticket
               </button>
             </div>
