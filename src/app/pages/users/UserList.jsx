@@ -297,7 +297,7 @@ const UserList = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Users</p>
+              <p className="text-sm font-medium text-gray-600">Active User</p>
               <p className="mt-2 text-3xl font-bold text-gray-900">8</p>
             </div>
             <div className=" flex h-12 w-12 items-center justify-center rounded-full" style={{backgroundColor:randomColors[1]}}>
