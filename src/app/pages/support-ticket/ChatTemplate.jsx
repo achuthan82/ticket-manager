@@ -1,4 +1,4 @@
-import { Button, Input, ScrollShadow, Select } from "components/ui";
+import { Avatar, Button, Input, ScrollShadow, Select } from "components/ui";
 import {
   ArrowUpTrayIcon,
   FunnelIcon,
@@ -8,13 +8,13 @@ import {
 const ChatTemplate = () => {
   return (
     <div>
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-y-auto">
         {/* ticket listing */}
         <div className="w-1/3 overflow-y-auto border-r border-gray-200 bg-white">
           {/* Filters */}
           <ScrollShadow
             orientation="horizontal"
-            className="h-170 overflow-hidden sm:overflow-auto sm:overflow-x-auto"
+            className="hide-scrollbar h-170 overflow-hidden sm:overflow-auto sm:overflow-x-auto"
           >
             <div className="border-b border-gray-200 p-4">
               <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
@@ -143,10 +143,11 @@ const ChatTemplate = () => {
                   </span>
                 </div>
                 <div className="mt-2 flex items-center">
-                  <img
-                    src="https://ui-avatars.com/api/?name=John+Doe&background=0a5a78&color=fff&size=20"
-                    className="mr-2 h-5 w-5 rounded-full"
-                    alt=""
+                  <Avatar
+                    size={7}
+                    className="mr-2"
+                    initialColor="primary"
+                    name="John Doe"
                   />
                   <span className="text-xs text-gray-600">
                     Assigned to John Doe
@@ -196,10 +197,11 @@ const ChatTemplate = () => {
                   </span>
                 </div>
                 <div className="mt-2 flex items-center">
-                  <img
-                    src="https://ui-avatars.com/api/?name=Jane+Smith&background=5ab453&color=fff&size=20"
-                    className="mr-2 h-5 w-5 rounded-full"
-                    alt=""
+                  <Avatar
+                    size={7}
+                    initialColor="success"
+                    name="Jane Smith"
+                    className="mr-2"
                   />
                   <span className="text-xs text-gray-600">
                     Assigned to Jane Smith
@@ -254,19 +256,23 @@ const ChatTemplate = () => {
         </div>
 
         {/* ticket details */}
+
         <div className="flex flex-1 flex-col bg-white">
           <div className="border border-gray-200 p-6">
-            <div className="flex items-start justify-between">
-              <div className="">
-                <h2 className="text-xl font-bold text-gray-900">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              {/* Left side: Ticket info */}
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 sm:text-xl">
                   #TK-1024 - Payment Issue
                 </h2>
-                <div className="mt-2 flex items-center space-x-4">
+
+                {/* User Info + Meta */}
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
                   <div className="flex items-center">
-                    <img
-                      src="https://ui-avatars.com/api/?name=Michael+Johnson&background=0a5a78&color=fff&size=32"
-                      className="mr-2 h-8 w-8 rounded-full"
-                      alt=""
+                    <Avatar
+                      initialColor="info"
+                      className="mr-2"
+                      name="Micheal John"
                     />
                     <div>
                       <p className="text-sm font-medium text-gray-900">
@@ -277,25 +283,23 @@ const ChatTemplate = () => {
                       </p>
                     </div>
                   </div>
-                  <span className="text-gray-300">.</span>
+
+                  <span className="hidden text-gray-300 sm:inline">•</span>
                   <span className="text-sm text-gray-500">
                     Created 5 mins ago
                   </span>
-                  <span className="text-gray-300">.</span>
-                  <span
-                    style={{ color: "red" }}
-                    className="priority-high text-sm font-medium"
-                  >
+
+                  <span className="hidden text-gray-300 sm:inline">•</span>
+                  <span className="text-sm font-medium text-red-600">
                     High Priority
                   </span>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
+
+              {/* Right side: Select controls */}
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center space-x-2">
-                  <label
-                    htmlFor=""
-                    className="text-sm font-medium text-gray-700"
-                  >
+                  <label className="text-sm font-medium text-gray-700">
                     Status:
                   </label>
                   <Select
@@ -303,11 +307,9 @@ const ChatTemplate = () => {
                     data={["New", "Open", "Pending", "Resolved", "Closed"]}
                   />
                 </div>
+
                 <div className="flex items-center space-x-2">
-                  <label
-                    htmlFor=""
-                    className="text-sm font-medium text-gray-700"
-                  >
+                  <label className="text-sm font-medium text-gray-700">
                     Assign to:
                   </label>
                   <Select
@@ -326,118 +328,121 @@ const ChatTemplate = () => {
 
           {/* mesaaging */}
           {/* messaging section */}
-          <div className="relative flex-1 overflow-hidden">
-            <div className="h-full overflow-y-auto p-6 pb-28">
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <img
-                    src="https://ui-avatars.com/api/?name=Michael+Johnson&background=0a5a78&color=fff&size=40"
-                    className="h-10 w-10 rounded-full"
-                    alt=""
-                  />
-                  <div className="flex-1">
-                    <div className="mb-1 flex items-center space-x-2">
-                      <span className="font-medium text-gray-900">
-                        Micheal Johnson
-                      </span>
-                      <span className="text-xs text-gray-500">5 mins ago</span>
-                    </div>
+          <div className="relative flex-1">
+            <div className="h-full overflow-y-auto p-4 pb-28 sm:p-6">
+              <ScrollShadow
+                orientation="vertical"
+                className="h-[calc(100vh-220px)] overflow-y-auto p-4 sm:p-6"
+              >
+                <div className="space-y-4">
+                  {/* User Message */}
 
-                    <div
-                      style={{
-                        backgroundColor: "#f3f3f6",
-                        maxWidth: "70%",
-                        wordWrap: "break-word",
-                      }}
-                      className="rounded-lg p-4"
-                    >
-                      <p className="text-gray-700\">
-                        Im having trouble processing my subscription payment.
-                        The system keeps showing an error message when I try to
-                        update my credit card information.
-                      </p>
-                      <p className="mt-2 text-gray-700">
-                        Error message: Payment method could not be verified.
-                      </p>
-                      <p className="mt-2 text-gray-700">
-                        Ive tried multiple times with different cards but
-                        getting the same error.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                  <div className="flex flex-col items-start sm:flex-row sm:space-x-3">
+                    <Avatar
+                      initialColor="info"
+                      className="mr-2"
+                      name="Micheal John"
+                    />
+                    <div className="flex-1">
+                      <div className="mb-1 flex flex-wrap items-center space-x-2">
+                        <span className="font-medium text-gray-900">
+                          Micheal Johnson
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          5 mins ago
+                        </span>
+                      </div>
 
-                {/* Notes */}
-                <div className="flex justify-center">
-                  <div className="flex rounded-full bg-yellow-50 px-4 py-2 text-sm text-yellow-800">
-                    <InformationCircleIcon className="h-5 w-5" />
-                    <span>Ticket assigned to John Doe</span>
-                  </div>
-                </div>
-                {/* agent response section */}
-                <div className="flex items-start justify-end space-x-3">
-                  <div className="max-w-lg flex-1">
-                    <div className="psace-x-2 mb-1 flex items-center justify-end">
-                      <span className="text-xs text-gray-500">2 mins ago</span>
-                      <span className="font-medium text-gray-900">
-                        John Doe
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        backgroundColor: "#c9e0e5",
-                        marginLeft: "auto",
-                        maxWidth: "70%",
-                        wordWrap: "break-word",
-                      }}
-                      className="rounded-lg p-4"
-                    >
-                      <p className="text-gray-700">Hi Micheal</p>
-                      <p className="mt-2 text-gray-700">
-                        Im sorry to hear you are experiencing issues with
-                        updating your payment method. Ive checked your account
-                        and i can see the error in our system{" "}
-                      </p>
-                      <p className="tetx-gray-700 mt-2">
-                        Im escalating this to our technical team for immediate
-                        resolution. In the meantime, I can process your payment
-                        manually if you would like to continue your subcription
-                        without interruption.{" "}
-                      </p>
-                      <p className="tetx-gray-700 mt-2">
-                        Would you prefer to wait for the fix or shall I assist
-                        you with a manual payment?
-                      </p>
+                      <div className="max-w-full rounded-lg bg-gray-100 p-4 break-words text-gray-700 sm:max-w-[70%]">
+                        <p>
+                          I’m having trouble processing my subscription payment.
+                          The system keeps showing an error message when I try
+                          to update my credit card information.
+                        </p>
+                        <p className="mt-2">
+                          Error message: Payment method could not be verified.
+                        </p>
+                        <p className="mt-2">
+                          I’ve tried multiple times with different cards but
+                          getting the same error.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <img
-                    src="https://ui-avatars.com/api/?name=John+Doe&background=5ab453&color=fff&size=40"
-                    className="h-10 w-10 rounded-full"
-                    alt=""
-                  />
+
+                  {/* Notes */}
+                  <div className="flex justify-center">
+                    <div className="flex items-center rounded-full bg-yellow-50 px-4 py-2 text-sm text-yellow-800">
+                      <InformationCircleIcon className="mr-1 h-5 w-5" />
+                      <span>Ticket assigned to John Doe</span>
+                    </div>
+                  </div>
+
+                  {/* Agent Response */}
+                  <div className="flex flex-col items-start justify-end sm:flex-row sm:items-end sm:space-x-3">
+                    <div className="order-2 max-w-full flex-1 sm:order-1 sm:max-w-lg">
+                      <div className="mb-1 flex flex-wrap items-center justify-end space-x-2">
+                        <span className="text-xs text-gray-500">
+                          2 mins ago
+                        </span>
+                        <span className="font-medium text-gray-900">
+                          John Doe
+                        </span>
+                      </div>
+                      <div className="ml-auto max-w-full rounded-lg bg-teal-100 p-4 break-words text-gray-700 sm:max-w-[70%]">
+                        <p>Hi Micheal</p>
+                        <p className="mt-2">
+                          I’m sorry to hear you are experiencing issues with
+                          updating your payment method. I’ve checked your
+                          account and I can see the error in our system.
+                        </p>
+                        <p className="mt-2">
+                          I’m escalating this to our technical team for
+                          immediate resolution. In the meantime, I can process
+                          your payment manually if you would like to continue
+                          your subscription without interruption.
+                        </p>
+                        <p className="mt-2">
+                          Would you prefer to wait for the fix or shall I assist
+                          you with a manual payment?
+                        </p>
+                      </div>
+                    </div>
+                    <Avatar
+                      initialColor="success"
+                      className="order-1 mb-2 h-10 w-10 rounded-full sm:order-2 sm:mb-0"
+                      name="John Doe"
+                    />
+                  </div>
                 </div>
-              </div>
+              </ScrollShadow>
             </div>
           </div>
 
           {/* reply section */}
-          <div className="sbsolute right-0 bottom-0 left-0 border-t border-gray-300 p-4">
-            <div className="flex items-start space-x-3">
-              <img
-                src="	https://ui-avatars.com/api/?name=Admin+User&background=0a5a78&color=fff&size=40"
-                className="h-10 w-10 rounded-full"
-                alt=""
-              />
+          <div className="fixed bottom-0 w-9/15  border-t border-gray-300 bg-white p-3 sm:p-4">
+            <div className="flex  flex-col sm:flex-row sm:items-start sm:space-x-3">
+              {/* Avatar */}
+              <div className="mb-2 flex-shrink-0 sm:mb-0">
+                <Avatar
+                  initialColor="info"
+                  className="mr-2 sm:mr-0"
+                  name="Admin User"
+                />
+              </div>
+
+              {/* Input + Actions */}
               <div className="flex-1">
                 <textarea
                   placeholder="Type your response..."
-                  className="focus:ring-atoll w-full resize-none rounded-lg border border-gray-400 px-4 py-3 focus:ring-2 focus:outline-none"
+                  className="focus:ring-atoll w-full resize-none rounded-lg border border-gray-400 px-3 py-2 text-sm focus:ring-2 focus:outline-none sm:px-4 sm:py-3 sm:text-base"
                   rows="3"
-                  name=""
-                  id=""
                 ></textarea>
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+
+                {/* Bottom Actions */}
+                <div className="mt-3 flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                  {/* Left Actions */}
+                  <div className="flex items-center space-x-2 sm:space-x-3">
                     <Button
                       variant="flat"
                       className="text-gray-400 hover:text-gray-600"
@@ -454,12 +459,10 @@ const ChatTemplate = () => {
                       ]}
                     />
                   </div>
-                  <div className="flex items-center space-x-3">
-                    {/* <label htmlFor="" className="flex items-center">
-                      <Input type="checkbox" className="mr-2"/>
-                      <span className="text-sm text-gray-700">Send Email notification</span>
-                    </label> */}
-                    <Button className="bg-atoll hover:bg-opacity-90 rounded-lg px-4 py-2 text-white">
+
+                  {/* Right Action */}
+                  <div className="flex justify-end">
+                    <Button className="bg-atoll hover:bg-opacity-90 w-full rounded-lg px-4 py-2 text-white sm:w-auto">
                       Send Response
                     </Button>
                   </div>

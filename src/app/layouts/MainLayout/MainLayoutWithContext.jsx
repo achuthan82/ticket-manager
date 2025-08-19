@@ -60,7 +60,8 @@ export default function MainLayoutWithContext() {
         isExpanded ? "lg:ml-0" : "lg:ml-0"
       )}>
         <DynamicHeader {...getHeaderProps()} />
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        {/* here i have removed overflow-y-auto to avoid uncessary scroll */}
+        <div className="flex-1  p-4 sm:p-6">
           <Outlet />
         </div>
         <NewTicketModal

@@ -1,20 +1,14 @@
-
 // import Chat from './Chat'
 
-import RectangularCards from './RectangularCards'
+import RectangularCards from "./RectangularCards";
 
 const SupportTicket = () => {
   return (
-    <div >
-      
+    <div>
       {/* 6 Cards Grid */}
       <RectangularCards />
-     
-      
-
-
     </div>
-  )
-}
+  );
+};
 
-export default SupportTicket   
+export default SupportTicket;
