@@ -24,7 +24,7 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
     <button
       type="button"
       onClick={() => navigate(`/support-user/${id}`)}
-      className="w-full rounded-lg border border-neutral-200 bg-white p-6 text-left shadow-sm transition-all hover:shadow-md"
+      className="w-full rounded-lg bg-white p-6 text-left shadow-sm transition-all hover:shadow-lg"
     >
      {/* Top row */}
 <div className="flex items-center justify-between mb-4">

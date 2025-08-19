@@ -6,16 +6,33 @@ import {
   Transition,
   TransitionChild,
 } from "@headlessui/react";
-import { XMarkIcon, ArrowUpTrayIcon } from "@heroicons/react/24/outline";
+import { ArrowUpTrayIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { Button, Input, Select, Textarea, Upload } from "components/ui";
+import { useListState } from "hooks";
+import clsx from "clsx";
+import { FileItem } from "components/shared/form/FileItem";
+import { useDropzone } from "react-dropzone";
+
+
 
 export default function NewTicketModal({ open, onClose, onSubmit }) {
+
+  const [files, { remove, append }] = useListState();
+
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("medium");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [attachment, setAttachment] = useState(null);
-  const [errors, setErrors] = useState({});
+
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: (files) => {
+      append(...files);
+      setAttachment(files[0]); 
+    },
+    accept: { "image/png": [".png", ".jpeg", ".jpg"] },
+  });
 
   const categories = [
     { label: "Select a category", value: "" },
@@ -24,22 +41,11 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
     { label: "Technical Support", value: "technical" },
     { label: "Feature Request", value: "feature" },
     { label: "General Enquiry", value: "general" },
-    ]
-   
-
-  const validateForm = () => {
-    let newErrors = {};
-    if (!category) newErrors.category = "Please select a category.";
-    if (!subject.trim()) newErrors.subject = "Subject is required.";
-    if (!description.trim()) newErrors.description = "Description is required.";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  ]
 
   const handleSubmit = (e) => {
-    e?.preventDefault?.();
-    if (!validateForm()) return;
-
+    e?.preventDefault?.(); 
+    
     const payload = {
       category,
       priority,
@@ -55,7 +61,7 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
     <button
       type="button"
       onClick={() => setPriority(value)}
-      className={`flex-1 rounded-lg border px-6 py-5 text-left transition-colors ${priority === value
+      className={`priority-low rounded-lg p-3 cursor-pointer text-center border-l-4 ${priority === value
         ? `${colorClasses.activeBorder} ${colorClasses.activeBg}`
         : "border-neutral-300 hover:border-neutral-400 bg-white"
         }`}
@@ -71,7 +77,7 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
     <Transition appear show={open} as={Fragment}>
       <Dialog
         as="div"
-        className="fixed inset-0 z-[100] flex items-start justify-center px-4 py-10 sm:px-5 pointer-events-none"
+        className="fixed inset-0 overflow-y-auto z-50"
         onClose={onClose}
       >
         {/* Backdrop */}
@@ -84,7 +90,7 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="absolute inset-0 bg-gray-900/50 pointer-events-none" />
+          <div className="fixed inset-0 bg-gray-900/50 pointer-events-none" />
         </TransitionChild>
 
         {/* Modal */}
@@ -97,7 +103,7 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
           leaveFrom="opacity-100 scale-100"
           leaveTo="opacity-0 scale-95"
         >
-          <DialogPanel className="relative w-full max-w-2xl max-h-[90vh] rounded-xl bg-white p-0 shadow-lg transition-all pointer-events-auto flex flex-col">
+          <DialogPanel className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-3 flex-shrink-0">
               <DialogTitle className="text-lg font-semibold text-neutral-900">
@@ -123,18 +129,14 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
                     className="w-full"
                     required
                   />
-                  {errors.category && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.category}
-                    </p>
-                  )}
+                  
                 </div>
 
                 <div className="mb-4">
-                  <div className="mb-2 text-sm font-medium text-neutral-900">
+                  <div className="mb-2 text-sm font-medium text-neutral-500">
                     Priority
                   </div>
-                  <div className="flex gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <PriorityCard
                       value="low"
                       title="Low"
@@ -175,11 +177,7 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                   />
-                  {errors.subject && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.subject}
-                    </p>
-                  )}
+                  
                 </div>
 
                 <div className="mb-4">
@@ -190,48 +188,64 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                   />
-                  {errors.description && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.description}
-                    </p>
-                  )}
+                  
                 </div>
- 
-                <div className="mt-4">
-                  <div className="mb-2 text-sm font-medium text-neutral-900">
+                
+                {/* Uplaod Area */}
+                <div className="mt-8">
+                  <div className="mb-2 text-sm font-medium text-neutral-500">
                     Attachments (optional)
                   </div>
-                  <Upload
-                    multiple
-                    accept="image/png,image/jpeg,application/pdf"  // optional: restrict types
-                    onChange={(files) => {
-                      const max = 10 * 1024 * 1024; // 10MB
-                      const allowed = Array.from(files).filter(
-                        f => ["image/png", "image/jpeg", "application/pdf"].includes(f.type) && f.size <= max
-                      );
-                      setAttachment(allowed);
-                    }}
-                  >
-                    {({ onClick }) => (
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        onClick={onClick}
-                        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick()}
-                        className="flex h-56 flex-col items-center justify-center rounded-lg border border-dashed border-neutral-300 p-8 text-center text-neutral-500 hover:border-neutral-400"
-                      >
-                        <ArrowUpTrayIcon className="h-7 w-7 text-neutral-400" />
-                        <div className="mt-2 text-sm">Drop files here or click to upload</div>
-                        <div className="mt-1 text-xs text-neutral-400">PNG, JPG, PDF up to 10MB</div>
-                      </div>
-                    )}
-                  </Upload>
+                  <div>
+                    
+                    <Upload inputProps={{ ...getInputProps() }} {...getRootProps()}>
+                      {({ ...props }) => (
+                        <Button
+                          {...props}
+                          unstyled
+                          className={clsx(
+                            "mt-3 w-full shrink-0 flex-col rounded-lg border-2 border-dashed py-4",
+                            isDragActive
+                              ? "border-primary-600 dark:border-primary-500"
+                              : "border-gray-300 dark:border-dark-450"
+                          )}
+                        >
+                          <ArrowUpTrayIcon className="size-8 text-gray-500" />
+                          <span
+                            className={clsx(
+                              "pointer-events-none mt-2",
+                              isDragActive
+                                ? "text-primary-600 dark:text-primary-400"
+                                : "text-gray-600 dark:text-dark-200"
+                            )}
+                          >
+                            <span className="text-primary-600 dark:text-primary-400">
+                              Browse
+                            </span>
+                            <span> or drop your files here</span>
+                            <span><p className="mt-1 text-xs">
+                              You can upload .png, .jpg and .jpeg file formats.
+                            </p></span>
+                          </span>
+                        </Button>
+                      )}
+                    </Upload>
+                    <div className="mt-4 flex flex-col space-y-4">
+                      {files.map((file, index) => (
+                        <FileItem
+                          handleRemove={() => remove(index)}
+                          file={file}
+                          key={index}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </form>
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end gap-3 border-t border-neutral-200 px-5 py-3 flex-shrink-0">
+            <div className="flex items-center justify-end gap-3 px-5 py-3 flex-shrink-0">
               <Button
                 variant="outlined"
                 color="primary"

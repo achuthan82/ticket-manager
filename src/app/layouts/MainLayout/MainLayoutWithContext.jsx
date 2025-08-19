@@ -18,6 +18,8 @@ export default function MainLayoutWithContext() {
   const { isExpanded } = useSidebarContext();
   const { pathname } = useLocation();
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
+
+  // const isTicketChat = /^\/support-user\/[^/]+$/.test(pathname);
   
   // Get context values for state management
   const documentsContext = useContext(DocumentsContext);
@@ -60,6 +62,9 @@ export default function MainLayoutWithContext() {
         isExpanded ? "lg:ml-0" : "lg:ml-0"
       )}>
         <DynamicHeader {...getHeaderProps()} />
+        {/* <div  className={`flex-1 overflow-y-auto ${
+          isTicketChat ? "" : "p-4 sm:p-6"
+        }`}> */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           <Outlet />
         </div>
