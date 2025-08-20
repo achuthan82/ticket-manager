@@ -4,7 +4,9 @@ function CategoryCard({ icon: Icon, title, subtitle, colorClasses, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="group w-full rounded-xl border border-neutral-200 bg-white p-6 text-left shadow-sm transition-all hover:shadow-md"
+      className="bg-white p-6 rounded-lg shadow-sm text-center 
+    transition-all duration-300 ease-in-out 
+    hover:shadow-lg hover:-translate-y-2 cursor-pointer"
     >
       <div className="flex flex-col items-center justify-center gap-4">
         <div className={`flex h-14 w-14 items-center justify-center rounded-full ${colorClasses.bg} ${colorClasses.text}`}>
@@ -22,7 +24,7 @@ function CategoryCard({ icon: Icon, title, subtitle, colorClasses, onClick }) {
 export default function HelpSection({ categories }) {
   return (
     <div>
-      <h2 className="text-xl font-semibold text-neutral-900">How can we help you today?</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">How can we help you today?</h2>
       <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {categories.map((cat) => (
           <CategoryCard

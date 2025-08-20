@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useState } from "react";
 import {
   Dialog,
   DialogPanel,
@@ -17,17 +17,15 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
   const [attachment, setAttachment] = useState(null);
   const [errors, setErrors] = useState({});
 
-  const categories = useMemo(
-    () => [
+  const categories = [
     { label: "Select a category", value: "" },
     { label: "Billing & Payments", value: "billing" },
     { label: "Leads & Territories", value: "leads" },
     { label: "Technical Support", value: "technical" },
     { label: "Feature Request", value: "feature" },
     { label: "General Enquiry", value: "general" },
-    ],
-    []
-  );
+    ]
+   
 
   const validateForm = () => {
     let newErrors = {};
