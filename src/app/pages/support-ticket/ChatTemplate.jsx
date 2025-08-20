@@ -10,15 +10,16 @@ const ChatTemplate = () => {
     <div>
       <div className="flex flex-1 overflow-y-auto">
         {/* ticket listing */}
-        <div className="w-1/3 overflow-y-auto border-r border-gray-200 bg-white">
+        <div className="w-full overflow-y-auto border-r border-gray-200 bg-white sm:w-1/2 lg:w-1/3">
           {/* Filters */}
           <ScrollShadow
             orientation="horizontal"
-            className="hide-scrollbar h-170 overflow-hidden sm:overflow-auto sm:overflow-x-auto"
+            className="hide-scrollbar h-[42rem] overflow-hidden sm:overflow-auto sm:overflow-x-auto"
           >
             <div className="border-b border-gray-200 p-4">
+              {/* Search + Button */}
               <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
-                <Input className="w-100" placeholder="Search Tickets..." />
+                <Input className="w-full" placeholder="Search Tickets..." />
                 <Button
                   className="h-10 w-full flex-shrink-0 p-2 sm:w-10"
                   variant="flat"
@@ -27,7 +28,9 @@ const ChatTemplate = () => {
                   <FunnelIcon className="h-6 w-6" />
                 </Button>
               </div>
-              <div className="flex flex-1 space-x-2">
+
+              {/* Filters row */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:space-x-2">
                 <Select
                   defaultValue="All Status"
                   data={[
@@ -49,206 +52,113 @@ const ChatTemplate = () => {
                 />
               </div>
 
-              {/* Ticket 1 */}
-              <div
-                className="ticket mt-4 bg-blue-50 p-4 transition duration-200 hover:bg-gray-50"
-                style={{
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  padding: "1rem",
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-              >
-                <div className="mb-2 flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      #TK-1024 - Payment Issue
-                    </p>
-                    <p className="text-sm text-gray-600">Micheal Johnson</p>
+              {/* Tickets */}
+              <div className="mt-4 space-y-4">
+                {/* Ticket 1 */}
+                <div
+                  className="ticket rounded-md bg-blue-50 p-4 shadow-sm transition hover:bg-gray-50"
+                  style={{
+                    cursor: "pointer",
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <div className="mb-2 flex items-start justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        #TK-1024 - Payment Issue
+                      </p>
+                      <p className="text-sm text-gray-600">Micheal Johnson</p>
+                    </div>
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+                      New
+                    </span>
                   </div>
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      padding: "0.25rem 0.75rem",
-                      borderRadius: "9999px",
-                      fontWeight: "600",
-                      backgroundColor: "#dbeafe",
-                      color: "#1e40af",
-                    }}
-                  >
-                    New
-                  </span>
+                  <p className="mb-2 line-clamp-2 text-sm text-gray-700">
+                    Im having trouble processing my subscription payment. The
+                    system keeps showing an error...
+                  </p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">5 mins ago</span>
+                    <span className="rounded-full px-3 py-1 text-xs font-semibold text-red-600">
+                      High Priority
+                    </span>
+                  </div>
                 </div>
-                <p className="mb-2 line-clamp-2 text-sm text-gray-700">
-                  Im having trouble processing my subscription payment. The
-                  system keeps showing an error...
-                </p>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">5 mins ago</span>
-                  <span
-                    className="font-medium"
-                    style={{
-                      fontSize: "0.75rem",
-                      padding: "0.25rem 0.75rem",
-                      borderRadius: "9999px",
-                      fontWeight: "600",
-                      color: "red",
-                    }}
-                  >
-                    High Priority
-                  </span>
-                </div>
-              </div>
 
-              {/* Ticket 2 */}
-              <div className="mt-4 bg-white p-4 shadow-sm hover:bg-gray-50">
-                <div className="mb-2 flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      #TK-1023 - Lead Quality Question
-                    </p>
-                    <p className="text-sm text-gray-600">Sarah Williams</p>
+                {/* Ticket 2 */}
+                <div className="rounded-md bg-white p-4 shadow-sm hover:bg-gray-50">
+                  <div className="mb-2 flex items-start justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        #TK-1023 - Lead Quality Question
+                      </p>
+                      <p className="text-sm text-gray-600">Sarah Williams</p>
+                    </div>
+                    <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800">
+                      Open
+                    </span>
                   </div>
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      padding: "0.25rem 0.75rem",
-                      borderRadius: "9999px",
-                      fontWeight: "600",
-                      backgroundColor: "#fef3c7",
-                      color: "#92400e",
-                    }}
-                  >
-                    Open
-                  </span>
+                  <p className="mb-2 line-clamp-2 text-sm text-gray-700">
+                    I received leads from the Miami area but the response rate
+                    is lower than expected...
+                  </p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">2 hours ago</span>
+                    <span className="rounded-full px-3 py-1 text-xs font-semibold text-yellow-600">
+                      Medium Priority
+                    </span>
+                  </div>
                 </div>
-                <p className="mb-2 line-clamp-2 text-sm text-gray-700">
-                  I received leads from the Miami area but the response rate is
-                  lower than expected...
-                </p>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">2 hours ago</span>
-                  <span
-                    className="font-medium"
-                    style={{
-                      fontSize: "0.75rem",
-                      padding: "0.25rem 0.75rem",
-                      borderRadius: "9999px",
-                      fontWeight: "600",
-                      color: "#f59e0b",
-                    }}
-                  >
-                    Medium Priority
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center">
-                  <Avatar
-                    size={7}
-                    className="mr-2"
-                    initialColor="primary"
-                    name="John Doe"
-                  />
-                  <span className="text-xs text-gray-600">
-                    Assigned to John Doe
-                  </span>
-                </div>
-              </div>
 
-              {/* Ticket 3 */}
-              <div className="mt-4 bg-white p-4 shadow-sm hover:bg-gray-50">
-                <div className="mb-2 flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      #TK-1022 - Feature Request
-                    </p>
-                    <p className="text-sm text-gray-600">Robert Davis</p>
+                {/* Ticket 3 */}
+                <div className="rounded-md bg-white p-4 shadow-sm hover:bg-gray-50">
+                  <div className="mb-2 flex items-start justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        #TK-1022 - Feature Request
+                      </p>
+                      <p className="text-sm text-gray-600">Robert Davis</p>
+                    </div>
+                    <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800">
+                      Pending
+                    </span>
                   </div>
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      padding: "0.25rem 0.75rem",
-                      borderRadius: "9999px",
-                      fontWeight: "600",
-                      backgroundColor: "#e0e7ff",
-                      color: "#3730a3",
-                    }}
-                  >
-                    Pending
-                  </span>
+                  <p className="mb-2 line-clamp-2 text-sm text-gray-700">
+                    Would it be possible to add a feature for scheduling
+                    automated follow-up emails...
+                  </p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">Yesterday</span>
+                    <span className="rounded-full px-3 py-1 text-xs font-semibold text-green-600">
+                      Low Priority
+                    </span>
+                  </div>
                 </div>
-                <p className="mb-2 line-clamp-2 text-sm text-gray-700">
-                  Would it be possible to add a feature for scheduling automated
-                  follow-up emails...
-                </p>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">Yesterday</span>
-                  <span
-                    className="font-medium"
-                    style={{
-                      fontSize: "0.75rem",
-                      padding: "0.25rem 0.75rem",
-                      borderRadius: "9999px",
-                      fontWeight: "600",
-                      color: "green",
-                    }}
-                  >
-                    Low Priority
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center">
-                  <Avatar
-                    size={7}
-                    initialColor="success"
-                    name="Jane Smith"
-                    className="mr-2"
-                  />
-                  <span className="text-xs text-gray-600">
-                    Assigned to Jane Smith
-                  </span>
-                </div>
-              </div>
 
-              {/* Ticket 4 */}
-              <div className="mt-4 bg-white p-4 shadow-sm hover:bg-gray-50">
-                <div className="mb-2 flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      #TK-1021 - Territory Access
-                    </p>
-                    <p className="text-sm text-gray-600">Lisa Chen</p>
+                {/* Ticket 4 */}
+                <div className="rounded-md bg-white p-4 shadow-sm hover:bg-gray-50">
+                  <div className="mb-2 flex items-start justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        #TK-1021 - Territory Access
+                      </p>
+                      <p className="text-sm text-gray-600">Lisa Chen</p>
+                    </div>
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+                      Resolved
+                    </span>
                   </div>
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      padding: "0.25rem 0.75rem",
-                      borderRadius: "9999px",
-                      fontWeight: "600",
-                      backgroundColor: "#dbeafe",
-                      color: "#1e40af",
-                    }}
-                  >
-                    Resolved
-                  </span>
-                </div>
-                <p className="mb-2 line-clamp-2 text-sm text-gray-700">
-                  I purchased access to the California territory but Im not
-                  seeing any leads...
-                </p>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">2 days ago</span>
-                  <span
-                    className="font-medium"
-                    style={{
-                      fontSize: "0.75rem",
-                      padding: "0.25rem 0.75rem",
-                      borderRadius: "9999px",
-                      fontWeight: "600",
-                      color: "red",
-                    }}
-                  >
-                    High Priority
-                  </span>
+                  <p className="mb-2 line-clamp-2 text-sm text-gray-700">
+                    I purchased access to the California territory but Im not
+                    seeing any leads...
+                  </p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">2 days ago</span>
+                    <span className="rounded-full px-3 py-1 text-xs font-semibold text-red-600">
+                      High Priority
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -258,58 +168,58 @@ const ChatTemplate = () => {
         {/* ticket details */}
 
         <div className="flex flex-1 flex-col bg-white">
-          <div className="border border-gray-200 p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="border border-gray-200 p-4 sm:p-6">
+            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
               {/* Left side: Ticket info */}
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 sm:text-xl">
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-base font-bold text-gray-900 sm:text-lg md:text-xl">
                   #TK-1024 - Payment Issue
                 </h2>
 
                 {/* User Info + Meta */}
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <div className="flex items-center">
+                <div className="mt-3 flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3">
+                  <div className="flex max-w-full min-w-[200px] items-center">
                     <Avatar
                       initialColor="info"
                       className="mr-2"
                       name="Micheal John"
                     />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-900">
                         Micheal Johnson
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="truncate text-xs text-gray-500 sm:text-sm">
                         micheal.j@email.com
                       </p>
                     </div>
                   </div>
 
-                  <span className="hidden text-gray-300 sm:inline">•</span>
-                  <span className="text-sm text-gray-500">
-                    Created 5 mins ago
-                  </span>
-
-                  <span className="hidden text-gray-300 sm:inline">•</span>
-                  <span className="text-sm font-medium text-red-600">
-                    High Priority
-                  </span>
+                  <div className="flex flex-wrap items-center gap-x-2 text-gray-500">
+                    <span className="hidden sm:inline">•</span>
+                    <span>Created 5 mins ago</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="font-medium text-red-600">
+                      High Priority
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Right side: Select controls */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700">
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center md:w-auto">
+                <div className="flex w-full items-center space-x-2 sm:w-auto">
+                  <label className="shrink-0 text-sm font-medium text-gray-700">
                     Status:
                   </label>
                   <Select
                     defaultValue="Status"
                     data={["New", "Open", "Pending", "Resolved", "Closed"]}
+                    className="flex-1 sm:flex-none"
                   />
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700">
+                <div className="flex w-full items-center space-x-2 sm:w-auto">
+                  <label className="shrink-0 text-sm font-medium text-gray-700">
                     Assign to:
                   </label>
                   <Select
@@ -320,6 +230,7 @@ const ChatTemplate = () => {
                       "Jane Smith",
                       "Admin User",
                     ]}
+                    className="flex-1 sm:flex-none"
                   />
                 </div>
               </div>
@@ -329,17 +240,17 @@ const ChatTemplate = () => {
           {/* messaging section */}
           <div className="relative flex flex-1 flex-col overflow-hidden">
             {/* Messages container with proper scrolling */}
-            <div className=" absolute flex-1 overflow-hidden">
+            <div className="absolute inset-0 flex-1 overflow-hidden">
               <ScrollShadow
                 orientation="vertical"
                 className="h-full max-h-[calc(80vh-400px)] overflow-y-auto"
               >
-                <div className="space-y-4 p-4 sm:p-6">
+                <div className="space-y-4 p-3 sm:p-4 md:p-6">
                   {/* User Message */}
                   <div className="flex flex-col items-start sm:flex-row sm:space-x-3">
                     <Avatar
                       initialColor="info"
-                      className="mr-2"
+                      className="mr-2 mb-2 sm:mb-0"
                       name="Micheal John"
                     />
                     <div className="flex-1">
@@ -352,7 +263,7 @@ const ChatTemplate = () => {
                         </span>
                       </div>
 
-                      <div className="max-w-full rounded-lg bg-gray-100 p-4 break-words text-gray-700 sm:max-w-[70%]">
+                      <div className="max-w-full rounded-lg bg-gray-100 p-3 break-words text-gray-700 sm:p-4 md:max-w-[75%]">
                         <p>
                           Im having trouble processing my subscription payment.
                           The system keeps showing an error message when I try
@@ -371,8 +282,8 @@ const ChatTemplate = () => {
 
                   {/* Notes */}
                   <div className="flex justify-center">
-                    <div className="flex items-center rounded-full bg-yellow-50 px-4 py-2 text-sm text-yellow-800">
-                      <InformationCircleIcon className="mr-1 h-5 w-5" />
+                    <div className="flex items-center rounded-full bg-yellow-50 px-3 py-1.5 text-xs text-yellow-800 sm:text-sm">
+                      <InformationCircleIcon className="mr-1 h-4 w-4 sm:h-5 sm:w-5" />
                       <span>Ticket assigned to John Doe</span>
                     </div>
                   </div>
@@ -388,7 +299,7 @@ const ChatTemplate = () => {
                           John Doe
                         </span>
                       </div>
-                      <div className="ml-auto max-w-full rounded-lg bg-teal-100 p-4 break-words text-gray-700 sm:max-w-[70%]">
+                      <div className="ml-auto max-w-full rounded-lg bg-teal-100 p-3 break-words text-gray-700 sm:p-4 md:max-w-[75%]">
                         <p>Hi Micheal</p>
                         <p className="mt-2">
                           Im sorry to hear you are experiencing issues with
@@ -409,80 +320,30 @@ const ChatTemplate = () => {
                     </div>
                     <Avatar
                       initialColor="success"
-                      className="order-1 mb-2 h-10 w-10 rounded-full sm:order-2 sm:mb-0"
+                      className="order-1 mb-2 h-9 w-9 rounded-full sm:order-2 sm:mb-0 sm:h-10 sm:w-10"
                       name="John Doe"
                     />
                   </div>
 
-                  {/* Additional messages for testing scroll */}
-                  {/* <div className="flex flex-col items-start sm:flex-row sm:space-x-3">
-                    <Avatar
-                      initialColor="info"
-                      className="mr-2"
-                      name="Micheal John"
-                    />
-                    <div className="flex-1">
-                      <div className="mb-1 flex flex-wrap items-center space-x-2">
-                        <span className="font-medium text-gray-900">
-                          Micheal Johnson
-                        </span>
-                        <span className="text-xs text-gray-500">1 min ago</span>
-                      </div>
-
-                      <div className="max-w-full rounded-lg bg-gray-100 p-4 break-words text-gray-700 sm:max-w-[70%]">
-                        <p>
-                          Thank you for the quick response! I would prefer to
-                          wait for the technical fix rather than processing
-                          manually. How long do you think it might take?
-                        </p>
-                      </div>
-                    </div>
-                  </div> */}
-
-                  {/* <div className="flex flex-col items-start justify-end sm:flex-row sm:items-end sm:space-x-3">
-                    <div className="order-2 max-w-full flex-1 sm:order-1 sm:max-w-lg">
-                      <div className="mb-1 flex flex-wrap items-center justify-end space-x-2">
-                        <span className="text-xs text-gray-500">Just now</span>
-                        <span className="font-medium text-gray-900">
-                          John Doe
-                        </span>
-                      </div>
-                      <div className="ml-auto max-w-full rounded-lg bg-teal-100 p-4 break-words text-gray-700 sm:max-w-[70%]">
-                        <p>
-                          Great choice Our technical team typically resolves
-                          payment gateway issues within 2-4 hours Ill monitor
-                          your case closely and update you as soon as its fixed.
-                        </p>
-                        <p className="mt-2">
-                          Ill also send you an email confirmation once the issue
-                          is resolved so you can retry your payment
-                        </p>
-                      </div>
-                    </div>
-                    <Avatar
-                      initialColor="success"
-                      className="order-1 mb-2 h-10 w-10 rounded-full sm:order-2 sm:mb-0"
-                      name="John Doe"
-                    />
-                  </div> */}
+                  {/* More messages… */}
                 </div>
               </ScrollShadow>
             </div>
 
             {/* reply section - now matches the width of ticket details */}
-            <div className=" absolute left-0 right-0 bottom-0 border-t border-gray-300 bg-white p-3 sm:p-4">
+            <div className="absolute right-0 bottom-0 left-0 border-t border-gray-300 bg-white p-3 sm:p-4">
               <div className="flex flex-col sm:flex-row sm:items-start sm:space-x-3">
                 {/* Avatar */}
-                <div className="mb-2 flex-shrink-0 sm:mb-0">
+                <div className="mb-2 flex flex-shrink-0 justify-center sm:mb-0 sm:justify-start">
                   <Avatar
                     initialColor="info"
-                    className="mr-2 sm:mr-0"
+                    className="mr-0 sm:mr-0"
                     name="Admin User"
                   />
                 </div>
 
                 {/* Input + Actions */}
-                <div className="flex-1">
+                <div className="flex flex-1 flex-col">
                   <textarea
                     placeholder="Type your response..."
                     className="focus:ring-atoll w-full resize-none rounded-lg border border-gray-400 px-3 py-2 text-sm focus:ring-2 focus:outline-none sm:px-4 sm:py-3 sm:text-base"
@@ -490,12 +351,12 @@ const ChatTemplate = () => {
                   ></textarea>
 
                   {/* Bottom Actions */}
-                  <div className="mt-3 flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                  <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     {/* Left Actions */}
-                    <div className="flex items-center space-x-2 sm:space-x-3">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
                       <Button
                         variant="flat"
-                        className="text-gray-400 hover:text-gray-600"
+                        className="flex items-center justify-center text-gray-400 hover:text-gray-600 sm:justify-start"
                       >
                         <ArrowUpTrayIcon className="h-5 w-5" />
                       </Button>
@@ -507,11 +368,12 @@ const ChatTemplate = () => {
                           "Feature Request Response",
                           "General Inquiry",
                         ]}
+                        className="w-full sm:w-auto"
                       />
                     </div>
 
                     {/* Right Action */}
-                    <div className="flex justify-end">
+                    <div className="flex w-full justify-end sm:w-auto">
                       <Button className="bg-atoll hover:bg-opacity-90 w-full rounded-lg px-4 py-2 text-white sm:w-auto">
                         Send Response
                       </Button>
