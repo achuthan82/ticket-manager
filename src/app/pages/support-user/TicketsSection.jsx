@@ -15,10 +15,10 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
 
   const topMeta = meta.find((m) => m.label === "Updated" || m.label === "Resolved");
 
-  const bottomMeta = [
-    { label: "Created", value: created },
-    ...meta.filter((m) => m.label !== "Updated" && m.label !== "Resolved"),
-  ];
+  const filteredMeta = meta.filter(
+    (m) => m.label !== "Updated" && m.label !== "Resolved"
+  );
+  const bottomMeta = [{ label: "Created", value: created }, ...filteredMeta];
 
   return (
     <button
@@ -26,28 +26,28 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
       onClick={() => navigate(`/support-user/${id}`)}
       className="w-full rounded-lg bg-white p-6 text-left shadow-sm transition-all hover:shadow-lg"
     >
-     {/* Top row */}
-<div className="flex items-center justify-between mb-4">
-  {/* Left side: title + status + topMeta */}
-  <div className="flex items-center gap-4">
-    <div className="font-semibold text-gray-900">
-      #{id} - {title}
-    </div>
-    <span
-      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${badgeStyles[status]}`}
-    >
-      {status}
-    </span>
-    {topMeta && (
-      <span className="text-sm text-gray-500">
-        {topMeta.label} {topMeta.value}
-      </span>
-    )}
-  </div>
+      {/* Top row */}
+      <div className="flex items-center justify-between mb-4">
+        {/* Left side: title + status + topMeta */}
+        <div className="flex items-center gap-4">
+          <div className="font-semibold text-gray-900">
+            #{id} - {title}
+          </div>
+          <span
+            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${badgeStyles[status]}`}
+          >
+            {status}
+          </span>
+          {topMeta && (
+            <span className="text-sm text-gray-500">
+              {topMeta.label} {topMeta.value}
+            </span>
+          )}
+        </div>
 
-  {/* Right side: chevron */}
-  <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-</div>
+        {/* Right side: chevron */}
+        <ChevronRightIcon className="w-5 h-5 text-gray-400" />
+      </div>
 
 
       {/* Excerpt */}

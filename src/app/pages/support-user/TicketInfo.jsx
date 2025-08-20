@@ -90,6 +90,7 @@ const TicketInfo = () => {
                                 </div>
                                 <Button onClick="sendReply()" variant="default"
                                     className="bg-[#2A5A9D] hover:bg-[#1A3A6C] text-white">
+                                    
                                     Send Reply
                                 </Button>
                             </div>

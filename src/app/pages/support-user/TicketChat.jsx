@@ -21,9 +21,8 @@ export default function TicketChat() {
   return (
     <>
       <TicketChatHeader ticketId={ticketId} backToTickets={backToTickets} closeTicket={open} />
-      <Basic isOpen={isOpen}
-        onCancel={close}          
-        onConfirm={() => {       
+      <Basic isOpen={isOpen} onCancel={close}          
+        onConfirm={() => {
           close();
           backToTickets();
         }} />

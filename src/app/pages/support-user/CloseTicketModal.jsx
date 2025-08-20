@@ -6,7 +6,7 @@ import {
   Transition,
   TransitionChild,
 } from "@headlessui/react";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import { XCircleIcon } from "@heroicons/react/24/outline";
 import { Fragment } from "react";
 import { Button } from "components/ui";
 
@@ -42,7 +42,7 @@ export function Basic({ isOpen, onCancel, onConfirm }) {
           leaveTo="opacity-0"
         >
           <DialogPanel className="scrollbar-sm relative flex w-[600px] max-w-xl flex-col overflow-y-auto rounded-lg bg-white p-10 text-center transition-opacity duration-300 dark:bg-dark-700 sm:px-5">
-            <CheckCircleIcon className="mx-auto inline size-20 shrink-0 text-success" />
+            <XCircleIcon className="mx-auto inline size-20 shrink-0" />
 
             <div className="mt-4">
               <DialogTitle
