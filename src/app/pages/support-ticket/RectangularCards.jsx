@@ -15,7 +15,7 @@ import ChatTemplate from "./ChatTemplate";
 const RectangularCards = () => {
   
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
+    <div className="">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-6">
         {/* Card 1: New Tickets */}
         <div className="rounded-md border border-neutral-300 bg-white p-3 shadow-sm">

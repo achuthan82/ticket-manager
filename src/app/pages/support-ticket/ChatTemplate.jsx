@@ -243,7 +243,7 @@ const ChatTemplate = () => {
             <div className="absolute inset-0 flex-1 overflow-hidden">
               <ScrollShadow
                 orientation="vertical"
-                className="h-full max-h-[calc(800px-400px)] overflow-y-auto"
+                className="h-full max-h-[calc(90vh-400px)] overflow-y-auto"
               >
                 <div className="space-y-4 p-3 sm:p-4 md:p-6">
                   {/* User Message */}
