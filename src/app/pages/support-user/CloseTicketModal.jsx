@@ -16,7 +16,7 @@ export function Basic({ isOpen, onCancel, onConfirm }) {
       <Dialog
         as="div"
         className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden px-4 py-6 sm:px-5"
-        onClose={onCancel} // closes only when clicking outside
+        onClose={onCancel} 
       >
         {/* Backdrop */}
         <TransitionChild
@@ -57,7 +57,7 @@ export function Basic({ isOpen, onCancel, onConfirm }) {
               </p>
 
               {/* Buttons */}
-              <div className="mt-6 flex justify-center gap-4">
+              <div className="mt-6 flex justify-center gap-3">
                 <Button onClick={onCancel} color="neutral" className="px-6">
                   Cancel
                 </Button>
