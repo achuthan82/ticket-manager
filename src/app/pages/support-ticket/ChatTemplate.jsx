@@ -326,17 +326,16 @@ const ChatTemplate = () => {
             </div>
           </div>
 
-          {/* mesaaging */}
           {/* messaging section */}
-          <div className="relative flex-1">
-            <div className="h-full overflow-y-auto p-4 pb-28 sm:p-6">
+          <div className="relative flex flex-1 flex-col overflow-hidden">
+            {/* Messages container with proper scrolling */}
+            <div className=" absolute flex-1 overflow-hidden">
               <ScrollShadow
                 orientation="vertical"
-                className="h-[calc(100vh-220px)] overflow-y-auto p-4 sm:p-6"
+                className="h-full max-h-[calc(80vh-400px)] overflow-y-auto"
               >
-                <div className="space-y-4">
+                <div className="space-y-4 p-4 sm:p-6">
                   {/* User Message */}
-
                   <div className="flex flex-col items-start sm:flex-row sm:space-x-3">
                     <Avatar
                       initialColor="info"
@@ -355,7 +354,7 @@ const ChatTemplate = () => {
 
                       <div className="max-w-full rounded-lg bg-gray-100 p-4 break-words text-gray-700 sm:max-w-[70%]">
                         <p>
-                          I’m having trouble processing my subscription payment.
+                          Im having trouble processing my subscription payment.
                           The system keeps showing an error message when I try
                           to update my credit card information.
                         </p>
@@ -363,7 +362,7 @@ const ChatTemplate = () => {
                           Error message: Payment method could not be verified.
                         </p>
                         <p className="mt-2">
-                          I’ve tried multiple times with different cards but
+                          Ive tried multiple times with different cards but
                           getting the same error.
                         </p>
                       </div>
@@ -392,15 +391,15 @@ const ChatTemplate = () => {
                       <div className="ml-auto max-w-full rounded-lg bg-teal-100 p-4 break-words text-gray-700 sm:max-w-[70%]">
                         <p>Hi Micheal</p>
                         <p className="mt-2">
-                          I’m sorry to hear you are experiencing issues with
-                          updating your payment method. I’ve checked your
-                          account and I can see the error in our system.
+                          Im sorry to hear you are experiencing issues with
+                          updating your payment method. Ive checked your account
+                          and I can see the error in our system.
                         </p>
                         <p className="mt-2">
-                          I’m escalating this to our technical team for
-                          immediate resolution. In the meantime, I can process
-                          your payment manually if you would like to continue
-                          your subscription without interruption.
+                          Im escalating this to our technical team for immediate
+                          resolution. In the meantime, I can process your
+                          payment manually if you would like to continue your
+                          subscription without interruption.
                         </p>
                         <p className="mt-2">
                           Would you prefer to wait for the fix or shall I assist
@@ -414,57 +413,109 @@ const ChatTemplate = () => {
                       name="John Doe"
                     />
                   </div>
+
+                  {/* Additional messages for testing scroll */}
+                  {/* <div className="flex flex-col items-start sm:flex-row sm:space-x-3">
+                    <Avatar
+                      initialColor="info"
+                      className="mr-2"
+                      name="Micheal John"
+                    />
+                    <div className="flex-1">
+                      <div className="mb-1 flex flex-wrap items-center space-x-2">
+                        <span className="font-medium text-gray-900">
+                          Micheal Johnson
+                        </span>
+                        <span className="text-xs text-gray-500">1 min ago</span>
+                      </div>
+
+                      <div className="max-w-full rounded-lg bg-gray-100 p-4 break-words text-gray-700 sm:max-w-[70%]">
+                        <p>
+                          Thank you for the quick response! I would prefer to
+                          wait for the technical fix rather than processing
+                          manually. How long do you think it might take?
+                        </p>
+                      </div>
+                    </div>
+                  </div> */}
+
+                  {/* <div className="flex flex-col items-start justify-end sm:flex-row sm:items-end sm:space-x-3">
+                    <div className="order-2 max-w-full flex-1 sm:order-1 sm:max-w-lg">
+                      <div className="mb-1 flex flex-wrap items-center justify-end space-x-2">
+                        <span className="text-xs text-gray-500">Just now</span>
+                        <span className="font-medium text-gray-900">
+                          John Doe
+                        </span>
+                      </div>
+                      <div className="ml-auto max-w-full rounded-lg bg-teal-100 p-4 break-words text-gray-700 sm:max-w-[70%]">
+                        <p>
+                          Great choice Our technical team typically resolves
+                          payment gateway issues within 2-4 hours Ill monitor
+                          your case closely and update you as soon as its fixed.
+                        </p>
+                        <p className="mt-2">
+                          Ill also send you an email confirmation once the issue
+                          is resolved so you can retry your payment
+                        </p>
+                      </div>
+                    </div>
+                    <Avatar
+                      initialColor="success"
+                      className="order-1 mb-2 h-10 w-10 rounded-full sm:order-2 sm:mb-0"
+                      name="John Doe"
+                    />
+                  </div> */}
                 </div>
               </ScrollShadow>
             </div>
-          </div>
 
-          {/* reply section */}
-          <div className="fixed bottom-0 w-9/15  border-t border-gray-300 bg-white p-3 sm:p-4">
-            <div className="flex  flex-col sm:flex-row sm:items-start sm:space-x-3">
-              {/* Avatar */}
-              <div className="mb-2 flex-shrink-0 sm:mb-0">
-                <Avatar
-                  initialColor="info"
-                  className="mr-2 sm:mr-0"
-                  name="Admin User"
-                />
-              </div>
+            {/* reply section - now matches the width of ticket details */}
+            <div className=" absolute left-0 right-0 bottom-0 border-t border-gray-300 bg-white p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:space-x-3">
+                {/* Avatar */}
+                <div className="mb-2 flex-shrink-0 sm:mb-0">
+                  <Avatar
+                    initialColor="info"
+                    className="mr-2 sm:mr-0"
+                    name="Admin User"
+                  />
+                </div>
 
-              {/* Input + Actions */}
-              <div className="flex-1">
-                <textarea
-                  placeholder="Type your response..."
-                  className="focus:ring-atoll w-full resize-none rounded-lg border border-gray-400 px-3 py-2 text-sm focus:ring-2 focus:outline-none sm:px-4 sm:py-3 sm:text-base"
-                  rows="3"
-                ></textarea>
+                {/* Input + Actions */}
+                <div className="flex-1">
+                  <textarea
+                    placeholder="Type your response..."
+                    className="focus:ring-atoll w-full resize-none rounded-lg border border-gray-400 px-3 py-2 text-sm focus:ring-2 focus:outline-none sm:px-4 sm:py-3 sm:text-base"
+                    rows="3"
+                  ></textarea>
 
-                {/* Bottom Actions */}
-                <div className="mt-3 flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-                  {/* Left Actions */}
-                  <div className="flex items-center space-x-2 sm:space-x-3">
-                    <Button
-                      variant="flat"
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <ArrowUpTrayIcon className="h-5 w-5" />
-                    </Button>
-                    <Select
-                      defaultValue="Use Template"
-                      data={[
-                        "Use Template",
-                        "Payment Issue Response",
-                        "Feature Request Response",
-                        "General Inquiry",
-                      ]}
-                    />
-                  </div>
+                  {/* Bottom Actions */}
+                  <div className="mt-3 flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                    {/* Left Actions */}
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                      <Button
+                        variant="flat"
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <ArrowUpTrayIcon className="h-5 w-5" />
+                      </Button>
+                      <Select
+                        defaultValue="Use Template"
+                        data={[
+                          "Use Template",
+                          "Payment Issue Response",
+                          "Feature Request Response",
+                          "General Inquiry",
+                        ]}
+                      />
+                    </div>
 
-                  {/* Right Action */}
-                  <div className="flex justify-end">
-                    <Button className="bg-atoll hover:bg-opacity-90 w-full rounded-lg px-4 py-2 text-white sm:w-auto">
-                      Send Response
-                    </Button>
+                    {/* Right Action */}
+                    <div className="flex justify-end">
+                      <Button className="bg-atoll hover:bg-opacity-90 w-full rounded-lg px-4 py-2 text-white sm:w-auto">
+                        Send Response
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

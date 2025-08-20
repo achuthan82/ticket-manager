@@ -11,7 +11,7 @@ import { setThisClass } from "utils/setThisClass";
 
 const variants = {
   filled:
-    "bg-[#2A5A9D] text-white hover:bg-[#1A3A6C] focus:bg-[#1A3A6C] active:bg-[#1A3A6C]/90 disabled:bg-[#4A7EC3] dark:disabled:bg-[#1A3A6C]",
+    "bg-[#0c4a6e] text-white hover:bg-[#0369a1] focus:bg-[#1A3A6C] active:bg-[#1A3A6C]/90 disabled:bg-[#4A7EC3] dark:disabled:bg-[#1A3A6C]",
   soft: "text-[#2A5A9D] bg-[#D6E5F5] hover:bg-[#D6E5F5]/80 focus:bg-[#D6E5F5]/80 active:bg-[#D6E5F5]/60 dark:bg-[#2A5A9D]/10 dark:text-[#2A5A9D] dark:hover:bg-[#2A5A9D]/20 dark:focus:bg-[#2A5A9D]/20 dark:active:bg-[#2A5A9D]/25",
   outlined:
     "text-[#2A5A9D] border border-[#2A5A9D] hover:bg-[#2A5A9D]/5 focus:bg-[#2A5A9D]/5 active:bg-[#2A5A9D]/10 dark:border-[#2A5A9D] dark:text-[#2A5A9D] dark:hover:bg-[#2A5A9D]/5 dark:focus:bg-[#2A5A9D]/5 dark:active:bg-[#2A5A9D]/10",

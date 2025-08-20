@@ -17,7 +17,7 @@ import { Page } from "components/shared/Page";
 export default function SignIn() {
   const { login, errorMessage, isLoading, setErrorMessage } = useAuthContext();
   const location = useLocation();
-  
+
   const {
     register,
     handleSubmit,
@@ -32,11 +32,11 @@ export default function SignIn() {
 
   // Handle error messages from localStorage (e.g., when redirected due to token expiration)
   useEffect(() => {
-    const storedErrorMessage = localStorage.getItem('loginErrorMessage');
+    const storedErrorMessage = localStorage.getItem("loginErrorMessage");
     if (storedErrorMessage) {
       setErrorMessage(storedErrorMessage);
       // Clear the stored error message to prevent showing it again on refresh
-      localStorage.removeItem('loginErrorMessage');
+      localStorage.removeItem("loginErrorMessage");
     }
   }, [setErrorMessage]);
 
@@ -62,14 +62,18 @@ export default function SignIn() {
         <div className="w-full max-w-[26rem] p-4 sm:px-5">
           <div className="text-center">
             {/* <Logo className="mx-auto size-16" /> */}
-            <div className="w-full flex justify-center">
-              <div className="bg-[#00B4D8] text-white  w-16 h-16 rounded-lg flex items-center justify-center font-bold text-xl flex-shrink-0 cursor-pointer transition-colors duration-200">D</div>
+            <div className="flex w-full justify-center">
+              <img
+                src="/shieldnest-icon.png"
+                alt="ShieldNest"
+                className="h-20 w-20 object-contain opacity-80"
+              />
             </div>
             <div className="mt-4">
-              <h2 className="text-2xl font-semibold text-gray-600 dark:text-dark-100">
+              <h2 className="dark:text-dark-100 text-2xl font-semibold text-gray-600">
                 Welcome to Ticket Manager
               </h2>
-              <p className="text-gray-400 dark:text-dark-300">
+              <p className="dark:text-dark-300 text-gray-400">
                 Please sign in to continue
               </p>
             </div>
@@ -116,26 +120,25 @@ export default function SignIn() {
                 <Checkbox label="Remember me" />
                 <Link
                   to="/auth/forgot-password"
-                  className="text-xs text-gray-400 transition-colors hover:text-gray-800 focus:text-gray-800 dark:text-dark-300 dark:hover:text-dark-100 dark:focus:text-dark-100"
+                  className="dark:text-dark-300 dark:hover:text-dark-100 dark:focus:text-dark-100 text-xs text-gray-400 transition-colors hover:text-gray-800 focus:text-gray-800"
                 >
                   Forgot Password?
                 </Link>
               </div>
 
-              <Button 
-                type="submit" 
-                className="mt-5 w-full" 
+              <Button
+                type="submit"
+                className="mt-5 w-full"
                 color="primary"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing In..." : "Sign In"}
               </Button>
             </form>
-
           </Card>
-          <div className="mt-8 flex justify-center text-xs text-gray-400 dark:text-dark-300">
+          <div className="dark:text-dark-300 mt-8 flex justify-center text-xs text-gray-400">
             <a href="##">Privacy Notice</a>
-            <div className="mx-2.5 my-0.5 w-px bg-gray-200 dark:bg-dark-500"></div>
+            <div className="dark:bg-dark-500 mx-2.5 my-0.5 w-px bg-gray-200"></div>
             <a href="##">Term of service</a>
           </div>
         </div>

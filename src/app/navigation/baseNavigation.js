@@ -2,6 +2,7 @@ import { NAV_TYPE_ITEM, } from "constants/app.constant";
 import DashboardsIcon from 'assets/dualicons/dashboards.svg?react'
 import TicketIcon from 'assets/dualicons/ticket.svg?react'
 import UserIcon from 'assets/dualicons/user.svg?react'
+import { UserGroupIcon } from "@heroicons/react/24/outline";
 // import { 
 // //   DocumentTextIcon, 
 // //   ChatBubbleLeftRightIcon, 
@@ -18,6 +19,7 @@ export const baseNavigation = [
         title: 'Dashboard',
         transKey: 'nav.dashboard.dashboard',
         Icon: DashboardsIcon,
+        visible:[2]
     },
     // adding support-ticket to the navigation
     {
@@ -27,6 +29,7 @@ export const baseNavigation = [
         title:"Support Ticket",
         transKey:"nav.support-ticket.support-ticket",
         Icon: TicketIcon,
+        visible:[1]
     },
     {
         id: "support-user",
@@ -35,6 +38,16 @@ export const baseNavigation = [
         title:"Support User" ,
         transKey : "nav.support-user.support-user",
         Icon: UserIcon,
+        visible:[1,2]
+    },
+      {
+        id: "user",
+        type:NAV_TYPE_ITEM,
+        path: "/users",
+        title:"Users" ,
+        transKey : "nav.user.user",
+        Icon: UserGroupIcon,
+        visible:[1,2]
     }
     // {
     //     id: 'documents',

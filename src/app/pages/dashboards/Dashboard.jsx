@@ -141,6 +141,8 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Stats Grid */}
+      <div>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6 sm:gap-6">
         {/* Total Documents */}
         <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-neutral-300">
