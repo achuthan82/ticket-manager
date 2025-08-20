@@ -89,10 +89,10 @@ const colors = {
     // DocuPrompt Hub custom colors - matching the original design
     primary: {
         100: '#D6E5F5',
-        300: '#4A7EC3',
-        500: '#2A5A9D',
-        700: '#1A3A6C',
-        900: '#0D1F3D'
+        300: '#38bdf8',
+        500: '#0284c7',
+        700: '#075985',
+        900: '#0c4a6e'
     },
     accent: {
         100: '#D6F4FA',

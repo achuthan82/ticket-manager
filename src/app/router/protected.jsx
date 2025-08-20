@@ -48,7 +48,14 @@ const protectedRoutes = {
           lazy: async () => ({
             Component: (await import("app/pages/support-user/TicketChat")).default,
           }),
-        }
+        },
+        {
+          path : "users",
+          lazy : async() =>
+             ({
+            Component : (await import("app/pages/users/UserList")).default,
+          }),
+        },
       ],
     },
 

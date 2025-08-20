@@ -46,9 +46,7 @@ export default function ForgotPassword() {
       data: {
         email: d.email,
       },
-      headers:{
-
-      }
+      headers: {},
     };
     axios(config)
       .then((response) => {
@@ -72,9 +70,11 @@ export default function ForgotPassword() {
         <div className="w-full max-w-[26rem] p-4 sm:px-5">
           <div className="text-center">
             <div className="flex w-full justify-center">
-              <div className="flex h-16 w-16 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg bg-[#00B4D8] text-xl font-bold text-white transition-colors duration-200">
-                D
-              </div>
+              <img
+                src="/shieldnest-icon.png"
+                alt="ShieldNest"
+                className="h-20 w-20 object-contain opacity-80"
+              />
             </div>
             <div className="mt-4">
               <h2 className="dark:text-dark-100 text-2xl font-semibold text-gray-600">
@@ -107,17 +107,22 @@ export default function ForgotPassword() {
                 <InputErrorMsg when={false}>
                 </InputErrorMsg>
               </div> */}
-              {
-                success &&  <div className="mt-2">
-                <p className="text-success text-md font-normal">
-                  Please check your Inbox
-                </p>
-              </div>
-              }
-             
+              {success && (
+                <div className="mt-2">
+                  <p className="text-success text-md font-normal">
+                    Please check your Inbox
+                  </p>
+                </div>
+              )}
 
-              <Button type="submit" className="mt-5 w-full" color="primary" disabled={loading}>
-               {loading &&<GhostSpinner className="size-4 border-2 mr-3" />} Send Reset Link
+              <Button
+                type="submit"
+                className="mt-5 w-full"
+                color="primary"
+                disabled={loading}
+              >
+                {loading && <GhostSpinner className="mr-3 size-4 border-2" />}{" "}
+                Send Reset Link
               </Button>
             </form>
           </Card>
