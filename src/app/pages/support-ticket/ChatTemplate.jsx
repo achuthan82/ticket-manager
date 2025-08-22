@@ -4,10 +4,92 @@ import {
   FunnelIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
+import { useState } from "react";
+
+const tickets = [
+  {
+    id: "TK-1024",
+    title: "Payment Issue",
+    customer: "Micheal Johnson",
+    status: "New",
+    statusColor: "bg-blue-100 text-blue-800",
+    message:
+      "Im having trouble processing my subscription payment. The system keeps showing an error...",
+    priority: "High Priority",
+    priorityColor: "text-red-600",
+    time: "5 mins ago",
+  },
+  {
+    id: "TK-1023",
+    title: "Lead Quality Question",
+    customer: "Sarah Williams",
+    status: "Open",
+    statusColor: "bg-yellow-100 text-yellow-800",
+    message:
+      " I received leads from the Miami area but the response rate is lower than expected...",
+    priority: "Medium Priority",
+    priorityColor: "text-yellow-600",
+    time: "2 hours ago",
+  },
+  {
+    id: "TK-1022",
+    title: "Feature Request",
+    customer: "Robert Davis",
+    status: "Pending",
+    statusColor: "bg-purple-100 text-purple-800",
+    message:
+      " Would it be possible to add a feature for scheduling automated follow-up emails...",
+    priority: "Low Priority",
+    priorityColor: "text-green-600",
+    time: "Yesterday",
+  },
+  {
+    id: "TK-1021",
+    title: "Territory Access",
+    customer: "Lisa Chen",
+    status: "Resolved",
+    statusColor: "bg-green-100 text-green-800",
+    message:
+      "I purchased access to the California territory but Im not seeing any leads...",
+    priority: "High Priority",
+    priorityColor: "text-red-600",
+    time: "2 days ago",
+  },
+];
 
 const ChatTemplate = () => {
+  const [filter, setFilter] = useState("All Status");
+
+  const filteredTickets =
+    filter === "All Status"
+      ? tickets
+      : tickets.filter((ticket) => ticket.status === filter);
+
+  const [ticket, setTicket] = useState({
+    id: "TK-1024",
+    title: "Payment Issue",
+    user: {
+      name: "Micheal Johnson",
+      email: "micheal.j@email.com",
+    },
+    createdAt: "5 mins ago",
+    priority: "High Priority",
+    priorityColor: "text-red-600",
+    status: "New",
+    assignee: "Unassigned",
+  });
+
+  // to be used when backend is ready
+  const updateStatus = (newStatus) => {
+    setTicket((prev) => ({ ...prev, status: newStatus }));
+  };
+
+  const updateAssignee = (newAssignee) => {
+    setTicket((prev) => ({ ...prev, assignee: newAssignee }));
+  };
+
   return (
-    <div className="mx-auto flex h-screen max-h-[calc(100vh-250px)] w-full max-w-screen-2xl flex-col overflow-hidden px-2 sm:px-3 md:px-4 lg:px-6">
+    <div className="mx-auto flex h-screen max-h-[calc(100vh-240px)] w-full max-w-screen-2xl flex-col overflow-hidden ">
       {/* Responsive main content */}
       <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
         {/* ticket listing */}
@@ -28,18 +110,20 @@ const ChatTemplate = () => {
                 </Button>
               </div>
               {/* Filters row */}
-              <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+              <div 
+              className="flex flex-col gap-2 sm:flex-row sm:gap-2"
+              >
                 <Select
-                  defaultValue="All Status"
-                  data={[
-                    "All Status",
-                    "New",
-                    "Open",
-                    "Pending",
-                    "Resolved",
-                    "Closed",
-                  ]}
-                />
+                  defaultValue="2"
+                  onValueChange={(value) => setFilter(value)}
+                >
+                  <option value="All Status">All Status</option>
+                  <option value="New">New</option>
+                  <option value="Open">Open</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Resolved">Resolved</option>
+                  <option value="Closed">Closed</option>
+                </Select>
                 <Select
                   defaultValue="All Priority"
                   data={["High", "Low", "Medium", "All Priority"]}
@@ -51,110 +135,52 @@ const ChatTemplate = () => {
               </div>
             </div>
             {/* Ticket List with Scroll */}
-            <ScrollShadow className="hide-scrollbar flex-1 space-y-4 overflow-y-auto p-2 sm:p-3 md:p-4">
-              {/* Ticket 1 */}
-              <div
-                className="rounded-md bg-blue-50 p-3 shadow-sm transition hover:bg-gray-50 sm:p-4"
-                style={{
-                  cursor: "pointer",
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-              >
-                <div className="mb-2 flex flex-col items-start justify-between sm:flex-row">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      #TK-1024 - Payment Issue
+            <ScrollShadow className="hide-scrollbar flex-1 space-y-4 overflow-y-auto ">
+              {filteredTickets.map((ticket) => (
+                <div
+                  key={ticket.id}
+                  // className="rounded-md bg-white p-3 shadow-sm hover:bg-gray-50 sm:p-4"
+                >
+                  {/* Ticket 1 */}
+                  <div
+                    className="group  border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md sm:p-5"
+                    style={{ cursor: "pointer" }}
+                  >
+                    {/* Header */}
+                    <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 sm:text-base">
+                          #{ticket.id} – {ticket.title}
+                        </p>
+                        <p className="text-xs text-gray-500 sm:text-sm">
+                          {ticket.customer}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${ticket.statusColor}`}
+                      >
+                        {ticket.status}
+                      </span>
+                    </div>
+
+                    {/* Body */}
+                    <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-gray-700">
+                      {ticket.message}
                     </p>
-                    <p className="text-sm text-gray-600">Micheal Johnson</p>
+
+                    {/* Footer */}
+                    <div className="flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+                      <span>{ticket.time}</span>
+                      <span
+                        className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${ticket.priorityColor}`}
+                      >
+                        {ticket.priority}
+                      </span>
+                    </div>
                   </div>
-                  <span className="mt-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800 sm:mt-0">
-                    New
-                  </span>
                 </div>
-                <p className="mb-2 line-clamp-2 text-sm text-gray-700">
-                  Im having trouble processing my subscription payment. The
-                  system keeps showing an error...
-                </p>
-                <div className="flex flex-col gap-1 text-xs sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-gray-500">5 mins ago</span>
-                  <span className="rounded-full px-3 py-1 text-xs font-semibold text-red-600">
-                    High Priority
-                  </span>
-                </div>
-              </div>
-              {/* Ticket 2 */}
-              <div className="rounded-md bg-white p-3 shadow-sm hover:bg-gray-50 sm:p-4">
-                <div className="mb-2 flex flex-col items-start justify-between sm:flex-row">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      #TK-1023 - Lead Quality Question
-                    </p>
-                    <p className="text-sm text-gray-600">Sarah Williams</p>
-                  </div>
-                  <span className="mt-1 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800 sm:mt-0">
-                    Open
-                  </span>
-                </div>
-                <p className="mb-2 line-clamp-2 text-sm text-gray-700">
-                  I received leads from the Miami area but the response rate is
-                  lower than expected...
-                </p>
-                <div className="flex flex-col gap-1 text-xs sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-gray-500">2 hours ago</span>
-                  <span className="rounded-full px-3 py-1 text-xs font-semibold text-yellow-600">
-                    Medium Priority
-                  </span>
-                </div>
-              </div>
-              {/* Ticket 3 */}
-              <div className="rounded-md bg-white p-3 shadow-sm hover:bg-gray-50 sm:p-4">
-                <div className="mb-2 flex flex-col items-start justify-between sm:flex-row">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      #TK-1022 - Feature Request
-                    </p>
-                    <p className="text-sm text-gray-600">Robert Davis</p>
-                  </div>
-                  <span className="mt-1 rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800 sm:mt-0">
-                    Pending
-                  </span>
-                </div>
-                <p className="mb-2 line-clamp-2 text-sm text-gray-700">
-                  Would it be possible to add a feature for scheduling automated
-                  follow-up emails...
-                </p>
-                <div className="flex flex-col gap-1 text-xs sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-gray-500">Yesterday</span>
-                  <span className="rounded-full px-3 py-1 text-xs font-semibold text-green-600">
-                    Low Priority
-                  </span>
-                </div>
-              </div>
-              {/* Ticket 4 */}
-              <div className="rounded-md bg-white p-3 shadow-sm hover:bg-gray-50 sm:p-4">
-                <div className="mb-2 flex flex-col items-start justify-between sm:flex-row">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      #TK-1021 - Territory Access
-                    </p>
-                    <p className="text-sm text-gray-600">Lisa Chen</p>
-                  </div>
-                  <span className="mt-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800 sm:mt-0">
-                    Resolved
-                  </span>
-                </div>
-                <p className="mb-2 line-clamp-2 text-sm text-gray-700">
-                  I purchased access to the California territory but Im not
-                  seeing any leads...
-                </p>
-                <div className="flex flex-col gap-1 text-xs sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-gray-500">2 days ago</span>
-                  <span className="rounded-full px-3 py-1 text-xs font-semibold text-red-600">
-                    High Priority
-                  </span>
-                </div>
-              </div>
+              ))}
             </ScrollShadow>
           </div>
         </div>
@@ -162,12 +188,12 @@ const ChatTemplate = () => {
         {/* ticket details */}
         <div className="flex w-full flex-1 flex-col overflow-hidden bg-white">
           {/* Ticket Info Header */}
-          <div className="flex-shrink-0 rounded-lg border border-gray-200 bg-white p-2 sm:p-3 md:p-4">
+          <div className="flex-shrink-0  border border-gray-200 bg-white p-2 sm:p-3 md:p-4">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               {/* Left side: Ticket info */}
               <div className="min-w-0 flex-1">
                 <h4 className="truncate text-sm font-semibold text-gray-900 sm:text-base md:text-lg">
-                  #TK-1024 - Payment Issue
+                  #{ticket.id}-{ticket.title}
                 </h4>
 
                 {/* User Info + Meta */}
@@ -177,14 +203,14 @@ const ChatTemplate = () => {
                     <Avatar
                       initialColor="info"
                       className="mr-2 h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
-                      name="Micheal John"
+                      name={ticket.user.name[0]}
                     />
                     <div className="min-w-0">
                       <p className="text-xs font-medium text-gray-900 sm:text-sm md:text-base">
-                        Micheal Johnson
+                        {ticket.user.name}
                       </p>
                       <p className="truncate text-[10px] text-gray-500 sm:text-xs md:text-sm">
-                        micheal.j@email.com
+                        {ticket.user.email}
                       </p>
                     </div>
                   </div>
@@ -192,10 +218,10 @@ const ChatTemplate = () => {
                   {/* Meta info */}
                   <div className="flex flex-wrap items-center gap-x-2 text-[10px] text-gray-500 sm:text-xs md:text-sm">
                     <span className="hidden sm:inline">•</span>
-                    <span>Created 5 mins ago</span>
+                    <span>Created {ticket.createdAt}</span>
                     <span className="hidden sm:inline">•</span>
-                    <span className="font-medium text-red-600">
-                      High Priority
+                    <span className={`font-medium ${ticket.priorityColor}`}>
+                      {ticket.priority}
                     </span>
                   </div>
                 </div>
@@ -209,8 +235,9 @@ const ChatTemplate = () => {
                     Status:
                   </label>
                   <Select
-                    defaultValue="Status"
+                    defaultValue={ticket.status || "New"}
                     data={["New", "Open", "Pending", "Resolved", "Closed"]}
+                    onValueChange={updateStatus}
                     className="flex-1 text-xs sm:flex-none sm:text-sm"
                   />
                 </div>
@@ -221,13 +248,14 @@ const ChatTemplate = () => {
                     Assign to:
                   </label>
                   <Select
-                    defaultValue="Assigned"
+                    defaultValue={ticket.assignee || "Unassigned"}
                     data={[
                       "Unassigned",
                       "John Doe",
                       "Jane Smith",
                       "Admin User",
                     ]}
+                    onValueChange={updateAssignee}
                     className="flex-1 text-xs sm:flex-none sm:text-sm"
                   />
                 </div>

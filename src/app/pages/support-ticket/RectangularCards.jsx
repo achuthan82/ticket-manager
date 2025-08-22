@@ -10,10 +10,13 @@ import {
   HeartIcon,
 } from "@heroicons/react/24/outline";
 import ChatTemplate from "./ChatTemplate";
+
 // import { useState } from "react";
 
 const RectangularCards = () => {
-  
+
+ 
+
   return (
     <div className="">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-6">
