@@ -20,7 +20,7 @@ const Multiple = ({faqs}) => {
         className="flex flex-col divide-y divide-gray-150 dark:divide-dark-500"
       >
         {faqs.map(({ id, question, answer }, index) => (
-          <AccordionItem
+          <AccordionItem  
             key={id}
             value={id}
             className={clsx(
@@ -32,7 +32,7 @@ const Multiple = ({faqs}) => {
             <AccordionButton
               className={clsx(
                 "flex w-full cursor-pointer items-center justify-between p-4 text-base font-medium text-gray-700 outline-none ring-primary-500/50 ring-offset-2 ring-offset-white focus-visible:ring dark:text-dark-100 dark:ring-offset-dark-700 transition-colors duration-200",
-                "bg-white group-hover:bg-yellow-50"
+                "bg-white group-hover:bg-[#FFFEF0]"
               )}
             >
               {({ open }) => (
@@ -50,7 +50,7 @@ const Multiple = ({faqs}) => {
               )}
             </AccordionButton>
 
-            <AccordionPanel className="p-4 pt-0 transition-colors duration-200 bg-white group-hover:bg-yellow-50">
+            <AccordionPanel className="p-4 pt-0 transition-colors duration-200 bg-white group-hover:bg-[#FFFEF0]">
               <p>{answer}</p>
             </AccordionPanel>
           </AccordionItem>

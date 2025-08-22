@@ -1,3 +1,4 @@
+import { PaperClipIcon } from '@heroicons/react/24/outline'
 import { Avatar, Button } from 'components/ui'
 
 const TicketInfo = () => {
@@ -35,7 +36,7 @@ const TicketInfo = () => {
                                         <span className="font-medium text-gray-900">You</span>
                                         <span className="text-xs text-gray-500">2 days ago</span>
                                     </div>
-                                    <div className="message-bubble message-user p-4 rounded-lg" style={{ backgroundColor: '#f3f4f6', marginLeft: "auto", maxWidth: "70%", wordWrap: "break-word" }}>
+                                    <div className="p-4 rounded-lg bg-gray-100 ml-auto max-w-[70%] break-words">
                                         <p className="text-gray-700">
                                             {`I purchased the Miami territory but I'm not receiving any leads from that area. The dashboard shows the territory as active, but no leads have come through in the past week.`}
                                         </p>
@@ -56,10 +57,11 @@ const TicketInfo = () => {
                                         <span className="font-medium text-gray-900">Admin Support</span>
                                         <span className="text-xs text-gray-500">2 hours ago</span>
                                     </div>
-                                    <div className="message-bubble message-admin p-4 rounded-lg bg-green-50" style={{ backgroundColor: '#c9e0e5', maxWidth: "70%", wordWrap: "break-word" }}>
+                                    <div className="p-4 rounded-lg bg-[#c9e0e5] max-w-[70%] break-words" >
                                         <p className="text-gray-700">Hi Sarah,</p>
                                         <p className="text-gray-700 mt-2">
-                                            {`Thank you for bringing this to our attention. I've checked your account and can confirm that your Miami territory (33101) is properly configured and active.`}                                        </p>
+                                            {`Thank you for bringing this to our attention. I've checked your account and can confirm that your Miami territory (33101) is properly configured and active.`}
+                                        </p>
                                         <p className="text-gray-700 mt-2">
                                             {`I've identified that there was a technical issue with lead routing for this specific ZIP code that affected a small number of agents. Our technical team has now resolved this issue.`}
                                         </p>
@@ -80,9 +82,7 @@ const TicketInfo = () => {
                             <div className="flex items-center justify-between mt-3">
                                 <div className="flex items-center space-x-3">
                                     <button className="text-gray-400 hover:text-gray-600">
-                                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" clipRule="evenodd" d="M8 4a3 3 0 00-3 3v4a2 2 0 002 2h5a2 2 0 002-2V7a3 3 0 00-3-3H8zm3 7V7a1 1 0 00-1-1H8a1 1 0 00-1 1v4a1 1 0 001 1h2a1 1 0 001-1z" ></path>
-                                        </svg>
+                                        <PaperClipIcon className="h-5 w-5 text-gray-600" />
                                     </button>
                                     <span className="text-sm text-gray-500">
                                         Attach files (Max 10MB)
@@ -90,7 +90,6 @@ const TicketInfo = () => {
                                 </div>
                                 <Button onClick="sendReply()" variant="default"
                                     className="bg-[#2A5A9D] hover:bg-[#1A3A6C] text-white">
-                                    
                                     Send Reply
                                 </Button>
                             </div>

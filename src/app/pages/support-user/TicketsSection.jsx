@@ -49,7 +49,6 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
         <ChevronRightIcon className="w-5 h-5 text-gray-400" />
       </div>
 
-
       {/* Excerpt */}
       <p className="text-gray-600 mb-5">{excerpt}</p>
 
@@ -80,7 +79,7 @@ export default function TicketsSection({ tickets, filter, setFilter }) {
         </h2>
         <div className="w-32">
           <Select
-            className="text-sm border border-gray-300 rounded-md px-3 py-2"
+            className="text-sm border border-black rounded-md px-3 py-2"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             data={[
@@ -96,9 +95,11 @@ export default function TicketsSection({ tickets, filter, setFilter }) {
 
       {/* Tickets */}
       <div className="mt-6 space-y-5">
-        {visibleTickets.map((t) => (
-          <TicketCard key={t.id} {...t} />
-        ))}
+        {visibleTickets.length === 0 ? (
+          <p className="text-center text-gray-500">No tickets found</p>
+        ) : (
+          visibleTickets.map((t) => <TicketCard key={t.id} {...t} />)
+        )}
       </div>
     </div>
   );

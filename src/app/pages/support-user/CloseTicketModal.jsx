@@ -41,7 +41,7 @@ export function Basic({ isOpen, onCancel, onConfirm }) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <DialogPanel className="scrollbar-sm relative flex w-[600px] max-w-xl flex-col overflow-y-auto rounded-lg bg-white p-10 text-center transition-opacity duration-300 dark:bg-dark-700 sm:px-5">
+          <DialogPanel className="scrollbar-sm relative flex w-[450px] max-w-xl flex-col overflow-y-auto rounded-lg bg-white p-12 text-center transition-opacity duration-300 dark:bg-dark-700 sm:px-5">
             <XCircleIcon className="mx-auto inline size-20 shrink-0" />
 
             <div className="mt-4">
