@@ -8,10 +8,17 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
   const navigate = useNavigate();
 
   const badgeStyles = {
-    open: "bg-amber-100 text-amber-800",
-    pending: "bg-blue-100 text-blue-800",
-    resolved: "bg-green-100 text-green-800",
-    closed: "bg-gray-200 text-gray-700",
+    1: "bg-amber-100 text-amber-800", // Open
+    2: "bg-blue-100 text-blue-800",   // Pending
+    3: "bg-green-100 text-green-800", // Resolved
+    4: "bg-gray-200 text-gray-700",   // Closed
+  };
+
+  const statusLabels = {
+    1: "Open",
+    2: "Pending",
+    3: "Resolved",
+    4: "Closed",
   };
 
   const topMeta = meta.find((m) => m.label === "Updated" || m.label === "Resolved");
@@ -33,7 +40,7 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
           <span
             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${badgeStyles[status]}`}
           >
-            {status}
+            {statusLabels[status] || "Unknown"}
           </span>
           {topMeta && (
             <span className="text-sm text-gray-500">
@@ -67,18 +74,38 @@ export default function TicketsSection({ filter, setFilter }) {
     async function fetchTickets() {
       setLoading(true);
       setError("");
-      const { success, data, error } = await getTickets({
+
+      const params = {
         page: 1,
         per_page: 10,
-        status: filter === "all" ? undefined : filter, // only send if not "all"
-      });
-      if (success) {
-        setTickets(Array.isArray(data) ? data : data.tickets || []);
-      } else {
-        setError(error);
+        time_zone: "Asia/Kolkata",
+      };
+
+      // ✅ Only pass status if filter is not "all"
+      if (filter !== "all") {
+        params.status = filter;
       }
+
+      const { success, data, error } = await getTickets(params);
+
+      if (success && data?.data?.length) {
+        const ticketsArray = data.data[0] || [];
+        setTickets(
+          ticketsArray.map((t) => ({
+            id: t.id,
+            title: t.subject,
+            excerpt: t.description,
+            created: t.created_at,
+            status: t.status,
+          }))
+        );
+      } else {
+        setError(error || "Failed to load tickets");
+      }
+
       setLoading(false);
     }
+
     fetchTickets();
   }, [filter]);
 
@@ -94,10 +121,10 @@ export default function TicketsSection({ filter, setFilter }) {
             onChange={(e) => setFilter(e.target.value)}
             data={[
               { label: "All Tickets", value: "all" },
-              { label: "Open", value: "open" },
-              { label: "Resolved", value: "resolved" },
-              { label: "Pending", value: "pending" },
-              { label: "Closed", value: "closed" },
+              { label: "Open", value: 1 },
+              { label: "Pending", value: 2 },
+              { label: "Resolved", value: 3 },
+              { label: "Closed", value: 4 },
             ]}
           />
         </div>
