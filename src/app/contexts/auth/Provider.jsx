@@ -6,9 +6,19 @@ import isString from "lodash/isString";
 
 // Local Imports
 import axios, { setInitializing } from "utils/axios";
-import { isTokenValid, setSession, setUserData, getUserData, clearSession } from "utils/jwt";
+import {
+  isTokenValid,
+  setSession,
+  setUserData,
+  getUserData,
+  clearSession,
+} from "utils/jwt";
 // import { sanitizeUserData } from "utils/userData";
-import { setLogoutCallback, setRedirectCallback, clearCallbacks } from "utils/authManager";
+import {
+  setLogoutCallback,
+  setRedirectCallback,
+  clearCallbacks,
+} from "utils/authManager";
 import { AuthContextProvider } from "./context";
 
 // ----------------------------------------------------------------------
@@ -97,7 +107,7 @@ export function AuthProvider({ children }) {
 
     setRedirectCallback((path) => {
       // This will be handled by the router
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         window.location.href = path;
       }
     });
@@ -113,13 +123,13 @@ export function AuthProvider({ children }) {
       try {
         console.log("🔐 Starting auth initialization...");
         setInitializing(true); // Prevent 401 handling during initialization
-        
+
         const authToken = window.localStorage.getItem("authToken");
         const storedUserData = getUserData();
 
         console.log("🔐 Token exists:", !!authToken);
         console.log("🔐 Stored user data exists:", !!storedUserData);
-        
+
         if (authToken) {
           console.log("🔐 Token valid:", isTokenValid(authToken));
         }
@@ -130,7 +140,9 @@ export function AuthProvider({ children }) {
 
           // If we have stored user data, use it immediately for faster initialization
           if (storedUserData) {
-            console.log("🔐 Using stored user data for immediate initialization");
+            console.log(
+              "🔐 Using stored user data for immediate initialization",
+            );
             dispatch({
               type: "INITIALIZE",
               payload: {
@@ -145,11 +157,11 @@ export function AuthProvider({ children }) {
                 console.log("🔐 Fetching fresh user data in background...");
                 const response = await axios.get("/user/profile");
                 const { user } = response.data;
-                
+
                 // Sanitize and store fresh user data
                 // const sanitizedUserData = sanitizeUserData(user);
                 setUserData(user);
-                
+
                 console.log("🔐 Fresh user data fetched successfully");
                 dispatch({
                   type: "INITIALIZE",
@@ -168,7 +180,7 @@ export function AuthProvider({ children }) {
             console.log("🔐 No stored user data, fetching from API...");
             const response = await axios.get("/user/profile");
             const { user } = response.data;
-            
+
             // const sanitizedUserData = sanitizeUserData(user);
             setUserData(user);
 
@@ -183,11 +195,15 @@ export function AuthProvider({ children }) {
           }
         } else if (authToken) {
           // DEBUG: Temporarily bypass token validation for testing
-          console.log("🔐 DEBUG: Token validation failed, but bypassing for testing...");
+          console.log(
+            "🔐 DEBUG: Token validation failed, but bypassing for testing...",
+          );
           setSession(authToken);
 
           if (storedUserData) {
-            console.log("🔐 Using stored user data despite invalid token (DEBUG)");
+            console.log(
+              "🔐 Using stored user data despite invalid token (DEBUG)",
+            );
             dispatch({
               type: "INITIALIZE",
               payload: {
@@ -210,7 +226,7 @@ export function AuthProvider({ children }) {
           // Clear any invalid data
           console.log("🔐 No valid token found, clearing session...");
           clearSession();
-          
+
           dispatch({
             type: "INITIALIZE",
             payload: {
@@ -222,7 +238,7 @@ export function AuthProvider({ children }) {
       } catch (err) {
         console.error("🔐 Auth initialization error:", err);
         clearSession();
-        
+
         dispatch({
           type: "INITIALIZE",
           payload: {
@@ -237,28 +253,43 @@ export function AuthProvider({ children }) {
 
     init();
   }, []);
-
+  const getDeviceType = () => {
+    const width = window.innerWidth;
+    if (width <= 480) {
+      return "Mobile";
+    } else if (width > 480 && width <= 1024) {
+      return "Tablet";
+    } else {
+      return "Desktop";
+    }
+  };
   const login = async ({ email, password }) => {
+    localStorage.setItem('device_type', getDeviceType())
     dispatch({
       type: "LOGIN_REQUEST",
     });
 
     try {
-      const response = await axios.post("/auth/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "https://shieldnest-backend-staging-437a38552d5f.herokuapp.com/auth/login",
+        {
+          email,
+          password,
+        },
+      );
 
       const { auth_token, data, status } = response.data;
       console.log(status);
 
       if (status !== 200 || !isString(auth_token) || !isObject(data)) {
-        throw new Error(response.data.message || "Invalid response from server");
+        throw new Error(
+          response.data.message || "Invalid response from server",
+        );
       }
 
       // Sanitize and store user data
       // const sanitizedUserData = sanitizeUserData(data);
-      
+
       // Store token and sanitized user data
       setSession(auth_token);
       setUserData(data);
@@ -271,7 +302,7 @@ export function AuthProvider({ children }) {
       });
     } catch (err) {
       let errorMessage = "An error occurred during login";
-      
+
       if (err.response) {
         // Server responded with error status
         const { data, status } = err.response;
