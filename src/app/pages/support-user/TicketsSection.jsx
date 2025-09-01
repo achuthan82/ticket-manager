@@ -4,6 +4,20 @@ import { Select } from "components/ui";
 import { useNavigate } from "react-router";
 import { getTickets } from "utils/supportUserService";
 
+// Utility: Convert date into "time ago"
+function timeAgo(date) {
+  const now = new Date();
+  const past = new Date(date);
+  const diff = Math.floor((now - past) / 1000); // seconds
+
+  if (diff < 60) return `${diff} s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} mins ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)} days ago`;
+  if (diff < 31536000) return `${Math.floor(diff / 2592000)} months ago`;
+  return `${Math.floor(diff / 31536000)} years ago`;
+}
+
 function TicketCard({ id, title, excerpt, status, meta = [], created }) {
   const navigate = useNavigate();
 
@@ -23,7 +37,10 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
 
   const topMeta = meta.find((m) => m.label === "Updated" || m.label === "Resolved");
   const filteredMeta = meta.filter((m) => m.label !== "Updated" && m.label !== "Resolved");
-  const bottomMeta = [{ label: "Created", value: created }, ...filteredMeta];
+  const bottomMeta = [{ label: "Created", value: timeAgo(created) }, ...filteredMeta.map(m => ({
+    ...m,
+    value: timeAgo(m.value)
+  }))];
 
   return (
     <button
@@ -44,7 +61,7 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
           </span>
           {topMeta && (
             <span className="text-sm text-gray-500">
-              {topMeta.label} {topMeta.value}
+              {topMeta.label} {timeAgo(topMeta.value)}
             </span>
           )}
         </div>
@@ -81,7 +98,6 @@ export default function TicketsSection({ filter, setFilter }) {
         time_zone: "Asia/Kolkata",
       };
 
-      // ✅ Only pass status if filter is not "all"
       if (filter !== "all") {
         params.status = filter;
       }
@@ -97,10 +113,14 @@ export default function TicketsSection({ filter, setFilter }) {
             excerpt: t.description,
             created: t.created_at,
             status: t.status,
+            meta: [
+              ...(t.updated_at ? [{ label: "Updated", value: t.updated_at }] : []),
+              ...(t.resolved_at ? [{ label: "Resolved", value: t.resolved_at }] : []),
+            ]
           }))
         );
       } else {
-        setError(error || "Failed to load tickets");
+        setError(error || "No tickets found");
       }
 
       setLoading(false);
