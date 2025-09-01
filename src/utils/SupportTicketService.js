@@ -10,44 +10,44 @@ import { checkAuthHeaders } from './authDebug';
 /**
  * Get support tickets list
  * @param {Object} params - Query parameters
- * @param {number} params.page - Page number (required)
- * @param {number} params.per_page - Items per page (required)
+ * @param {number} params.page - Page number (required, defaults to 1)
+ * @param {number} params.per_page - Items per page (required, defaults to 10)
  * @param {string} params.time_zone - Time zone (required, defaults to Asia/Kolkata)
- * @param {string} [params.is_assigned] - Assigned filter (optional, defaults to empty string)
+ * @param {0|1|""} [params.is_assigned] - Assigned filter (0 = not assigned, 1 = assigned, "" = all)
  * @returns {Promise<Object>} - Tickets data with pagination info
  */
-export const getSupportTickets = async (params) => {
+export const getSupportTickets = async (params = {}) => {
   try {
-    checkAuthHeaders(); // Ensure auth headers are attached
+    checkAuthHeaders(); // Ensure auth headers are attached before request
 
     // Ensure defaults
     const page = params.page || 1;
     const perPage = params.per_page || 10;
     const timeZone = params.time_zone || "Asia/Kolkata";
-    const isAssigned = params.is_assigned ?? "";
+    const isAssigned = params.is_assigned ?? ""; // Accepts 0, 1, or ""
 
     // Build query string manually
     const queryParams = [
       `page=${page}`,
       `per_page=${perPage}`,
-      `time_zone=${timeZone}`,
+      `time_zone=${encodeURIComponent(timeZone)}`,
       `is_assigned=${isAssigned}`
     ].join("&");
 
-    // const finalUrl = `https://shield-tickets-backend-4bfb1f52b122.herokuapp.com`;
+    const finalUrl = `/support/list?${queryParams}`;
 
     // Debug logs
-    // console.log("Making API call to:", finalUrl);
-    console.log("Query Params Object:", { page, perPage, timeZone, isAssigned });
+    console.log("SupportTicketsService → Final URL:", finalUrl);
+    console.log("SupportTicketsService → Params:", { page, perPage, timeZone, isAssigned });
 
-    // API request.
-    const response = await axios.get(`/support/list?${queryParams}`);
+    // API request
+    const response = await axios.get(finalUrl);
 
-    console.log("Support Tickets API response:", response.status, response.data);
+    console.log("SupportTicketsService → Response:", response.status, response.data);
 
     return { success: true, data: response.data, error: null };
   } catch (error) {
-    console.error("Error fetching support tickets:", error);
+    console.error("SupportTicketsService → Error fetching support tickets:", error);
 
     if (error.response) {
       return {

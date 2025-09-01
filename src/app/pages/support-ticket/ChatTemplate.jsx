@@ -60,12 +60,12 @@ import { getSupportTickets } from "../../../utils/SupportTicketService";
 // ];
 
 const ChatTemplate = () => {
-   const [filter, setFilter] = useState("All Status");
+  const [filter, setFilter] = useState("All Status");
   const [tickets, setTickets] = useState([]); // now dynamic
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-   // Fetch tickets from API
+  // Fetch tickets from API
   const fetchTickets = async () => {
     setLoading(true);
     setError(null);
@@ -76,7 +76,7 @@ const ChatTemplate = () => {
       page: 1,
       per_page: 10,
       // time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone, // gets user's local tz
-       time_zone: timeZone,
+      time_zone: timeZone,
     });
 
     if (response.success) {
@@ -165,7 +165,9 @@ const ChatTemplate = () => {
 
             {/* Ticket List */}
             <ScrollShadow className="hide-scrollbar flex-1 space-y-4 overflow-y-auto">
-              {loading && <p className="p-4 text-gray-500">Loading tickets...</p>}
+              {loading && (
+                <p className="p-4 text-gray-500">Loading tickets...</p>
+              )}
               {error && <p className="p-4 text-red-500">{error}</p>}
               {!loading && !error && filteredTickets.length === 0 && (
                 <p className="p-4 text-gray-500">No tickets found.</p>
@@ -183,15 +185,19 @@ const ChatTemplate = () => {
                       <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
                         <div>
                           <p className="text-sm font-semibold text-gray-900 sm:text-base">
-                            #{ticket.id} – {ticket.title}
+                            #{ticket.id} – {ticket.subject}
                           </p>
                           <p className="text-xs text-gray-500 sm:text-sm">
-                            {ticket.customer}
+                            {ticket.name} ({ticket.email})
                           </p>
                         </div>
 
                         <span
-                          className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${ticket.statusColor || "bg-gray-100 text-gray-800"}`}
+                          className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${
+                            ticket.status === "Open"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
                         >
                           {ticket.status}
                         </span>
@@ -199,14 +205,20 @@ const ChatTemplate = () => {
 
                       {/* Body */}
                       <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-gray-700">
-                        {ticket.message}
+                        {ticket.description}
                       </p>
 
                       {/* Footer */}
                       <div className="flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-                        <span>{ticket.time}</span>
+                        <span>{ticket.created_at}</span>
                         <span
-                          className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${ticket.priorityColor || "text-gray-600"}`}
+                          className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${
+                            ticket.priority === "High"
+                              ? "text-red-600"
+                              : ticket.priority === "Medium"
+                                ? "text-yellow-600"
+                                : "text-green-600"
+                          }`}
                         >
                           {ticket.priority}
                         </span>

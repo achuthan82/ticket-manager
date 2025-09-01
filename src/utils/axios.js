@@ -29,7 +29,7 @@ axiosInstance.interceptors.request.use(
     if (token) {
       // For now, let's add the token even if validation fails (for debugging)
       config.headers.Authorization = `Bearer ${token}`;
-      config.headers['x-platform'] = localStorage.getItem('device_type')
+      // config.headers['x-platform'] = localStorage.getItem('device_type')
       console.log('Authorization header added:', `Bearer ${token.substring(0, 20)}...`);
     } else {
       console.log('No token found in localStorage');
