@@ -6,7 +6,7 @@ import { useContext, useState } from "react";
 import DynamicHeader from "./Header/DynamicHeader";
 import DocuPromptSidebar from "./Sidebar/DocuPromptSidebar";
 import { DocumentsContext } from "app/contexts/documents/context";
-import { UsersContext } from "app/contexts/users/context";
+// import { UsersContext } from "app/contexts/users/context";
 import { PromptsContext } from "app/contexts/prompts/context";
 import { useSidebarContext } from "app/contexts/sidebar/context";
 import clsx from "clsx";
@@ -23,14 +23,14 @@ export default function MainLayoutWithContext() {
   
   // Get context values for state management
   const documentsContext = useContext(DocumentsContext);
-  const usersContext = useContext(UsersContext);
+  // const usersContext = useContext(UsersContext);
   const promptsContext = useContext(PromptsContext);
 
   // Determine which functions to pass based on current route
   const getHeaderProps = () => {
     console.log('Current pathname:', pathname);
     console.log('Documents context:', documentsContext);
-    console.log('Users context:', usersContext);
+    // console.log('Users context:', usersContext);
     console.log('Prompts context:', promptsContext);
     
     if (pathname.startsWith('/documents')) {
@@ -38,10 +38,10 @@ export default function MainLayoutWithContext() {
         onUploadClick: documentsContext?.openUploadModal
       };
     } else if (pathname.startsWith('/users')) {
-      return {
-        onInviteClick: usersContext?.openInviteModal,
-        onExportClick: usersContext?.exportUsers
-      };
+      // return {
+      //   onInviteClick: usersContext?.openInviteModal,
+      //   onExportClick: usersContext?.exportUsers
+      // };
     } else if (pathname.startsWith('/prompts')) {
       return {
         onOpenModal: promptsContext?.openModal

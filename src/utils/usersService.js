@@ -16,7 +16,7 @@ import { checkAuthHeaders } from './authDebug';
  * @param {string} [params.search] - Search term (optional)
  * @returns {Promise<Object>} - Users data with pagination info
  */
-export const getUsers = async (params) => {
+export const getUsers =  async (params) => {
   try {
     checkAuthHeaders(); // Debugging call
     const queryParams = new URLSearchParams();
@@ -27,7 +27,7 @@ export const getUsers = async (params) => {
     if (params.search && params.search.trim()) { queryParams.append('search', params.search.trim()); }
 
     console.log('Making API call to /users with params:', Object.fromEntries(queryParams));
-    const response = await axios.get(`/users?${queryParams.toString()}`);
+    const response = await axios.get(`/user/paginated_list?${queryParams.toString()}`);
     console.log('Users API response:', response.status, response.data);
 
     return { success: true, data: response.data, error: null };
@@ -42,106 +42,4 @@ export const getUsers = async (params) => {
     }
   }
 };
-
-/**
- * Get user statistics (for dashboard stats)
- * @returns {Promise<Object>} - User statistics
- */
-export const getUserStats = async () => {
-  try {
-    checkAuthHeaders();
-    const response = await axios.get('/users/stats');
-    console.log('User stats API response:', response.status, response.data);
-    return { success: true, data: response.data, error: null };
-  } catch (error) {
-    console.error('Error fetching user stats:', error);
-    if (error.response) {
-      return { success: false, data: null, error: error.response.data?.message || `HTTP ${error.response.status} error` };
-    } else if (error.request) {
-      return { success: false, data: null, error: 'Network error. Please check your connection.' };
-    } else {
-      return { success: false, data: null, error: error.message || 'Something went wrong' };
-    }
-  }
-};
-
-/**
- * Update user status (activate/deactivate)
- * @param {string} userId - User ID
- * @param {boolean} isActive - New status
- * @returns {Promise<Object>} - Update result
- */
-export const updateUserStatus = async (userId, isActive) => {
-  try {
-    checkAuthHeaders();
-    const response = await axios.patch(`/users/${userId}/status`, {
-      is_active: isActive
-    });
-    console.log('Update user status API response:', response.status, response.data);
-    return { success: true, data: response.data, error: null };
-  } catch (error) {
-    console.error('Error updating user status:', error);
-    if (error.response) {
-      return { success: false, data: null, error: error.response.data?.message || `HTTP ${error.response.status} error` };
-    } else if (error.request) {
-      return { success: false, data: null, error: 'Network error. Please check your connection.' };
-    } else {
-      return { success: false, data: null, error: error.message || 'Something went wrong' };
-    }
-  }
-};
-
-/**
- * Delete user
- * @param {string} userId - User ID
- * @returns {Promise<Object>} - Delete result
- */
-export const deleteUser = async (userId) => {
-  try {
-    checkAuthHeaders();
-    const response = await axios.delete(`/users/${userId}`);
-    console.log('Delete user API response:', response.status, response.data);
-    return { success: true, data: response.data, error: null };
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    if (error.response) {
-      return { success: false, data: null, error: error.response.data?.message || `HTTP ${error.response.status} error` };
-    } else if (error.request) {
-      return { success: false, data: null, error: 'Network error. Please check your connection.' };
-    } else {
-      return { success: false, data: null, error: error.message || 'Something went wrong' };
-    }
-  }
-};
-
-export const inviteUser = async (userData) => {
-  try {
-    checkAuthHeaders();
-    
-    // Prepare the payload according to API specification
-    const payload = {
-      first_name: userData.first_name,
-      last_name: userData.last_name,
-      role_id: parseInt(userData.role_id),
-      email: userData.email,
-      department_id: userData.department_id,
-    //   department_name: userData.department_name || userData.other_department || '',
-      permissions: userData.permissions || []
-    };
-
-    console.log('Making API call to /users/invite with payload:', payload);
-    const response = await axios.post('/users/invite', payload);
-    console.log('Invite user API response:', response.status, response.data);
-
-    return { success: true, data: response.data, error: null };
-  } catch (error) {
-    console.error('Error inviting user:', error);
-    if (error.response) {
-      return { success: false, data: null, error: error.response.data?.message || `HTTP ${error.response.status} error` };
-    } else if (error.request) {
-      return { success: false, data: null, error: 'Network error. Please check your connection.' };
-    } else {
-      return { success: false, data: null, error: error.message || 'Something went wrong' };
-    }
-  }
-}; 
+ 

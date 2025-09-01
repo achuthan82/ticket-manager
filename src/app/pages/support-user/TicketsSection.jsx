@@ -1,7 +1,8 @@
-// TicketsSection.jsx
+import { useEffect, useState } from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Select } from "components/ui";
 import { useNavigate } from "react-router";
+import { getTickets } from "utils/supportUserService";
 
 function TicketCard({ id, title, excerpt, status, meta = [], created }) {
   const navigate = useNavigate();
@@ -14,10 +15,7 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
   };
 
   const topMeta = meta.find((m) => m.label === "Updated" || m.label === "Resolved");
-
-  const filteredMeta = meta.filter(
-    (m) => m.label !== "Updated" && m.label !== "Resolved"
-  );
+  const filteredMeta = meta.filter((m) => m.label !== "Updated" && m.label !== "Resolved");
   const bottomMeta = [{ label: "Created", value: created }, ...filteredMeta];
 
   return (
@@ -28,7 +26,6 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
     >
       {/* Top row */}
       <div className="flex items-center justify-between mb-4">
-        {/* Left side: title + status + topMeta */}
         <div className="flex items-center gap-4">
           <div className="font-semibold text-gray-900">
             #{id} - {title}
@@ -44,15 +41,11 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
             </span>
           )}
         </div>
-
-        {/* Right side: chevron */}
         <ChevronRightIcon className="w-5 h-5 text-gray-400" />
       </div>
 
-      {/* Excerpt */}
       <p className="text-gray-600 mb-5">{excerpt}</p>
 
-      {/* Bottom row */}
       <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-neutral-500">
         {bottomMeta.map((m) => (
           <span key={m.label} className="flex items-center gap-1">
@@ -65,18 +58,35 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
   );
 }
 
-export default function TicketsSection({ tickets, filter, setFilter }) {
-  const visibleTickets = filter === "all"
-    ? tickets
-    : tickets.filter((t) => t.status === filter);
+export default function TicketsSection({ filter, setFilter }) {
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function fetchTickets() {
+      setLoading(true);
+      setError("");
+      const { success, data, error } = await getTickets({
+        page: 1,
+        per_page: 10,
+        status: filter === "all" ? undefined : filter, // only send if not "all"
+      });
+      if (success) {
+        setTickets(Array.isArray(data) ? data : data.tickets || []);
+      } else {
+        setError(error);
+      }
+      setLoading(false);
+    }
+    fetchTickets();
+  }, [filter]);
 
   return (
     <div>
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">
-          My Support Tickets
-        </h2>
+        <h2 className="text-xl font-semibold text-gray-900">My Support Tickets</h2>
         <div className="w-32">
           <Select
             className="text-sm border border-black rounded-md px-3 py-2"
@@ -95,10 +105,14 @@ export default function TicketsSection({ tickets, filter, setFilter }) {
 
       {/* Tickets */}
       <div className="mt-6 space-y-5">
-        {visibleTickets.length === 0 ? (
+        {loading ? (
+          <p className="text-center text-gray-500">Loading tickets...</p>
+        ) : error ? (
+          <p className="text-center text-red-500">{error}</p>
+        ) : tickets.length === 0 ? (
           <p className="text-center text-gray-500">No tickets found</p>
         ) : (
-          visibleTickets.map((t) => <TicketCard key={t.id} {...t} />)
+          tickets.map((t) => <TicketCard key={t.id} {...t} />)
         )}
       </div>
     </div>
