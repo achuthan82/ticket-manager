@@ -66,32 +66,36 @@ const ChatTemplate = () => {
   const [error, setError] = useState(null);
 
   // Fetch tickets from API
-  const fetchTickets = async () => {
-    setLoading(true);
-    setError(null);
-    let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (timeZone === "Asia/Calcutta") timeZone = "Asia/Kolkata"; // fix here ✅
+const fetchTickets = async () => {
+  setLoading(true);
+  setError(null);
+  let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (timeZone === "Asia/Calcutta") timeZone = "Asia/Kolkata"; // fix here ✅
 
-    const response = await getSupportTickets({
-      page: 1,
-      per_page: 10,
-      // time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone, // gets user's local tz
-      time_zone: timeZone,
-    });
+  const response = await getSupportTickets({
+    page: 1,
+    per_page: 10,
+    // time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone, // gets user's local tz
+    time_zone: timeZone,
+  });
 
-    if (response.success) {
-      setTickets(response.data.data || []); // adjust based on API shape
-    } else {
-      setError(response.error);
-      setTickets([]);
-    }
+  console.log("API Response:", response); // 👈 Debug log to inspect response
 
-    setLoading(false);
-  };
+  if (response.success) {
+    setTickets(response.data.data || []); // adjust based on API shape
+  } else {
+    setError(response.error);
+    setTickets([]);
+  }
 
-  useEffect(() => {
-    fetchTickets();
-  }, []);
+  setLoading(false);
+};
+
+useEffect(() => {
+  fetchTickets();
+  console.log("Updated tickets:", tickets);
+}, []);
+
 
   const filteredTickets =
     filter === "All Status"
