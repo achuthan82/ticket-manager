@@ -8,6 +8,30 @@ import { useEffect, useState } from "react";
 // the api for supportList
 import { getSupportTickets } from "../../../utils/SupportTicketService";
 
+// 🕒 Helper to format "time ago"
+const formatTimeAgo = (dateString) => {
+  const now = new Date();
+  const past = new Date(dateString.replace(/-/g, "/")); // ensure cross-browser parse
+  const diff = Math.floor((now - past) / 1000); // in seconds
+
+  if (diff < 60) return `${diff} sec${diff !== 1 ? "s" : ""} ago`;
+  if (diff < 3600) {
+    const mins = Math.floor(diff / 60);
+    return `${mins} min${mins !== 1 ? "s" : ""} ago`;
+  }
+  if (diff < 86400) {
+    const hrs = Math.floor(diff / 3600);
+    return `${hrs} hour${hrs !== 1 ? "s" : ""} ago`;
+  }
+  if (diff < 2592000) {
+    const days = Math.floor(diff / 86400);
+    return `${days} day${days !== 1 ? "s" : ""} ago`;
+  }
+  const months = Math.floor(diff / 2592000);
+  return `${months} month${months !== 1 ? "s" : ""} ago`;
+};
+
+
 // const tickets = [
 //   {
 //     id: "TK-1024",
@@ -61,47 +85,73 @@ import { getSupportTickets } from "../../../utils/SupportTicketService";
 
 const ChatTemplate = () => {
   const [filter, setFilter] = useState("All Status");
-  const [tickets, setTickets] = useState([]); // now dynamic
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Status & Priority mapping (API gives numbers, UI needs labels)
+  const statusMap = {
+    1: "Open",
+    2: "Pending",
+    3: "Resolved",
+    4: "Closed",
+
+  };
+
+  const priorityMap = {
+    1: "Low",
+    2: "Medium",
+    3: "High",
+  };
+
   // Fetch tickets from API
-const fetchTickets = async () => {
-  setLoading(true);
-  setError(null);
-  let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  if (timeZone === "Asia/Calcutta") timeZone = "Asia/Kolkata"; // fix here ✅
+  const fetchTickets = async () => {
+    setLoading(true);
+    setError(null);
 
-  const response = await getSupportTickets({
-    page: 1,
-    per_page: 10,
-    // time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone, // gets user's local tz
-    time_zone: timeZone,
-  });
+    let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timeZone === "Asia/Calcutta") timeZone = "Asia/Kolkata"; // ✅ fix
 
-  console.log("API Response:", response); // 👈 Debug log to inspect response
+    const response = await getSupportTickets({
+      page: 1,
+      per_page: 10,
+      time_zone: timeZone,
+    });
 
-  if (response.success) {
-    setTickets(response.data.data || []); // adjust based on API shape
-  } else {
-    setError(response.error);
-    setTickets([]);
-  }
+    console.log("API Response:", response);
 
-  setLoading(false);
-};
+    if (response.success) {
+      // ✅ extract tickets array correctly
+      const ticketsArray = response.data?.data?.[0] || [];
+      console.log("Processed tickets:", ticketsArray);
 
-useEffect(() => {
-  fetchTickets();
-  console.log("Updated tickets:", tickets);
-}, []);
+      // ✅ map numeric status/priority into human-readable
+      const normalizedTickets = ticketsArray.map((ticket) => ({
+        ...ticket,
+        statusLabel: statusMap[ticket.status] || "Unknown",
+        priorityLabel: priorityMap[ticket.priority] || "Normal",
+      }));
 
+      setTickets(normalizedTickets);
+    } else {
+      setError(response.error);
+      setTickets([]);
+    }
 
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  // ✅ use mapped status labels for filtering
   const filteredTickets =
     filter === "All Status"
       ? tickets
-      : tickets.filter((ticket) => ticket.status === filter);
+      : tickets.filter((ticket) => ticket.statusLabel === filter);
 
+  // Example ticket state for testing "updateStatus" / "updateAssignee"
   const [ticket, setTicket] = useState({
     id: "TK-1024",
     title: "Payment Issue",
@@ -110,9 +160,9 @@ useEffect(() => {
       email: "micheal.j@email.com",
     },
     createdAt: "5 mins ago",
-    priority: "High Priority",
+    priority: "High",
     priorityColor: "text-red-600",
-    status: "New",
+    status: "Open",
     assignee: "Unassigned",
   });
 
@@ -146,16 +196,17 @@ useEffect(() => {
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
                 <Select
-                  defaultValue="All Status"
-                  onValueChange={(value) => setFilter(value)}
-                >
-                  <option value="All Status">All Status</option>
-                  <option value="New">New</option>
-                  <option value="Open">Open</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Resolved">Resolved</option>
-                  <option value="Closed">Closed</option>
-                </Select>
+                  className="rounded-md border border-black px-3 py-2 text-sm"
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  data={[
+                    { label: "All Tickets", value: "all" },
+                    { label: "Open", value: 1 },
+                    { label: "Pending", value: 2 },
+                    { label: "Resolved", value: 3 },
+                    { label: "Closed", value: 4 },
+                  ]}
+                />
                 <Select
                   defaultValue="All Priority"
                   data={["High", "Low", "Medium", "All Priority"]}
@@ -179,57 +230,65 @@ useEffect(() => {
 
               {!loading &&
                 !error &&
-                filteredTickets.map((ticket) => (
-                  <div key={ticket.id}>
-                    <div
-                      className="group border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md sm:p-5"
-                      style={{ cursor: "pointer" }}
-                    >
-                      {/* Header */}
-                      <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900 sm:text-base">
-                            #{ticket.id} – {ticket.subject}
-                          </p>
-                          <p className="text-xs text-gray-500 sm:text-sm">
-                            {ticket.name} ({ticket.email})
-                          </p>
+                filteredTickets.map((ticket) => {
+                  console.log("Ticket item:", ticket); // 👀 debug
+
+                  return (
+                    <div key={ticket.id}>
+                      <div
+                        className="group border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md sm:p-5"
+                        style={{ cursor: "pointer" }}
+                      >
+                        {/* Header */}
+                        <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900 sm:text-base">
+                              #{ticket.id} – {ticket.subject}
+                            </p>
+                            <p className="text-xs text-gray-500 sm:text-sm">
+                              {ticket.name} 
+                              {/* ({ticket.email}) */}
+                            </p>
+                          </div>
+
+                          {/* ✅ uses pre-mapped statusLabel */}
+                          <span
+                            className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${
+                              ticket.statusLabel === "Open"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-purple-100 text-purple-800"
+                            }`}
+                          >
+                            {ticket.statusLabel}
+                          </span>
                         </div>
 
-                        <span
-                          className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${
-                            ticket.status === "Open"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {ticket.status}
-                        </span>
-                      </div>
+                        {/* Body */}
+                        <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-gray-700">
+                          {ticket.description || "No description provided"}
+                        </p>
 
-                      {/* Body */}
-                      <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-gray-700">
-                        {ticket.description}
-                      </p>
+                        {/* Footer */}
+                        <div className="flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+                          <span>{formatTimeAgo(ticket.created_at)}</span>
 
-                      {/* Footer */}
-                      <div className="flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-                        <span>{ticket.created_at}</span>
-                        <span
-                          className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${
-                            ticket.priority === "High"
-                              ? "text-red-600"
-                              : ticket.priority === "Medium"
-                                ? "text-yellow-600"
-                                : "text-green-600"
-                          }`}
-                        >
-                          {ticket.priority}
-                        </span>
+                          {/* ✅ uses pre-mapped priorityLabel */}
+                          <span
+                            className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${
+                              ticket.priorityLabel === "High"
+                                ? "text-red-600"
+                                : ticket.priorityLabel === "Medium"
+                                  ? "text-yellow-600"
+                                  : "text-green-600"
+                            }`}
+                          >
+                            {ticket.priorityLabel}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </ScrollShadow>
           </div>
         </div>
