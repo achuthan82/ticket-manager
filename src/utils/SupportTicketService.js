@@ -37,7 +37,7 @@ export const getSupportTickets = async (params) => {
     // const finalUrl = `https://shield-tickets-backend-4bfb1f52b122.herokuapp.com`;
 
     // Debug logs
-    console.log("Making API call to:", finalUrl);
+    // console.log("Making API call to:", finalUrl);
     console.log("Query Params Object:", { page, perPage, timeZone, isAssigned });
 
     // API request.
