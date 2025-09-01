@@ -4,61 +4,94 @@ import {
   FunnelIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+// the api for supportList
+import { getSupportTickets } from "../../../utils/SupportTicketService";
 
-const tickets = [
-  {
-    id: "TK-1024",
-    title: "Payment Issue",
-    customer: "Micheal Johnson",
-    status: "New",
-    statusColor: "bg-blue-100 text-blue-800",
-    message:
-      "Im having trouble processing my subscription payment. The system keeps showing an error...",
-    priority: "High Priority",
-    priorityColor: "text-red-600",
-    time: "5 mins ago",
-  },
-  {
-    id: "TK-1023",
-    title: "Lead Quality Question",
-    customer: "Sarah Williams",
-    status: "Open",
-    statusColor: "bg-yellow-100 text-yellow-800",
-    message:
-      " I received leads from the Miami area but the response rate is lower than expected...",
-    priority: "Medium Priority",
-    priorityColor: "text-yellow-600",
-    time: "2 hours ago",
-  },
-  {
-    id: "TK-1022",
-    title: "Feature Request",
-    customer: "Robert Davis",
-    status: "Pending",
-    statusColor: "bg-purple-100 text-purple-800",
-    message:
-      " Would it be possible to add a feature for scheduling automated follow-up emails...",
-    priority: "Low Priority",
-    priorityColor: "text-green-600",
-    time: "Yesterday",
-  },
-  {
-    id: "TK-1021",
-    title: "Territory Access",
-    customer: "Lisa Chen",
-    status: "Resolved",
-    statusColor: "bg-green-100 text-green-800",
-    message:
-      "I purchased access to the California territory but Im not seeing any leads...",
-    priority: "High Priority",
-    priorityColor: "text-red-600",
-    time: "2 days ago",
-  },
-];
+// const tickets = [
+//   {
+//     id: "TK-1024",
+//     title: "Payment Issue",
+//     customer: "Micheal Johnson",
+//     status: "New",
+//     statusColor: "bg-blue-100 text-blue-800",
+//     message:
+//       "Im having trouble processing my subscription payment. The system keeps showing an error...",
+//     priority: "High Priority",
+//     priorityColor: "text-red-600",
+//     time: "5 mins ago",
+//   },
+//   {
+//     id: "TK-1023",
+//     title: "Lead Quality Question",
+//     customer: "Sarah Williams",
+//     status: "Open",
+//     statusColor: "bg-yellow-100 text-yellow-800",
+//     message:
+//       " I received leads from the Miami area but the response rate is lower than expected...",
+//     priority: "Medium Priority",
+//     priorityColor: "text-yellow-600",
+//     time: "2 hours ago",
+//   },
+//   {
+//     id: "TK-1022",
+//     title: "Feature Request",
+//     customer: "Robert Davis",
+//     status: "Pending",
+//     statusColor: "bg-purple-100 text-purple-800",
+//     message:
+//       " Would it be possible to add a feature for scheduling automated follow-up emails...",
+//     priority: "Low Priority",
+//     priorityColor: "text-green-600",
+//     time: "Yesterday",
+//   },
+//   {
+//     id: "TK-1021",
+//     title: "Territory Access",
+//     customer: "Lisa Chen",
+//     status: "Resolved",
+//     statusColor: "bg-green-100 text-green-800",
+//     message:
+//       "I purchased access to the California territory but Im not seeing any leads...",
+//     priority: "High Priority",
+//     priorityColor: "text-red-600",
+//     time: "2 days ago",
+//   },
+// ];
 
 const ChatTemplate = () => {
-  const [filter, setFilter] = useState("All Status");
+   const [filter, setFilter] = useState("All Status");
+  const [tickets, setTickets] = useState([]); // now dynamic
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+   // Fetch tickets from API
+  const fetchTickets = async () => {
+    setLoading(true);
+    setError(null);
+    let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timeZone === "Asia/Calcutta") timeZone = "Asia/Kolkata"; // fix here ✅
+
+    const response = await getSupportTickets({
+      page: 1,
+      per_page: 10,
+      // time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone, // gets user's local tz
+       time_zone: timeZone,
+    });
+
+    if (response.success) {
+      setTickets(response.data.data || []); // adjust based on API shape
+    } else {
+      setError(response.error);
+      setTickets([]);
+    }
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
 
   const filteredTickets =
     filter === "All Status"
@@ -89,16 +122,14 @@ const ChatTemplate = () => {
   };
 
   return (
-    <div className="mx-auto flex h-screen max-h-[calc(100vh-240px)] w-full max-w-screen-2xl flex-col overflow-hidden ">
+    <div className="mx-auto flex h-screen max-h-[calc(100vh-240px)] w-full max-w-screen-2xl flex-col overflow-hidden">
       {/* Responsive main content */}
       <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
         {/* ticket listing */}
         <div className="flex w-full flex-col overflow-hidden border-b border-gray-200 bg-white md:w-1/2 md:border-r md:border-b-0 lg:w-1/3">
-          {/* Filters + Tickets */}
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {/* Filters Section */}
             <div className="flex-shrink-0 border-b border-gray-200 p-3 sm:p-4">
-              {/* Search + Button */}
               <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
                 <Input className="w-full" placeholder="Search Tickets..." />
                 <Button
@@ -109,12 +140,9 @@ const ChatTemplate = () => {
                   <FunnelIcon className="h-6 w-6" />
                 </Button>
               </div>
-              {/* Filters row */}
-              <div 
-              className="flex flex-col gap-2 sm:flex-row sm:gap-2"
-              >
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
                 <Select
-                  defaultValue="2"
+                  defaultValue="All Status"
                   onValueChange={(value) => setFilter(value)}
                 >
                   <option value="All Status">All Status</option>
@@ -134,53 +162,58 @@ const ChatTemplate = () => {
                 />
               </div>
             </div>
-            {/* Ticket List with Scroll */}
-            <ScrollShadow className="hide-scrollbar flex-1 space-y-4 overflow-y-auto ">
-              {filteredTickets.map((ticket) => (
-                <div
-                  key={ticket.id}
-                  // className="rounded-md bg-white p-3 shadow-sm hover:bg-gray-50 sm:p-4"
-                >
-                  {/* Ticket 1 */}
-                  <div
-                    className="group  border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md sm:p-5"
-                    style={{ cursor: "pointer" }}
-                  >
-                    {/* Header */}
-                    <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900 sm:text-base">
-                          #{ticket.id} – {ticket.title}
-                        </p>
-                        <p className="text-xs text-gray-500 sm:text-sm">
-                          {ticket.customer}
-                        </p>
+
+            {/* Ticket List */}
+            <ScrollShadow className="hide-scrollbar flex-1 space-y-4 overflow-y-auto">
+              {loading && <p className="p-4 text-gray-500">Loading tickets...</p>}
+              {error && <p className="p-4 text-red-500">{error}</p>}
+              {!loading && !error && filteredTickets.length === 0 && (
+                <p className="p-4 text-gray-500">No tickets found.</p>
+              )}
+
+              {!loading &&
+                !error &&
+                filteredTickets.map((ticket) => (
+                  <div key={ticket.id}>
+                    <div
+                      className="group border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md sm:p-5"
+                      style={{ cursor: "pointer" }}
+                    >
+                      {/* Header */}
+                      <div className="mb-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 sm:text-base">
+                            #{ticket.id} – {ticket.title}
+                          </p>
+                          <p className="text-xs text-gray-500 sm:text-sm">
+                            {ticket.customer}
+                          </p>
+                        </div>
+
+                        <span
+                          className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${ticket.statusColor || "bg-gray-100 text-gray-800"}`}
+                        >
+                          {ticket.status}
+                        </span>
                       </div>
 
-                      <span
-                        className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${ticket.statusColor}`}
-                      >
-                        {ticket.status}
-                      </span>
-                    </div>
+                      {/* Body */}
+                      <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-gray-700">
+                        {ticket.message}
+                      </p>
 
-                    {/* Body */}
-                    <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-gray-700">
-                      {ticket.message}
-                    </p>
-
-                    {/* Footer */}
-                    <div className="flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-                      <span>{ticket.time}</span>
-                      <span
-                        className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${ticket.priorityColor}`}
-                      >
-                        {ticket.priority}
-                      </span>
+                      {/* Footer */}
+                      <div className="flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+                        <span>{ticket.time}</span>
+                        <span
+                          className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${ticket.priorityColor || "text-gray-600"}`}
+                        >
+                          {ticket.priority}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </ScrollShadow>
           </div>
         </div>
@@ -188,7 +221,7 @@ const ChatTemplate = () => {
         {/* ticket details */}
         <div className="flex w-full flex-1 flex-col overflow-hidden bg-white">
           {/* Ticket Info Header */}
-          <div className="flex-shrink-0  border border-gray-200 bg-white p-2 sm:p-3 md:p-4">
+          <div className="flex-shrink-0 border border-gray-200 bg-white p-2 sm:p-3 md:p-4">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               {/* Left side: Ticket info */}
               <div className="min-w-0 flex-1">
