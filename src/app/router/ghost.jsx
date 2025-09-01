@@ -10,6 +10,12 @@ const ghostRoutes = {
         Component: (await import("app/pages/Auth")).default,
       }),
     },
+    {
+      path: "login/:token",
+      lazy: async () => ({
+        Component: (await import("app/pages/Auth")).default,
+      }),
+    },
   ],
 };
 

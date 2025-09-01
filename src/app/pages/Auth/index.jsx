@@ -1,5 +1,5 @@
 // Import Dependencies
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useParams } from "react-router";
 import { EnvelopeIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
@@ -15,9 +15,9 @@ import { Page } from "components/shared/Page";
 // ----------------------------------------------------------------------
 
 export default function SignIn() {
-  const { login, errorMessage, isLoading, setErrorMessage } = useAuthContext();
+  const { login, errorMessage, isLoading, setErrorMessage, loginWithToken } = useAuthContext();
   const location = useLocation();
-
+  const params =  useParams()
   const {
     register,
     handleSubmit,
@@ -55,7 +55,14 @@ export default function SignIn() {
       password: data.password,
     });
   };
+  useEffect(() => {
+    if (params?.token) {
+        const token = params.token
+        const formattedToken = token.replace(/\${5}/g, ".");
+        loginWithToken({token:formattedToken})
 
+    }
+  }, [])
   return (
     <Page title="Login">
       <main className="min-h-100vh grid w-full grow grid-cols-1 place-items-center">

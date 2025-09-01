@@ -49,7 +49,7 @@ const reducerHandlers = {
       errorMessage: null,
     };
   },
-
+  
   LOGIN_SUCCESS: (state, action) => {
     const { user } = action.payload;
     return {
@@ -253,18 +253,18 @@ export function AuthProvider({ children }) {
 
     init();
   }, []);
-  const getDeviceType = () => {
-    const width = window.innerWidth;
-    if (width <= 480) {
-      return "Mobile";
-    } else if (width > 480 && width <= 1024) {
-      return "Tablet";
-    } else {
-      return "Desktop";
-    }
-  };
+  // const getDeviceType = () => {
+  //   const width = window.innerWidth;
+  //   if (width <= 480) {
+  //     return "Mobile";
+  //   } else if (width > 480 && width <= 1024) {
+  //     return "Tablet";
+  //   } else {
+  //     return "Desktop";
+  //   }
+  // };
   const login = async ({ email, password }) => {
-    localStorage.setItem('device_type', getDeviceType())
+    // localStorage.setItem("device_type", getDeviceType());
     dispatch({
       type: "LOGIN_REQUEST",
     });
@@ -331,7 +331,76 @@ export function AuthProvider({ children }) {
       });
     }
   };
+  const loginWithToken = async ({ token }) => {
+    // localStorage.setItem("device_type", getDeviceType());
+    dispatch({
+      type: "LOGIN_REQUEST",
+    });
 
+    try {
+      const response = await axios.post(
+        "/auth/validate_token",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const { auth_token, data, status } = response.data;
+      console.log(status);
+
+      if (status !== 200 || !isString(auth_token) || !isObject(data)) {
+        throw new Error(
+          response.data.message || "Invalid response from server",
+        );
+      }
+
+      // Sanitize and store user data
+      // const sanitizedUserData = sanitizeUserData(data);
+
+      // Store token and sanitized user data
+      setSession(auth_token);
+      setUserData(data);
+
+      dispatch({
+        type: "LOGIN_SUCCESS",
+        payload: {
+          user: data,
+        },
+      });
+    } catch (err) {
+      let errorMessage = "An error occurred during login";
+
+      if (err.response) {
+        // Server responded with error status
+        const { data, status } = err.response;
+        if (data && data.message) {
+          errorMessage = data.message;
+        } else if (status === 401) {
+          errorMessage = "Invalid email or password";
+        } else if (status === 400) {
+          errorMessage = "Please check your email and password";
+        } else if (status >= 500) {
+          errorMessage = "Server error. Please try again later";
+        }
+      } else if (err.request) {
+        // Network error
+        errorMessage = "Network error. Please check your connection";
+      } else if (err.message) {
+        // Other errors
+        errorMessage = err.message;
+      }
+
+      dispatch({
+        type: "LOGIN_ERROR",
+        payload: {
+          errorMessage: { message: errorMessage },
+        },
+      });
+    }
+  };
   const logout = async () => {
     try {
       // Call logout API to invalidate token on server
@@ -364,6 +433,7 @@ export function AuthProvider({ children }) {
       value={{
         ...state,
         login,
+        loginWithToken,
         logout,
         setErrorMessage,
       }}
