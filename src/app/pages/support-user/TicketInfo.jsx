@@ -1,105 +1,172 @@
-import { PaperClipIcon } from '@heroicons/react/24/outline'
-import { Avatar, Button } from 'components/ui'
+// import { PaperClipIcon } from "@heroicons/react/24/outline";
+import { Avatar, Button } from "components/ui";
+import { useRef, useState, useEffect } from "react";
+import { getComments } from "utils/ticketSinglePageService";
+import { useAuthContext } from "app/contexts/auth/context";
 
-const TicketInfo = () => {
-    return (
-        <>
-            <div className="flex-1 overflow-y-auto p-6">
-                <div className="max-w-4xl mx-auto">
-                    {/* Ticket info */}
-                    <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                                <p className="text-gray-500">Category</p>
-                                <p className="font-medium text-gray-900">Leads and Territories</p>
-                            </div>
-                            <div>
-                                <p className="text-gray-500">Priority</p>
-                                <p className="font-medium text-orange-500">Medium</p>
-                            </div>
-                            <div>
-                                <p className="text-gray-500">Assigned to</p>
-                                <p className="font-medium text-gray-900">Admin Support</p>
-                            </div>
-                            <div>
-                                <p className="text-gray-500">Response time</p>
-                                <p className="font-medium text-gray-900">2 hours</p>
-                            </div>
-                        </div>
-                        {/* Messages */}
-                        <div className="space-y-6 mt-10">
-                            {/* User Message */}
-                            <div className="flex items-start space-x-3">
-                                <Avatar initialColor="secondary" name="Sarah Walker" />
-                                <div className="flex-1">
-                                    <div className="flex items-center space-x-2 mb-1">
-                                        <span className="font-medium text-gray-900">You</span>
-                                        <span className="text-xs text-gray-500">2 days ago</span>
-                                    </div>
-                                    <div className="p-4 rounded-lg bg-gray-100 ml-auto max-w-[70%] break-words">
-                                        <p className="text-gray-700">
-                                            {`I purchased the Miami territory but I'm not receiving any leads from that area. The dashboard shows the territory as active, but no leads have come through in the past week.`}
-                                        </p>
-                                        <p className="text-gray-700 mt-2">
-                                            Territory: Miami, FL (33101)
-                                        </p>
-                                        <p className="text-gray-700">
-                                            Purchase date: 2 weeks ago
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Admin Response */}
-                            <div className="flex items-start space-x-3">
-                                <Avatar initialColor="success" name="Admin Support" />                                   
-                                 <div className="flex-1">
-                                    <div className="flex items-center space-x-2 mb-1">
-                                        <span className="font-medium text-gray-900">Admin Support</span>
-                                        <span className="text-xs text-gray-500">2 hours ago</span>
-                                    </div>
-                                    <div className="p-4 rounded-lg bg-[#c9e0e5] max-w-[70%] break-words" >
-                                        <p className="text-gray-700">Hi Sarah,</p>
-                                        <p className="text-gray-700 mt-2">
-                                            {`Thank you for bringing this to our attention. I've checked your account and can confirm that your Miami territory (33101) is properly configured and active.`}
-                                        </p>
-                                        <p className="text-gray-700 mt-2">
-                                            {`I've identified that there was a technical issue with lead routing for this specific ZIP code that affected a small number of agents. Our technical team has now resolved this issue.`}
-                                        </p>
-                                        <p className="text-gray-700 mt-2">
-                                            {`You should start receiving leads from this territory within the next 24 hours. As compensation for the inconvenience, we've credited your account with 500 additional mailers for this week.`}
-                                        </p>
-                                        <p className="text-gray-700 mt-2">
-                                            {`Please let me know if you don't see leads coming through by tomorrow, and I'll investigate further.`}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {/* Reply Box */}
-                        <div className="mt-6 border-t pt-6">
-                            <h3 className="font-medium text-gray-900 mb-3">Add a reply</h3>
-                            <textarea placeholder="Type your message here..." className="w-full border border-gray-300 rounded-lg px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-atoll" rows="4"></textarea>
-                            <div className="flex items-center justify-between mt-3">
-                                <div className="flex items-center space-x-3">
-                                    <button className="text-gray-400 hover:text-gray-600">
-                                        <PaperClipIcon className="h-5 w-5 text-gray-600" />
-                                    </button>
-                                    <span className="text-sm text-gray-500">
-                                        Attach files (Max 10MB)
-                                    </span>
-                                </div>
-                                <Button onClick="sendReply()" variant="default"
-                                    className="bg-[#2A5A9D] hover:bg-[#1A3A6C] text-white">
-                                    Send Reply
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+const TicketInfo = ({ details, ticketId }) => {
+  const { user } = useAuthContext();
+  console.log("user", user);
+  const scrollRef = useRef(null);
+  const priorityStyle = {
+    1: { color: "text-red-500", text: "High" },
+    2: { color: "text-orange-500", text: "Medium" },
+    3: { color: "text-green-500", text: "Low" },
+  };
+  const [messages, setMessages] = useState([]);
+  //   const [loading, setLoading] = useState(false)
 
+  const fetchMessages = () => {
+    getComments(ticketId).then((response) => {
+      if (response.success) {
+        console.log("Messages:", response.data);
+        if (response.data.data) {
+          setMessages(response.data.data);
+        }
+      } else {
+        setMessages([]);
+        console.error("Error:", response.error);
+      }
+    });
+  };
+  const sendReply = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  };
+  useEffect(() => {
+    console.log(messages);
+    fetchMessages();
+  }, []);
+  return (
+    <>
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="mx-auto max-w-4xl">
+          {/* Ticket info */}
+          <div className="mb-6 rounded-lg bg-gray-50 p-4">
+            <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
+              <div>
+                <p className="text-gray-500">Category</p>
+                <p className="font-medium text-gray-900">
+                  {details?.category_name || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">Priority</p>
+                <p
+                  className={`font-medium ${priorityStyle[details?.priority] ? priorityStyle[details?.priority].color : priorityStyle[1].color}`}
+                >
+                  {priorityStyle[details?.priority]
+                    ? priorityStyle[details?.priority].text
+                    : priorityStyle[1].text}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">Assigned to</p>
+                <p className="font-medium text-gray-900">
+                  {details?.assigned_to || "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">Response time</p>
+                <p className="font-medium text-gray-900">2 hours</p>
+              </div>
             </div>
-        </>
-    )
-}
+            {/* Messages */}
+            <div
+              className="mt-[30px] max-h-[225px] min-h-[100px] overflow-y-auto"
+              ref={scrollRef}
+            >
+              <div className="bordered mt-10 space-y-6 border-gray-200">
+                {/* User Message */}
+                {messages &&
+                  messages.length > 0  ?
+                  messages.map((item, index) => {
+                    const isloggedInUser = user.id === item.created_by
+                    return (
+                    <div className="flex items-start space-x-3" key={index}>
+                      <Avatar initialColor={isloggedInUser ? 'secondary' : 'primary'} name={item.name} />
+                      <div className="flex-1">
+                        <div className="mb-1 flex items-center space-x-2">
+                          <span className="font-medium text-gray-900">{isloggedInUser ? 'You' : 'Admin'}</span>
+                          <span className="text-xs text-gray-500">
+                            2 days ago
+                          </span>
+                        </div>
+                        <div className={`${isloggedInUser ? 'ml-auto' : 'mr-auto'} max-w-[70%] rounded-lg ${isloggedInUser ? 'bg-gray-100' : 'bg-[#c9e0e5]' } p-4 break-words`}>
+                          <p className="text-gray-700">
+                            {item.message}
+                          </p>
+                         
+                        </div>
+                      </div>
+                    </div>
+                    )
+                  }) :  <div className='flex items-center justify-center'>
+                         <p className='text-gray-500'>No Comments to show!</p>
+                  </div>
+                  }
 
-export default TicketInfo
+                {/* Admin Response */}
+                {/* <div className="flex items-start space-x-3">
+                  <Avatar initialColor="success" name="Admin Support" />
+                  <div className="flex-1">
+                    <div className="mb-1 flex items-center space-x-2">
+                      <span className="font-medium text-gray-900">
+                        Admin Support
+                      </span>
+                      <span className="text-xs text-gray-500">2 hours ago</span>
+                    </div>
+                    <div className="max-w-[70%] rounded-lg bg-[#c9e0e5] p-4 break-words">
+                      <p className="text-gray-700">Hi Sarah,</p>
+                      <p className="mt-2 text-gray-700">
+                        {`Thank you for bringing this to our attention. I've checked your account and can confirm that your Miami territory (33101) is properly configured and active.`}
+                      </p>
+                      <p className="mt-2 text-gray-700">
+                        {`I've identified that there was a technical issue with lead routing for this specific ZIP code that affected a small number of agents. Our technical team has now resolved this issue.`}
+                      </p>
+                      <p className="mt-2 text-gray-700">
+                        {`You should start receiving leads from this territory within the next 24 hours. As compensation for the inconvenience, we've credited your account with 500 additional mailers for this week.`}
+                      </p>
+                      <p className="mt-2 text-gray-700">
+                        {`Please let me know if you don't see leads coming through by tomorrow, and I'll investigate further.`}
+                      </p>
+                    </div>
+                  </div>
+                </div> */}
+              </div>
+            </div>
+            {/* Reply Box */}
+            <div className="mt-6 border-t pt-6">
+              <h3 className="mb-3 font-medium text-gray-900">Add a reply</h3>
+              <textarea
+                placeholder="Type your message here..."
+                className="focus:ring-atoll w-full resize-none rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:outline-none"
+                rows="4"
+              ></textarea>
+              <div className="mt-3 flex items-center justify-end">
+                {/* <div className="flex items-center space-x-3">
+                  <button className="text-gray-400 hover:text-gray-600">
+                    <PaperClipIcon className="h-5 w-5 text-gray-600" />
+                  </button>
+                  <span className="text-sm text-gray-500">
+                    Attach files (Max 10MB)
+                  </span>
+                </div> */}
+                <Button
+                  onClick={sendReply}
+                  variant="default"
+                  className="bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
+                >
+                  Send Reply
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default TicketInfo;
