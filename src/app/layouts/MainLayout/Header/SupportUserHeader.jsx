@@ -22,10 +22,10 @@ export default function SupportUserHeader({ onAddUserClick }) {
             />
             <div className="min-w-0 flex-1">
               <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#2A5A9D] truncate">
-                Support User Management
+                Support Center
               </h1>
               <p className="text-sm sm:text-base text-neutral-500 truncate">
-                Manage support users  
+                Get help, browse FAQs, or submit a support ticket  
               </p>
             </div>
           </div>

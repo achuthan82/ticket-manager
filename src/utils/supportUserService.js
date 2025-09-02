@@ -129,3 +129,77 @@ export const getTickets = async (params) => {
     }
   }
 };
+
+/**
+ * Create a new support ticket
+ * @param {Object} payload
+ * @param {string} payload.subject - Ticket subject
+ * @param {string} payload.description - Ticket description
+ * @param {string} payload.priority - low | medium | high (UI values)
+ * @param {string} payload.category - category key from UI
+ * @param {File} [payload.attachment] - Optional file attachment
+ * @returns {Promise<Object>}
+ */
+export const createTicket = async (payload) => {
+  try {
+    checkAuthHeaders();
+
+    // Map priorities to backend values
+    const priorityMap = {
+      low: 1,
+      medium: 2,
+      high: 3,
+    };
+
+    // Map categories to backend UUIDs
+    const categoryMap = {
+      billing: '82b5d872-744d-429a-ab2b-9a3694e10ea7',
+      leads: '5601d4a7-a534-4da1-aac3-95c10e2e212b',
+      technical: '52b9f447-6818-4de3-88b3-4f26f9b1f70b',
+      feature: '6e4aee31-3191-4510-8bcd-11a384098e61',
+      general: '63da341a-ccb4-40df-bf9d-ab8b112ad3f2',
+    };
+
+    const ticketData = {
+      subject: payload.subject,
+      description: payload.description,
+      priority: priorityMap[payload.priority] || 2, // default medium
+      status: 'Open',
+      ticket_category: categoryMap[payload.category],
+    };
+
+    console.log('Creating ticket with payload:', ticketData);
+
+    // Step 1: Create ticket
+    const response = await axios.post('/support', ticketData);
+
+    console.log('Ticket create response:', response.status, response.data);
+
+    const supportId = response.data?.data?.id || response.data?.id; // adapt based on backend response
+
+    // Step 2: If attachment exists, upload it
+    if (payload.attachment && supportId) {
+      const formData = new FormData();
+      formData.append('file', payload.attachment);
+
+      console.log('Uploading attachment for support_id:', supportId);
+
+      await axios.post(`/support/upload/documents/${supportId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    }
+
+    return { success: true, data: response.data, error: null };
+  } catch (error) {
+    console.error('Error creating ticket:', error);
+    if (error.response) {
+      return { success: false, data: null, error: error.response.data?.message || `HTTP ${error.response.status} error` };
+    } else if (error.request) {
+      return { success: false, data: null, error: 'Network error. Please check your connection.' };
+    } else {
+      return { success: false, data: null, error: error.message || 'Something went wrong' };
+    }
+  }
+};
