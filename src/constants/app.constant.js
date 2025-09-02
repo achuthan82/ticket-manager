@@ -1,5 +1,5 @@
-export const APP_NAME = "DocuPrompt Hub";
-export const APP_KEY = "docuprompt-hub";
+export const APP_NAME = "Ticket Manager";
+export const APP_KEY = "ticket-manager";
 
 // Redirect Paths
 export const REDIRECT_URL_KEY = "redirect";
