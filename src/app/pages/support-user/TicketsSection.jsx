@@ -90,46 +90,51 @@ export default function TicketsSection({ filter, setFilter }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchTickets() {
-      setLoading(true);
-      setError("");
+  async function fetchTickets() {
+    setLoading(true);
+    setError("");
 
-      const params = {
-        page: 1,
-        per_page: 10,
-        time_zone: "Asia/Kolkata",
-      };
+    const params = {
+      page: 1,
+      per_page: 10,
+      time_zone: "Asia/Kolkata",
+    };
+    if (filter !== "all") params.status = filter;
 
-      if (filter !== "all") {
-        params.status = filter;
-      }
+    const { success, data, error } = await getTickets(params);
 
-      const { success, data, error } = await getTickets(params);
-
-      if (success && data?.data?.length) {
-        const ticketsArray = data.data[0] || [];
-        setTickets(
-          ticketsArray.map((t) => ({
-            id: t.id,
-            title: t.subject,
-            excerpt: t.description,
-            created: t.created_at,
-            status: t.status,
-            meta: [
-              ...(t.updated_at ? [{ label: "Updated", value: t.updated_at }] : []),
-              ...(t.resolved_at ? [{ label: "Resolved", value: t.resolved_at }] : []),
-            ]
-          }))
-        );
-      } else {
-        setError(error || "No tickets found");
-      }
-
-      setLoading(false);
+    if (success && data?.data?.length) {
+      const ticketsArray = data.data[0] || [];
+      setTickets(
+        ticketsArray.map((t) => ({
+          id: t.id,
+          title: t.subject,
+          excerpt: t.description,
+          created: t.created_at,
+          status: t.status,
+          meta: [
+            ...(t.updated_at ? [{ label: "Updated", value: t.updated_at }] : []),
+            ...(t.resolved_at ? [{ label: "Resolved", value: t.resolved_at }] : []),
+          ],
+        }))
+      );
+    } else {
+      setError(error || "No tickets found");
     }
 
-    fetchTickets();
-  }, [filter]);
+    setLoading(false);
+  }
+
+  fetchTickets();
+
+  // 👂 listen for new tickets being created
+  const handleTicketCreated = () => fetchTickets();
+  window.addEventListener("ticketCreated", handleTicketCreated);
+
+  return () => {
+    window.removeEventListener("ticketCreated", handleTicketCreated);
+  };
+}, [filter]);
 
   return (
     <div>
