@@ -348,10 +348,10 @@ export function AuthProvider({ children }) {
         },
       );
 
-      const { auth_token, data, status } = response.data;
+      const {  data, status } = response.data;
       console.log(status);
 
-      if (status !== 200 || !isString(auth_token) || !isObject(data)) {
+      if (status !== 200 || !isString(token) || !isObject(data)) {
         throw new Error(
           response.data.message || "Invalid response from server",
         );
@@ -361,7 +361,7 @@ export function AuthProvider({ children }) {
       // const sanitizedUserData = sanitizeUserData(data);
 
       // Store token and sanitized user data
-      setSession(auth_token);
+      setSession(token);
       setUserData(data);
 
       dispatch({

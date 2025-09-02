@@ -1,7 +1,21 @@
 import { Button } from '@headlessui/react'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import moment from 'moment'
+const TicketChatHeader = ({ticketId,backToTickets,closeTicket, headerDetails}) => {
+  
+  const badgeStyles = {
+    1: "bg-amber-100 text-amber-800", // Open
+    2: "bg-blue-100 text-blue-800",   // Pending
+    3: "bg-green-100 text-green-800", // Resolved
+    4: "bg-gray-200 text-gray-700",   // Closed
+  };
 
-const TicketChatHeader = ({ticketId,backToTickets,closeTicket}) => {
+  const statusLabels = {
+    1: "Open",
+    2: "Pending",
+    3: "Resolved",
+    4: "Closed",
+  };
   return (
     <>
     <header className="bg-white shadow-sm border-b border-neutral-300">
@@ -20,22 +34,25 @@ const TicketChatHeader = ({ticketId,backToTickets,closeTicket}) => {
                   
                   {/* Ticket title */}
                   <h1 className="text-sm sm:text-base md:text-lg font-bold text-neutral-900 mb-1">
-                    #{ticketId} - Territory not showing leads
+                    #{ticketId} - {headerDetails?.subject || 'N/A'}
                   </h1>
     
                   {/* Status & timestamps */}
                   <div className="flex gap-4">
                     
                     {/* Status badge */}
-                    <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded-full">
-                      Open
+                    {
+                      headerDetails?.status && <span className={`${badgeStyles[headerDetails.status] || badgeStyles[1]} text-xs font-medium px-2 py-1 rounded-full`}>
+                      {statusLabels[headerDetails.status]}
                     </span>
+                    }
+                    
     
                     {/* Created & updated times */}
                     <div className="flex gap-3 items-center text-xs sm:text-sm text-neutral-500">
-                      <span>Created 2 days ago</span>
+                      <span>Created {headerDetails?.created_at ? moment(headerDetails.created_at, "MM-DD-YYYY HH:mm:ss").fromNow():'N/A'} </span>
                       <span>•</span>
-                      <span>Last updated 2 hours ago</span>
+                      <span>Last updated {headerDetails?.created_at ? moment(headerDetails.created_at, "MM-DD-YYYY HH:mm:ss").fromNow():'N/A'}</span>
                     </div>
                   </div>
                 </div>

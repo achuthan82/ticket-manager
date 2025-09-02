@@ -5,8 +5,6 @@ import { Navigate } from "react-router";
 import MainLayoutProvider from "app/layouts/MainLayout/MainLayoutProvider";
 import AuthGuard from "middleware/AuthGuard";
 
-
-
 // ----------------------------------------------------------------------
 
 const protectedRoutes = {
@@ -19,7 +17,7 @@ const protectedRoutes = {
       children: [
         {
           index: true,
-          element: <Navigate to="/dashboard" />,
+          element: <Navigate to="/dashboard" replace />,
         },
 
         {
@@ -30,35 +28,37 @@ const protectedRoutes = {
         },
         {
           path: "support-ticket",
-          lazy: async () =>
-          ({
-            Component: (await import("app/pages/support-ticket/SupportTicket")).default,
+          lazy: async () => ({
+            Component: (await import("app/pages/support-ticket/SupportTicket"))
+              .default,
           }),
-
         },
         {
           path: "support-user",
-          lazy: async () =>
-          ({
-            Component: (await import("app/pages/support-user/SupportUser")).default,
+          lazy: async () => ({
+            Component: (await import("app/pages/support-user/SupportUser"))
+              .default,
           }),
         },
         {
           path: "support-user/:ticketId",
           lazy: async () => ({
-            Component: (await import("app/pages/support-user/TicketChat")).default,
+            Component: (await import("app/pages/support-user/TicketChat"))
+              .default,
           }),
         },
         {
-          path : "users",
-          lazy : async() =>
-             ({
-            Component : (await import("app/pages/users/UserList")).default,
+          path: "users",
+          lazy: async () => ({
+            Component: (await import("app/pages/users/UserList")).default,
           }),
+        },
+        {
+          path: "*",
+          element: <Navigate to="/dashboard" replace />,
         },
       ],
     },
-
   ],
 };
 
