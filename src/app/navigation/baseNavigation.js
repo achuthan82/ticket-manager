@@ -35,7 +35,7 @@ export const baseNavigation = [
         id: "support-user",
         type:NAV_TYPE_ITEM,
         path: "/support-user",
-        title:"Support User" ,
+        title:"Support Center" ,
         transKey : "nav.support-user.support-user",
         Icon: UserIcon,
         visible:[1,2]

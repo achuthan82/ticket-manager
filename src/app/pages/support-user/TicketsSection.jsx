@@ -22,17 +22,19 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
   const navigate = useNavigate();
 
   const badgeStyles = {
-    1: "bg-amber-100 text-amber-800", // Open
-    2: "bg-blue-100 text-blue-800",   // Pending
-    3: "bg-green-100 text-green-800", // Resolved
-    4: "bg-gray-200 text-gray-700",   // Closed
+    1: "bg-blue-100 text-blue-800",  // New
+    2: "bg-amber-100 text-amber-800", // Open
+    3: "bg-purple-100 text-purple-800",   // Pending
+    4: "bg-green-100 text-green-800", // Resolved
+    5: "bg-gray-200 text-gray-700",   // Closed
   };
 
   const statusLabels = {
-    1: "Open",
-    2: "Pending",
-    3: "Resolved",
-    4: "Closed",
+    1: "New",
+    2: "Open",
+    3: "Pending",
+    4: "Resolved",
+    5: "Closed",
   };
 
   const topMeta = meta.find((m) => m.label === "Updated" || m.label === "Resolved");
@@ -141,10 +143,11 @@ export default function TicketsSection({ filter, setFilter }) {
             onChange={(e) => setFilter(e.target.value)}
             data={[
               { label: "All Tickets", value: "all" },
-              { label: "Open", value: 1 },
-              { label: "Pending", value: 2 },
-              { label: "Resolved", value: 3 },
-              { label: "Closed", value: 4 },
+              { label: "New", value: 1},
+              { label: "Open", value: 2 },
+              { label: "Pending", value: 3 },
+              { label: "Resolved", value: 4 },
+              { label: "Closed", value: 5 },
             ]}
           />
         </div>

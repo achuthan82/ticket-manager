@@ -13,16 +13,23 @@ import clsx from "clsx";
 import { FileItem } from "components/shared/form/FileItem";
 import { useDropzone } from "react-dropzone";
 import { useForm, Controller } from "react-hook-form";
+import { createTicket } from "utils/supportUserService";
+import { toast } from "sonner";
 
-export default function NewTicketModal({ open, onClose, onSubmit }) {
+export default function NewTicketModal({ open, onClose }) {
   const [files, { remove, append }] = useListState();
   const [attachment, setAttachment] = useState(null);
 
-  const { handleSubmit, control, setValue, reset, formState: { errors },
+  const {
+    handleSubmit,
+    control,
+    setValue,
+    reset,
+    formState: { errors },
   } = useForm({
     defaultValues: {
       category: "",
-      priority: "medium",
+      priority: "low",
       subject: "",
       description: "",
     },
@@ -45,23 +52,35 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
     { label: "General Enquiry", value: "general" },
   ];
 
-  const submitForm = (data) => {
+  const submitForm = async (data) => {
     const payload = {
       ...data,
-      attachment,
+      attachment, // optional
     };
-    onSubmit ? onSubmit(payload) : console.log("Submit ticket", payload);
-    reset();
-    setAttachment(null);
-    onClose?.();
+
+    console.log("Submitting ticket payload:", payload);
+
+    const result = await createTicket(payload);
+
+    if (result.success) {
+      console.log("✅ Ticket created successfully:", result.data);
+      toast.success("Ticket created successfully!");
+
+      reset();
+      setAttachment(null);
+      onClose?.();
+    } else {
+      console.error("❌ Failed to create ticket:", result.error);
+      toast.error(`Failed to create ticket: ${result.error}`);
+    }
   };
+
 
   const handleClose = () => {
     reset();
     setAttachment(null);
     onClose?.();
   };
-
 
   const PriorityCard = ({ value, title, subtitle, colorClasses, selected }) => (
     <button
@@ -116,7 +135,7 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
                 Create New Support Ticket
               </DialogTitle>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="p-1 text-neutral-500 hover:text-neutral-700"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -307,7 +326,11 @@ export default function NewTicketModal({ open, onClose, onSubmit }) {
               >
                 Cancel
               </Button>
-              <Button color="primary" onClick={handleSubmit(submitForm)} type="submit">
+              <Button
+                color="primary"
+                onClick={handleSubmit(submitForm)}
+                type="submit"
+              >
                 Submit
               </Button>
             </div>
