@@ -3,19 +3,10 @@ import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Select } from "components/ui";
 import { useNavigate } from "react-router";
 import { getTickets } from "utils/supportUserService";
+import moment from "moment";
 
-// Utility: Convert date into "time ago"
 function timeAgo(date) {
-  const now = new Date();
-  const past = new Date(date);
-  const diff = Math.floor((now - past) / 1000); // seconds
-
-  if (diff < 60) return `${diff} s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)} mins ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-  if (diff < 2592000) return `${Math.floor(diff / 86400)} days ago`;
-  if (diff < 31536000) return `${Math.floor(diff / 2592000)} months ago`;
-  return `${Math.floor(diff / 31536000)} years ago`;
+  return moment(date).fromNow(); // e.g. "5 minutes ago"
 }
 
 function TicketCard({ id, title, excerpt, status, meta = [], created }) {
@@ -90,46 +81,51 @@ export default function TicketsSection({ filter, setFilter }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchTickets() {
-      setLoading(true);
-      setError("");
+  async function fetchTickets() {
+    setLoading(true);
+    setError("");
 
-      const params = {
-        page: 1,
-        per_page: 10,
-        time_zone: "Asia/Kolkata",
-      };
+    const params = {
+      page: 1,
+      per_page: 10,
+      time_zone: "Asia/Kolkata",
+    };
+    if (filter !== "all") params.status = filter;
 
-      if (filter !== "all") {
-        params.status = filter;
-      }
+    const { success, data, error } = await getTickets(params);
 
-      const { success, data, error } = await getTickets(params);
-
-      if (success && data?.data?.length) {
-        const ticketsArray = data.data[0] || [];
-        setTickets(
-          ticketsArray.map((t) => ({
-            id: t.id,
-            title: t.subject,
-            excerpt: t.description,
-            created: t.created_at,
-            status: t.status,
-            meta: [
-              ...(t.updated_at ? [{ label: "Updated", value: t.updated_at }] : []),
-              ...(t.resolved_at ? [{ label: "Resolved", value: t.resolved_at }] : []),
-            ]
-          }))
-        );
-      } else {
-        setError(error || "No tickets found");
-      }
-
-      setLoading(false);
+    if (success && data?.data?.length) {
+      const ticketsArray = data.data[0] || [];
+      setTickets(
+        ticketsArray.map((t) => ({
+          id: t.id,
+          title: t.subject,
+          excerpt: t.description,
+          created: t.created_at,
+          status: t.status,
+          meta: [
+            ...(t.updated_at ? [{ label: "Updated", value: t.updated_at }] : []),
+            ...(t.resolved_at ? [{ label: "Resolved", value: t.resolved_at }] : []),
+          ],
+        }))
+      );
+    } else {
+      setError(error || "No tickets found");
     }
 
-    fetchTickets();
-  }, [filter]);
+    setLoading(false);
+  }
+
+  fetchTickets();
+
+  // 👂 listen for new tickets being created
+  const handleTicketCreated = () => fetchTickets();
+  window.addEventListener("ticketCreated", handleTicketCreated);
+
+  return () => {
+    window.removeEventListener("ticketCreated", handleTicketCreated);
+  };
+}, [filter]);
 
   return (
     <div>

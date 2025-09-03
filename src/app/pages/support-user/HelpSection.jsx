@@ -22,6 +22,11 @@ function CategoryCard({ icon: Icon, title, subtitle, colorClasses, onClick }) {
 }
 
 export default function HelpSection({ categories }) {
+  const handleCategoryClick = (cat) => {
+  window.dispatchEvent(
+    new CustomEvent("openNewTicketModal", { detail: { category: cat.key } })
+  );
+};
   return (
     <div>
       <h2 className="text-xl font-semibold text-gray-900 mb-4">How can we help you today?</h2>
@@ -33,7 +38,7 @@ export default function HelpSection({ categories }) {
             title={cat.title}
             subtitle={cat.subtitle}
             colorClasses={cat.colorClasses}
-            onClick={() => console.log('Select category', cat.key)}
+            onClick={() =>  handleCategoryClick(cat)}
           />
         ))}
       </div>
