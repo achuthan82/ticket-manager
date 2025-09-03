@@ -165,7 +165,6 @@ export const createTicket = async (payload) => {
       description: payload.description,
       priority: priorityMap[payload.priority] || 2, // default medium
       // status: 1,
-      priority: priorityMap[payload.priority] || 2, // default medium 
       ticket_category: categoryMap[payload.category],
     };
 
