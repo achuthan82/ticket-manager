@@ -97,3 +97,39 @@ export const closeTicket = (ticketId) => {
       }
     });
 };
+export const addComment = (ticketId, message) => {
+  checkAuthHeaders();
+  return axios
+    .post(`/comment/add/${ticketId}`, {
+      attachment: false,
+      message: message,
+      send_notification: true,
+    })
+    .then((response) => {
+      return { success: true, data: response.data, error: null };
+    })
+    .catch((error) => {
+      console.error("Error fetching ticket info:", error);
+      if (error.response) {
+        return {
+          success: false,
+          data: null,
+          error:
+            error.response.data?.message ||
+            `HTTP ${error.response.status} error`,
+        };
+      } else if (error.request) {
+        return {
+          success: false,
+          data: null,
+          error: "Network error. Please check your connection.",
+        };
+      } else {
+        return {
+          success: false,
+          data: null,
+          error: error.message || "Something went wrong",
+        };
+      }
+    });
+};

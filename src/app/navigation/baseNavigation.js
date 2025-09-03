@@ -15,8 +15,8 @@ export const baseNavigation = [
     {
         id: 'dashboard',
         type: NAV_TYPE_ITEM,
-        path: '/dashboard',
-        title: 'Dashboard',
+        path: '/home',
+        title: 'Home',
         transKey: 'nav.dashboard.dashboard',
         Icon: DashboardsIcon,
         visible:[1,2]
