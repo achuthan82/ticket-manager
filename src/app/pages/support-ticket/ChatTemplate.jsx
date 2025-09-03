@@ -1,32 +1,18 @@
 import { Avatar, Button, Input, ScrollShadow, Select } from "components/ui";
-// import { Toaster as  toast } from "sonner";
 import {
   ArrowUpTrayIcon,
   FunnelIcon,
-  InformationCircleIcon,
+  // InformationCircleIcon,
 } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   editSupportTicketStatus,
   getSupportTickets,
+  addSupportComment,
+  getComments,
 } from "../../../utils/SupportTicketService";
 import { toast } from "sonner";
-
-// 🕒 Helper to format "time ago"
-const formatTimeAgo = (dateString) => {
-  const now = new Date();
-  const past = new Date(dateString.replace(/-/g, "/"));
-  const diff = Math.floor((now - past) / 1000);
-
-  if (diff < 60) return `${diff} sec${diff !== 1 ? "s" : ""} ago`;
-  if (diff < 3600)
-    return `${Math.floor(diff / 60)} min${Math.floor(diff / 60) !== 1 ? "s" : ""} ago`;
-  if (diff < 86400)
-    return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) !== 1 ? "s" : ""} ago`;
-  if (diff < 2592000)
-    return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) !== 1 ? "s" : ""} ago`;
-  return `${Math.floor(diff / 2592000)} month${Math.floor(diff / 2592000) !== 1 ? "s" : ""} ago`;
-};
+import moment from "moment";
 
 const ChatTemplate = () => {
   const [tickets, setTickets] = useState([]);
@@ -36,6 +22,24 @@ const ChatTemplate = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [priorityFilter, setPriorityFilter] = useState("All Priority");
+  const [replyMessage, setReplyMessage] = useState("");
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+
+  const currentUserId = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("userData"); // ✅ localStorage
+      if (!raw) return undefined;
+      const parsed = JSON.parse(raw);
+      console.log("Parsed userData in ChatTemplate:", parsed);
+      return parsed?.id; // should be your "73ba57..." value
+    } catch (err) {
+      console.error("Failed to parse userData:", err);
+      return undefined;
+    }
+  }, []);
+
+  console.log("Current User ID in ChatTemplate:", currentUserId);
 
   const statusMap = {
     1: "New",
@@ -89,43 +93,85 @@ const ChatTemplate = () => {
     setLoading(false);
   };
 
+  const fetchComments = async (ticketId) => {
+    if (!ticketId) return;
+    setCommentsLoading(true);
+    try {
+      const res = await getComments(ticketId, "Asia/Kolkata");
+      if (res.success) {
+        setComments(res.data || []);
+      } else {
+        toast.error(`❌ Failed to load comments: ${res.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error fetching comments");
+    }
+    setCommentsLoading(false);
+  };
+
   // 🔹 Update ticket status with API call
-const handleStatusChange = async (newStatusLabel) => {
-  if (!selectedTicket) return;
+  const handleStatusChange = async (newStatusLabel) => {
+    if (!selectedTicket) return;
 
-  const newStatusNumber = statusLabelToNumber[newStatusLabel];
+    const newStatusNumber = statusLabelToNumber[newStatusLabel];
 
-  const res = await editSupportTicketStatus(selectedTicket.id, newStatusNumber);
-
-  if (res.success) {
-    // ✅ Update selected ticket (right panel)
-    setSelectedTicket((prev) => ({
-      ...prev,
-      status: newStatusNumber,
-      statusLabel: newStatusLabel,
-    }));
-
-    // ✅ Update the ticket inside the left-hand tickets list
-    setTickets((prevTickets) =>
-      prevTickets.map((t) =>
-        t.id === selectedTicket.id
-          ? { ...t, status: newStatusNumber, statusLabel: newStatusLabel }
-          : t
-      )
+    const res = await editSupportTicketStatus(
+      selectedTicket.id,
+      newStatusNumber,
     );
 
-    // alert(`✅ Status changed to ${newStatusLabel}`);
-    toast.success(`Ticket Status updated to ${newStatusLabel}`)
-  } else {
-    console.error("❌ Failed to update status:", res.error);
-    alert("Failed to update ticket status. Please try again.");
-  }
-};
+    if (res.success) {
+      // ✅ Update selected ticket (right panel)
+      setSelectedTicket((prev) => ({
+        ...prev,
+        status: newStatusNumber,
+        statusLabel: newStatusLabel,
+      }));
 
+      // ✅ Update the ticket inside the left-hand tickets list
+      setTickets((prevTickets) =>
+        prevTickets.map((t) =>
+          t.id === selectedTicket.id
+            ? { ...t, status: newStatusNumber, statusLabel: newStatusLabel }
+            : t,
+        ),
+      );
+
+      // alert(`✅ Status changed to ${newStatusLabel}`);
+      toast.success(`Ticket Status updated to ${newStatusLabel}`);
+    } else {
+      console.error("❌ Failed to update status:", res.error);
+      alert("Failed to update ticket status. Please try again.");
+    }
+  };
+
+  const handleSendResponse = async () => {
+    if (!selectedTicket || !replyMessage.trim()) return;
+
+    const res = await addSupportComment(selectedTicket.id, replyMessage);
+
+    if (res.success) {
+      toast.success(" Comment added successfully!");
+
+      // Clear the text area
+      setReplyMessage("");
+
+      fetchComments(selectedTicket.id);
+
+      // (Optional) Reload messages here once we wire up "list comments"
+    } else {
+      toast.error(`❌ Failed to add comment: ${res.error}`);
+    }
+  };
 
   useEffect(() => {
     fetchTickets();
     handleStatusChange();
+    if (tickets.length > 0) {
+      setSelectedTicket(tickets[0]);
+      fetchComments(tickets[0].id);
+    }
   }, []);
 
   // Filter tickets by status and search query
@@ -190,7 +236,7 @@ const handleStatusChange = async (newStatusLabel) => {
                   className="rounded-md border border-black px-3 py-2 text-sm"
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
-                  data={["All Priority", "High", "Medium", "Low"]}
+                  data={["All Priority", "High Priority", "Medium Priority", "Low Priority"]}
                 />
 
                 {/* Agents Filter */}
@@ -216,7 +262,10 @@ const handleStatusChange = async (newStatusLabel) => {
                 filteredTickets.map((ticket) => (
                   <div
                     key={ticket.id}
-                    onClick={() => setSelectedTicket(ticket)}
+                    onClick={() => {
+                      setSelectedTicket(ticket);
+                      fetchComments(ticket.id); // 👈 fetch comments when selecting
+                    }}
                     className={`group cursor-pointer border border-gray-200 p-2 shadow-sm transition-all duration-200 ${selectedTicket?.id === ticket.id ? "border-blue-400 bg-blue-50" : "bg-white hover:-translate-y-1 hover:shadow-md"} `}
                   >
                     <div className="group cursor-pointer border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md sm:p-5">
@@ -249,7 +298,7 @@ const handleStatusChange = async (newStatusLabel) => {
                         {ticket.description || "No description provided"}
                       </p>
                       <div className="flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-                        <span>{formatTimeAgo(ticket.created_at)}</span>
+                        <span>{moment(ticket.created_at).fromNow()}</span>
                         <span
                           className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${
                             ticket.priorityLabel === "High Priority"
@@ -299,7 +348,7 @@ const handleStatusChange = async (newStatusLabel) => {
                       <div className="flex flex-wrap items-center gap-x-2 text-[10px] text-gray-500 sm:text-xs md:text-sm">
                         <span className="hidden sm:inline">•</span>
                         <span>
-                          Created {formatTimeAgo(selectedTicket.created_at)}
+                          Created {moment(selectedTicket.created_at).fromNow()}
                         </span>
                         <span className="hidden sm:inline">•</span>
                         <span
@@ -350,7 +399,6 @@ const handleStatusChange = async (newStatusLabel) => {
               </div>
 
               {/* Messaging Section */}
-              {/* --- This section can later be made dynamic from ticket messages --- */}
               <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
                 <div className="relative max-h-screen flex-1 overflow-y-auto">
                   <div
@@ -358,86 +406,94 @@ const handleStatusChange = async (newStatusLabel) => {
                     className="h-full w-full overflow-y-auto"
                   >
                     <div className="space-y-2 p-2 sm:space-y-3 sm:p-3 md:p-4 lg:p-6">
-                      {/* User Message */}
-                      <div className="flex flex-col items-start sm:flex-row sm:gap-2">
-                        <Avatar
-                          initialColor="info"
-                          className="mr-2 mb-2 h-7 w-7 sm:mb-0 sm:h-8 sm:w-8 md:h-9 md:w-9"
-                          name="Micheal John"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="mb-1 flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-medium text-gray-900">
-                              Micheal Johnson
-                            </span>
-                            <span className="text-[11px] text-gray-500 sm:text-xs">
-                              5 mins ago
-                            </span>
-                          </div>
-                          <div className="max-w-full rounded-lg bg-gray-100 p-2 text-sm break-words text-gray-700 sm:max-w-[85%] sm:p-3 md:max-w-[75%] lg:max-w-[70%]">
-                            <p>
-                              Im having trouble processing my subscription
-                              payment. The system keeps showing an error message
-                              when I try to update my credit card information.
-                            </p>
-                            <p className="mt-1">
-                              Error message: Payment method could not be
-                              verified.
-                            </p>
-                            <p className="mt-1">
-                              Ive tried multiple times with different cards but
-                              getting the same error.
-                            </p>
+                      {/* 🔹 Show ticket description first */}
+                      {selectedTicket?.description && (
+                        <div className="flex items-start justify-start gap-2 sm:gap-3">
+                          <Avatar
+                            initialColor="info"
+                            className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
+                            name={selectedTicket.name}
+                          />
+                          <div className="min-w-0 flex-1 sm:max-w-[75%] sm:flex-initial">
+                            <div className="mb-1 flex items-center justify-start gap-2">
+                              <span className="text-sm font-medium text-gray-900">
+                                {selectedTicket.name}
+                              </span>
+                              <span className="text-[11px] text-gray-500 sm:text-xs">
+                                {moment(selectedTicket.created_at).fromNow()}
+                              </span>
+                            </div>
+                            <div className="rounded-lg bg-blue-50 p-3 text-left text-sm break-words">
+                              <p>{selectedTicket.description}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
+                      {commentsLoading && (
+                        <p className="text-gray-500">Loading comments...</p>
+                      )}
+                      {!commentsLoading && comments.length === 0 && (
+                        <p className="text-gray-500">No comments yet.</p>
+                      )}
+                      {/* const currentUserId = userData.id; // from your stored
+                      userData */}
+                      {comments.map((comment) => {
+                        const isAdmin = comment.created_by === currentUserId;
 
-                      {/* Notes */}
-                      <div className="flex justify-center px-1">
-                        <div className="flex items-center rounded-full bg-yellow-50 px-2.5 py-1 text-[11px] text-yellow-800 sm:text-xs md:text-sm">
-                          <InformationCircleIcon className="mr-1 h-4 w-4 sm:h-4 sm:w-4" />
-                          <span className="truncate">
-                            Ticket assigned to John Doe
-                          </span>
-                        </div>
-                      </div>
+                        return (
+                          <div
+                            key={comment.id}
+                            className={`flex items-end gap-2 ${
+                              isAdmin ? "justify-end" : "justify-start"
+                            }`}
+                          >
+                            {!isAdmin && (
+                              <Avatar
+                                initialColor="info"
+                                className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
+                                name={comment.name}
+                              />
+                            )}
 
-                      {/* Agent Response */}
-                      <div className="flex flex-col items-start justify-end sm:flex-row sm:items-end sm:gap-2">
-                        <div className="order-2 max-w-full min-w-0 flex-1 sm:order-1 sm:max-w-md md:max-w-lg lg:max-w-xl">
-                          <div className="mb-1 flex flex-wrap items-center justify-end gap-2">
-                            <span className="text-[11px] text-gray-500 sm:text-xs">
-                              2 mins ago
-                            </span>
-                            <span className="text-sm font-medium text-gray-900">
-                              John Doe
-                            </span>
+                            <div className="max-w-[70%]">
+                              {/* Time + Name ABOVE the bubble */}
+                              <div
+                                className={`mb-1 flex items-center gap-2 text-xs text-gray-500 ${
+                                  isAdmin
+                                    ? "justify-end text-right"
+                                    : "justify-start text-left"
+                                }`}
+                              >
+                                <span>
+                                  {moment(comment.created_at).fromNow()}
+                                </span>
+                                <span className="font-medium text-gray-900">
+                                  {comment.name}
+                                </span>
+                              </div>
+
+                              {/* Message bubble */}
+                              <div
+                                className={`rounded-lg p-2 text-sm break-words sm:p-3 ${
+                                  isAdmin
+                                    ? "ml-auto bg-teal-100 text-right" // Push right if current user
+                                    : "bg-gray-100 text-left" // Keep left if others
+                                }`}
+                              >
+                                <p>{comment.message}</p>
+                              </div>
+                            </div>
+
+                            {isAdmin && (
+                              <Avatar
+                                initialColor="success"
+                                className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
+                                name={comment.name}
+                              />
+                            )}
                           </div>
-                          <div className="ml-auto max-w-full rounded-lg bg-teal-100 p-2 text-sm break-words text-gray-700 sm:max-w-[85%] sm:p-3 md:max-w-[75%] lg:max-w-[70%]">
-                            <p>Hi Micheal</p>
-                            <p className="mt-1">
-                              Im sorry to hear you are experiencing issues with
-                              updating your payment method. Ive checked your
-                              account and I can see the error in our system.
-                            </p>
-                            <p className="mt-1">
-                              Im escalating this to our technical team for
-                              immediate resolution. In the meantime, I can
-                              process your payment manually if you would like to
-                              continue your subscription without interruption.
-                            </p>
-                            <p className="mt-1">
-                              Would you prefer to wait for the fix or shall I
-                              assist you with a manual payment?
-                            </p>
-                          </div>
-                        </div>
-                        <Avatar
-                          initialColor="success"
-                          className="order-1 mb-2 h-7 w-7 rounded-full sm:order-2 sm:mb-0 sm:h-8 sm:w-8 md:h-9 md:w-9"
-                          name="John Doe"
-                        />
-                      </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -461,6 +517,8 @@ const handleStatusChange = async (newStatusLabel) => {
                       placeholder="Type your response..."
                       className="focus:ring-atoll w-full resize-none rounded-lg border border-gray-400 px-2 py-2 text-sm focus:ring-2 focus:outline-none sm:px-3 sm:py-2 sm:text-sm md:px-4 md:py-3 md:text-base"
                       rows="3"
+                      value={replyMessage}
+                      onChange={(e) => setReplyMessage(e.target.value)}
                     ></textarea>
 
                     <div className="mt-3 flex flex-col gap-2 sm:mt-2 sm:flex-row sm:items-center sm:justify-between">
@@ -472,7 +530,7 @@ const handleStatusChange = async (newStatusLabel) => {
                           <ArrowUpTrayIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                         </Button>
 
-                        <Select
+                        {/* <Select
                           defaultValue="Use Template"
                           data={[
                             "Use Template",
@@ -481,13 +539,16 @@ const handleStatusChange = async (newStatusLabel) => {
                             "General Inquiry",
                           ]}
                           className="w-full text-sm sm:w-44 md:w-52 lg:w-64"
-                        />
+                        /> */}
                       </div>
 
                       <div className="flex w-full justify-end sm:w-auto">
-                        <Button className="bg-atoll hover:bg-opacity-90 w-full rounded-lg px-3 py-2 text-sm text-white sm:w-auto sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3">
+                        <button
+                          className="w-full rounded-lg px-3 py-2 text-sm text-white bg-dark-800 sm:w-auto sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3"
+                          onClick={handleSendResponse}
+                        >
                           Send Response
-                        </Button>
+                        </button>
                       </div>
                     </div>
                   </div>
