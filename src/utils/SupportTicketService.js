@@ -184,3 +184,107 @@ export const assignSupportTicket = async (supportId, ticketOwner) => {
     }
   }
 };
+
+
+
+/**
+ * Add a comment to a support ticket
+ * @param {number} supportId - ID of the support ticket
+ * @param {string} message - Comment message
+ * @returns {Promise<Object>} - Success or error response
+ */
+export const addSupportComment = async (supportId, message) => {
+  try {
+    checkAuthHeaders();
+
+    const finalUrl = `/comment/add/${supportId}`;
+
+    // ✅ Hardcoding attachment & send_notification
+    const body = {
+      attachment: false,
+      message,
+      send_notification: true,
+    };
+
+    console.log("SupportTicketsService → Adding comment:", finalUrl, body);
+
+    const response = await axios.post(finalUrl, body);
+
+    console.log(
+      "SupportTicketsService → Add Comment Response:",
+      response.status,
+      response.data,
+    );
+
+    return { success: true, data: response.data, error: null };
+  } catch (error) {
+    console.error("SupportTicketsService → Error adding comment:", error);
+
+    if (error.response) {
+      return {
+        success: false,
+        data: null,
+        error:
+          error.response.data?.message || `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        data: null,
+        error: "Network error. Please check your connection.",
+      };
+    } else {
+      return {
+        success: false,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
+    }
+  }
+};
+
+
+/**
+ * Get comments for a support ticket LISTING TICKET.
+ * @param {number} supportId - ID of the support ticket
+ * @param {string} timeZone - Optional timezone (default: Asia/Kolkata)
+ * @returns {Promise<Object>} - Success or error response
+ */
+export const getComments = async (supportId, timeZone = "Asia/Kolkata") => {
+  try {
+    checkAuthHeaders();
+
+    const finalUrl = `/comment/list/${supportId}?time_zone=${encodeURIComponent(timeZone)}`;
+
+    console.log("SupportTicketsService → Fetching comments:", finalUrl);
+
+    const response = await axios.get(finalUrl);
+
+    console.log("SupportTicketsService → Comments Response:", response.data);
+
+    return { success: true, data: response.data.data, error: null };
+  } catch (error) {
+    console.error("SupportTicketsService → Error fetching comments:", error);
+
+    if (error.response) {
+      return {
+        success: false,
+        data: null,
+        error:
+          error.response.data?.message || `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        data: null,
+        error: "Network error. Please check your connection.",
+      };
+    } else {
+      return {
+        success: false,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
+    }
+  }
+};
