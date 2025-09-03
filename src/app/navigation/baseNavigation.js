@@ -47,7 +47,7 @@ export const baseNavigation = [
         title:"Users" ,
         transKey : "nav.user.user",
         Icon: UserGroupIcon,
-        visible:[1,2]
+        visible:[1]
     }
     // {
     //     id: 'documents',
