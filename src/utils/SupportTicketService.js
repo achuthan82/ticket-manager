@@ -288,3 +288,52 @@ export const getComments = async (supportId, timeZone = "Asia/Kolkata") => {
     }
   }
 };
+
+
+/**
+ * Get list of support ticket assignees
+ * @returns {Promise<Object>} - Success or error response
+ */
+export const getSupportTicketAssignees = async () => {
+  try {
+    checkAuthHeaders();
+
+    const finalUrl = `/support/list-assignee`;
+
+    console.log("SupportTicketsService → Fetching assignees:", finalUrl);
+
+    const response = await axios.get(finalUrl);
+
+    console.log(
+      "SupportTicketsService → Assignees Response:",
+      response.status,
+      response.data
+    );
+
+    return { success: true, data: response.data, error: null };
+  } catch (error) {
+    console.error("SupportTicketsService → Error fetching assignees:", error);
+
+    if (error.response) {
+      return {
+        success: false,
+        data: null,
+        error:
+          error.response.data?.message ||
+          `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        data: null,
+        error: "Network error. Please check your connection.",
+      };
+    } else {
+      return {
+        success: false,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
+    }
+  }
+};

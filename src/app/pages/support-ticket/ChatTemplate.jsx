@@ -10,11 +10,12 @@ import {
   getSupportTickets,
   addSupportComment,
   getComments,
+  getSupportTicketAssignees,
 } from "../../../utils/SupportTicketService";
 import { toast } from "sonner";
 import moment from "moment";
 
-const ChatTemplate = () => {
+const ChatTemplate = ({ refreshTickets }) => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -25,6 +26,8 @@ const ChatTemplate = () => {
   const [replyMessage, setReplyMessage] = useState("");
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
+  const [assignees, setAssignees] = useState([]);
+  const [agentFilter, setAgentFilter] = useState("All Agents");
 
   const currentUserId = useMemo(() => {
     try {
@@ -40,6 +43,22 @@ const ChatTemplate = () => {
   }, []);
 
   console.log("Current User ID in ChatTemplate:", currentUserId);
+
+  const currentUser = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("userData");
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return {
+        id: parsed?.id,
+        name: parsed?.name,
+        role: parsed?.role_id,
+      };
+    } catch (err) {
+      console.error("Failed to parse userData:", err);
+      return {};
+    }
+  }, []);
 
   const statusMap = {
     1: "New",
@@ -79,7 +98,10 @@ const ChatTemplate = () => {
           ...t,
           statusLabel: statusMap[t.status] || "Unknown",
           priorityLabel: priorityMap[t.priority] || "Normal",
+          assigneeName: t.assignee?.name || "Unassigned", // 👈 normalize here
         }));
+        
+
         setTickets(normalizedTickets);
         if (normalizedTickets.length > 0)
           setSelectedTicket(normalizedTickets[0]);
@@ -140,6 +162,7 @@ const ChatTemplate = () => {
 
       // alert(`✅ Status changed to ${newStatusLabel}`);
       toast.success(`Ticket Status updated to ${newStatusLabel}`);
+      refreshTickets?.();
     } else {
       console.error("❌ Failed to update status:", res.error);
       alert("Failed to update ticket status. Please try again.");
@@ -158,6 +181,7 @@ const ChatTemplate = () => {
       setReplyMessage("");
 
       fetchComments(selectedTicket.id);
+      refreshTickets?.();
 
       // (Optional) Reload messages here once we wire up "list comments"
     } else {
@@ -165,9 +189,23 @@ const ChatTemplate = () => {
     }
   };
 
+  // 🔹 Fetch assignees
+  const fetchAssignees = async () => {
+    try {
+      const res = await getSupportTicketAssignees();
+      if (res.success) {
+        const names = res.data?.data?.map((user) => user.name) || [];
+        const uniqueNames = [...new Set(names)]; // 👈 removes duplicates
+        setAssignees(uniqueNames);
+      }
+    } catch (err) {
+      console.error("Error fetching assignees:", err);
+    }
+  };
+
   useEffect(() => {
     fetchTickets();
-    handleStatusChange();
+    fetchAssignees(); // 👈 load names once
     if (tickets.length > 0) {
       setSelectedTicket(tickets[0]);
       fetchComments(tickets[0].id);
@@ -186,7 +224,14 @@ const ChatTemplate = () => {
       t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.id.toString().includes(searchQuery);
 
-    return matchesFilter && matchesPriority && matchesSearch;
+    const matchesAgent =
+      agentFilter === "All Agents"
+        ? true
+        : agentFilter === "Unassigned"
+          ? t.assigneeName === "Unassigned"
+          : t.assigneeName === agentFilter;
+
+    return matchesFilter && matchesPriority && matchesSearch && matchesAgent;
   });
 
   // const updateStatus = (newStatus) =>
@@ -236,14 +281,20 @@ const ChatTemplate = () => {
                   className="rounded-md border border-black px-3 py-2 text-sm"
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
-                  data={["All Priority", "High Priority", "Medium Priority", "Low Priority"]}
+                  data={[
+                    "All Priority",
+                    "High Priority",
+                    "Medium Priority",
+                    "Low Priority",
+                  ]}
                 />
 
                 {/* Agents Filter */}
                 <Select
                   className="rounded-md border border-black px-3 py-2 text-sm"
-                  defaultValue="All Agents"
-                  data={["All Agents", "Unassigned", "John Doe", "Jane Smith"]}
+                  value={agentFilter}
+                  onChange={(e) => setAgentFilter(e.target.value)}
+                  data={["All Agents", "Unassigned", ...assignees]} // 👈 keep as is
                 />
               </div>
             </div>
@@ -384,13 +435,8 @@ const ChatTemplate = () => {
                       </label>
                       <Select
                         value={selectedTicket.assignee || "Unassigned"}
-                        data={[
-                          "Unassigned",
-                          "John Doe",
-                          "Jane Smith",
-                          "Admin User",
-                        ]}
-                        onChange={(e) => updateAssignee(e.target.value)} // ✅ correct
+                        data={["Unassigned", ...assignees]} // 👈 dynamic
+                        onChange={(e) => updateAssignee(e.target.value)}
                         className="flex-1 text-xs sm:flex-none sm:text-sm"
                       />
                     </div>
@@ -507,7 +553,7 @@ const ChatTemplate = () => {
                     <Avatar
                       initialColor="info"
                       className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
-                      name="Admin User"
+                      name={currentUser?.name || "You"}
                     />
                   </div>
 
@@ -544,7 +590,7 @@ const ChatTemplate = () => {
 
                       <div className="flex w-full justify-end sm:w-auto">
                         <button
-                          className="w-full rounded-lg px-3 py-2 text-sm text-white bg-dark-800 sm:w-auto sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3"
+                          className="bg-dark-800 w-full rounded-lg px-3 py-2 text-sm text-white sm:w-auto sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3"
                           onClick={handleSendResponse}
                         >
                           Send Response
