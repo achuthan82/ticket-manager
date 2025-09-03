@@ -3,19 +3,10 @@ import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Select } from "components/ui";
 import { useNavigate } from "react-router";
 import { getTickets } from "utils/supportUserService";
+import moment from "moment";
 
-// Utility: Convert date into "time ago"
 function timeAgo(date) {
-  const now = new Date();
-  const past = new Date(date);
-  const diff = Math.floor((now - past) / 1000); // seconds
-
-  if (diff < 60) return `${diff} s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)} mins ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-  if (diff < 2592000) return `${Math.floor(diff / 86400)} days ago`;
-  if (diff < 31536000) return `${Math.floor(diff / 2592000)} months ago`;
-  return `${Math.floor(diff / 31536000)} years ago`;
+  return moment(date).fromNow(); // e.g. "5 minutes ago"
 }
 
 function TicketCard({ id, title, excerpt, status, meta = [], created }) {
