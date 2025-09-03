@@ -163,8 +163,7 @@ export const createTicket = async (payload) => {
     const ticketData = {
       subject: payload.subject,
       description: payload.description,
-      priority: priorityMap[payload.priority] || 2, // default medium
-      status: 'Open',
+      priority: priorityMap[payload.priority] || 2, // default medium 
       ticket_category: categoryMap[payload.category],
     };
 
@@ -182,13 +181,20 @@ export const createTicket = async (payload) => {
       const formData = new FormData();
       formData.append('file', payload.attachment);
 
-      console.log('Uploading attachment for support_id:', supportId);
+      console.log(`📤 Uploading attachment for support_id: ${supportId}`);
 
-      await axios.post(`/support/upload/documents/${supportId}`, formData, {
+      const uploadResponse = await axios.post(`/support/upload/documents/${supportId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      console.log(
+        `📎 Attachment confirmed by backend (status: ${uploadResponse.status}):`,
+        uploadResponse.data
+      );
+    } else {
+      console.log('⚠️ No attachment provided, skipping upload.');
     }
 
     return { success: true, data: response.data, error: null };
