@@ -23,7 +23,7 @@ export default function DynamicHeader({ onUploadClick, onInviteClick, onExportCl
       onExportClick={onExportClick} 
     />;
   } 
-  else if (pathname.startsWith('/dashboard')) {
+  else if (pathname.startsWith('/home')) {
     return <DocuPromptHeader />;
   } else if (pathname.startsWith('/prompts')) {
     return <PromptHeader onOpenModal={onOpenModal}/>
