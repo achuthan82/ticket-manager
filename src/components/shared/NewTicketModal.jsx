@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   Dialog,
   DialogPanel,
@@ -16,7 +16,7 @@ import { useForm, Controller } from "react-hook-form";
 import { createTicket } from "utils/supportUserService";
 import { toast } from "sonner";
 
-export default function NewTicketModal({ open, onClose }) {
+export default function NewTicketModal({ open, onClose, prefillCategory }) {
   const [files, { remove, append }] = useListState();
   const [attachment, setAttachment] = useState(null);
 
@@ -34,6 +34,12 @@ export default function NewTicketModal({ open, onClose }) {
       description: "",
     },
   });
+
+  useEffect(() => {
+    if (prefillCategory) {
+      setValue("category", prefillCategory, { shouldValidate: true });
+    }
+  }, [prefillCategory, setValue]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (files) => {
@@ -66,6 +72,9 @@ export default function NewTicketModal({ open, onClose }) {
       console.log("✅ Ticket created successfully:", result.data);
       toast.success("Ticket created successfully!");
 
+      // 🔥 Dispatch event for TicketsSection to listen
+      window.dispatchEvent(new Event("ticketCreated"));
+
       reset();
       setAttachment(null);
       onClose?.();
@@ -87,8 +96,8 @@ export default function NewTicketModal({ open, onClose }) {
       type="button"
       onClick={() => setValue("priority", value, { shouldValidate: true })}
       className={`rounded-lg p-3 cursor-pointer text-center border-l-4 ${selected === value
-          ? `${colorClasses.activeBorder} ${colorClasses.activeBg}`
-          : "border-neutral-300 hover:border-neutral-400 bg-white"
+        ? `${colorClasses.activeBorder} ${colorClasses.activeBg}`
+        : "border-neutral-300 hover:border-neutral-400 bg-white"
         }`}
     >
       <div className={`text-base font-semibold ${colorClasses.text}`}>

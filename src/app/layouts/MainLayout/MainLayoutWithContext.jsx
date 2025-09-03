@@ -1,6 +1,6 @@
 // Import Dependencies
 import { Outlet, useLocation } from "react-router";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 // Local Imports
 import DynamicHeader from "./Header/DynamicHeader";
@@ -18,6 +18,17 @@ export default function MainLayoutWithContext() {
   const { isExpanded } = useSidebarContext();
   const { pathname } = useLocation();
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
+  const [prefillCategory, setPrefillCategory] = useState("");
+
+  useEffect(() => {
+  const handleOpenModal = (e) => {
+    setPrefillCategory(e.detail?.category || "");
+    setIsNewTicketOpen(true);
+  };
+
+  window.addEventListener("openNewTicketModal", handleOpenModal);
+  return () => window.removeEventListener("openNewTicketModal", handleOpenModal);
+}, []);
 
   const isTicketChat = /^\/support-user\/[^/]+$/.test(pathname);
   
@@ -72,6 +83,7 @@ export default function MainLayoutWithContext() {
         </div>
         <NewTicketModal
           open={isNewTicketOpen}
+           prefillCategory={prefillCategory}
           onClose={() => setIsNewTicketOpen(false)}
           onSubmit={(payload) => {
             console.log('Submitting New Ticket:', payload);
