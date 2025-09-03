@@ -17,11 +17,11 @@ const protectedRoutes = {
       children: [
         {
           index: true,
-          element: <Navigate to="/dashboard" replace />,
+          element: <Navigate to="/home" replace />,
         },
 
         {
-          path: "dashboard",
+          path: "home",
           lazy: async () => ({
             Component: (await import("app/pages/dashboards/Dashboard")).default,
           }),
@@ -55,7 +55,7 @@ const protectedRoutes = {
         },
         {
           path: "*",
-          element: <Navigate to="/dashboard" replace />,
+          element: <Navigate to="/home" replace />,
         },
       ],
     },
