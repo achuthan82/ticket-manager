@@ -6,18 +6,18 @@ import { getTickets } from "utils/supportUserService";
 import moment from "moment";
 
 function timeAgo(date) {
-  return moment(date).fromNow(); // e.g. "5 minutes ago"
+  return moment(date).fromNow(); 
 }
 
 function TicketCard({ id, title, excerpt, status, meta = [], created }) {
   const navigate = useNavigate();
 
   const badgeStyles = {
-    1: "bg-blue-100 text-blue-800",  // New
+    1: "bg-blue-100 text-blue-800", // New
     2: "bg-amber-100 text-amber-800", // Open
-    3: "bg-purple-100 text-purple-800",   // Pending
+    3: "bg-purple-100 text-purple-800", // Pending
     4: "bg-green-100 text-green-800", // Resolved
-    5: "bg-gray-200 text-gray-700",   // Closed
+    5: "bg-gray-200 text-gray-700", // Closed
   };
 
   const statusLabels = {
@@ -30,10 +30,13 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
 
   const topMeta = meta.find((m) => m.label === "Updated" || m.label === "Resolved");
   const filteredMeta = meta.filter((m) => m.label !== "Updated" && m.label !== "Resolved");
-  const bottomMeta = [{ label: "Created", value: timeAgo(created) }, ...filteredMeta.map(m => ({
-    ...m,
-    value: timeAgo(m.value)
-  }))];
+  const bottomMeta = [
+    { label: "Created", value: timeAgo(created) },
+    ...filteredMeta.map((m) => ({
+      ...m,
+      value: timeAgo(m.value),
+    })),
+  ];
 
   return (
     <button
@@ -80,52 +83,66 @@ export default function TicketsSection({ filter, setFilter }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
   useEffect(() => {
-  async function fetchTickets() {
-    setLoading(true);
-    setError("");
+    async function fetchTickets() {
+      setLoading(true);
+      setError("");
 
-    const params = {
-      page: 1,
-      per_page: 10,
-      time_zone: "Asia/Kolkata",
-    };
-    if (filter !== "all") params.status = filter;
+      const params = {
+        page, 
+        per_page: perPage, 
+        time_zone: "Asia/Kolkata",
+      };
+      if (filter !== "all") params.status = filter;
 
-    const { success, data, error } = await getTickets(params);
+      const { success, data, error } = await getTickets(params);
 
-    if (success && data?.data?.length) {
-      const ticketsArray = data.data[0] || [];
-      setTickets(
-        ticketsArray.map((t) => ({
-          id: t.id,
-          title: t.subject,
-          excerpt: t.description,
-          created: t.created_at,
-          status: t.status,
-          meta: [
-            ...(t.updated_at ? [{ label: "Updated", value: t.updated_at }] : []),
-            ...(t.resolved_at ? [{ label: "Resolved", value: t.resolved_at }] : []),
-          ],
-        }))
-      );
-    } else {
-      setError(error || "No tickets found");
+      console.log("API full response:", data); 
+
+      if (success && data?.data?.length) {
+        const ticketsArray = data.data[0] || [];
+
+        setTickets(
+          ticketsArray.map((t) => ({
+            id: t.id,
+            title: t.subject,
+            excerpt: t.description,
+            created: t.created_at,
+            status: t.status,
+            meta: [
+              ...(t.modified_at ? [{ label: "Updated", value: t.modified_at }] : []),
+              ...(t.resolved_at ? [{ label: "Resolved", value: t.resolved_at }] : []),
+            ],
+          }))
+        );
+
+        if (data.meta?.total_pages) {
+          setTotalPages(data.meta.total_pages);
+        } else {
+          // fallback → if API doesn't give total_pages
+          setTotalPages(ticketsArray.length < perPage ? page : page + 1);
+        }
+      } else {
+        setError(error || "No tickets found");
+      }
+
+      setLoading(false);
     }
 
-    setLoading(false);
-  }
+    fetchTickets();
 
-  fetchTickets();
+  
+    const handleTicketCreated = () => fetchTickets();
+    window.addEventListener("ticketCreated", handleTicketCreated);
 
-  // 👂 listen for new tickets being created
-  const handleTicketCreated = () => fetchTickets();
-  window.addEventListener("ticketCreated", handleTicketCreated);
-
-  return () => {
-    window.removeEventListener("ticketCreated", handleTicketCreated);
-  };
-}, [filter]);
+    return () => {
+      window.removeEventListener("ticketCreated", handleTicketCreated);
+    };
+  }, [filter, page, perPage]); 
 
   return (
     <div>
@@ -136,16 +153,20 @@ export default function TicketsSection({ filter, setFilter }) {
           <Select
             className="text-sm border border-black rounded-md px-3 py-2"
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
+            onChange={(e) => {
+              setFilter(e.target.value);
+              setPage(1); 
+            }}
             data={[
               { label: "All Tickets", value: "all" },
-              { label: "New", value: 1},
+              { label: "New", value: 1 },
               { label: "Open", value: 2 },
               { label: "Pending", value: 3 },
               { label: "Resolved", value: 4 },
               { label: "Closed", value: 5 },
             ]}
           />
+          
         </div>
       </div>
 
@@ -161,6 +182,29 @@ export default function TicketsSection({ filter, setFilter }) {
           tickets.map((t) => <TicketCard key={t.id} {...t} />)
         )}
       </div>
+
+      {/* Pagination */}
+      {!loading && !error && totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-6">
+          <button
+            className="px-3 py-1 rounded-md border text-sm disabled:opacity-50"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            Prev
+          </button>
+          <span className="text-sm text-gray-600">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            className="px-3 py-1 rounded-md border text-sm disabled:opacity-50"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

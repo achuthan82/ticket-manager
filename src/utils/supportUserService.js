@@ -97,13 +97,13 @@ export const getTickets = async (params) => {
     queryParams.append('page', params.page || 1);
     queryParams.append('per_page', params.per_page || 10);
 
-    // ✅ Required param
+    //  Required param
     if (!params.time_zone) {
       throw new Error('time_zone is required');
     }
     queryParams.append('time_zone', params.time_zone);
 
-    // ✅ Optional filters
+    //  Optional filters
     if (params.status && params.status !== 'all') queryParams.append('status', params.status);
     if (params.priority) queryParams.append('priority', params.priority);
     if (params.is_assigned !== undefined) queryParams.append('is_assigned', params.is_assigned);
@@ -112,7 +112,7 @@ export const getTickets = async (params) => {
 
     console.log('Making API call to /support/list with params:', Object.fromEntries(queryParams));
 
-    // ❌ Removed X-Platform header
+    //  Removed X-Platform header
     const response = await axios.get(`/support/list?${queryParams.toString()}`);
 
     console.log('Tickets API response:', response.status, response.data);
@@ -182,7 +182,7 @@ export const createTicket = async (payload) => {
       const formData = new FormData();
       formData.append('file', payload.attachment);
 
-      console.log(`📤 Uploading attachment for support_id: ${supportId}`);
+      console.log(`Uploading attachment for support_id: ${supportId}`);
 
       const uploadResponse = await axios.post(`/support/upload/documents/${supportId}`, formData, {
         headers: {
@@ -195,7 +195,7 @@ export const createTicket = async (payload) => {
         uploadResponse.data
       );
     } else {
-      console.log('⚠️ No attachment provided, skipping upload.');
+      console.log('No attachment provided, skipping upload.');
     }
 
     return { success: true, data: response.data, error: null };
