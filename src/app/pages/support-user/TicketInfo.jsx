@@ -1,12 +1,13 @@
 // import { PaperClipIcon } from "@heroicons/react/24/outline";
-import { Avatar, Button } from "components/ui";
+import { Avatar, Button, GhostSpinner } from "components/ui";
 import { useRef, useState, useEffect } from "react";
-import { getComments } from "utils/ticketSinglePageService";
+import { getComments, addComment } from "utils/ticketSinglePageService";
 import { useAuthContext } from "app/contexts/auth/context";
+import { toast } from "sonner";
+import moment from 'moment'
 
 const TicketInfo = ({ details, ticketId }) => {
   const { user } = useAuthContext();
-  console.log("user", user);
   const scrollRef = useRef(null);
   const priorityStyle = {
     1: { color: "text-red-500", text: "High" },
@@ -14,7 +15,8 @@ const TicketInfo = ({ details, ticketId }) => {
     3: { color: "text-green-500", text: "Low" },
   };
   const [messages, setMessages] = useState([]);
-  //   const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const fetchMessages = () => {
     getComments(ticketId).then((response) => {
@@ -30,14 +32,32 @@ const TicketInfo = ({ details, ticketId }) => {
     });
   };
   const sendReply = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    setLoading(true);
+    addComment(ticketId, message)
+      .then((response) => {
+        if (response.success) {
+          toast.success("Comment Added!");
+          setMessage(" ");
+          fetchMessages();
+        } else {
+          toast.error("Please try again later");
+        }
+      })
+      .catch(() => {
+        toast.error("Please try again later");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
   useEffect(() => {
-    console.log(messages);
     fetchMessages();
   }, []);
+  useEffect(() => {
+  if (scrollRef.current) {
+    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }
+}, [messages]);
   return (
     <>
       <div className="flex-1 overflow-y-auto p-6">
@@ -48,7 +68,7 @@ const TicketInfo = ({ details, ticketId }) => {
               <div>
                 <p className="text-gray-500">Category</p>
                 <p className="font-medium text-gray-900">
-                  {details?.category_name || 'N/A'}
+                  {details?.category_name || "N/A"}
                 </p>
               </div>
               <div>
@@ -74,38 +94,45 @@ const TicketInfo = ({ details, ticketId }) => {
             </div>
             {/* Messages */}
             <div
-              className="mt-[30px] max-h-[225px] min-h-[100px] overflow-y-auto"
+              className="mt-[30px] max-h-[25vh] min-h-[10vh] overflow-y-auto"
               ref={scrollRef}
             >
               <div className="bordered mt-10 space-y-6 border-gray-200">
                 {/* User Message */}
-                {messages &&
-                  messages.length > 0  ?
+                {messages && messages.length > 0 ? (
                   messages.map((item, index) => {
-                    const isloggedInUser = user.id === item.created_by
+                    const isloggedInUser = user.id === item.created_by;
                     return (
-                    <div className="flex items-start space-x-3" key={index}>
-                      <Avatar initialColor={isloggedInUser ? 'secondary' : 'primary'} name={item.name} />
-                      <div className="flex-1">
-                        <div className="mb-1 flex items-center space-x-2">
-                          <span className="font-medium text-gray-900">{isloggedInUser ? 'You' : 'Admin'}</span>
-                          <span className="text-xs text-gray-500">
-                            2 days ago
-                          </span>
-                        </div>
-                        <div className={`${isloggedInUser ? 'ml-auto' : 'mr-auto'} max-w-[70%] rounded-lg ${isloggedInUser ? 'bg-gray-100' : 'bg-[#c9e0e5]' } p-4 break-words`}>
-                          <p className="text-gray-700">
-                            {item.message}
-                          </p>
-                         
+                      <div className="flex items-start space-x-3" key={index}>
+                        <Avatar
+                          initialColor={
+                            isloggedInUser ? "secondary" : "primary"
+                          }
+                          name={item.name}
+                        />
+                        <div className="flex-1">
+                          <div className="mb-1 flex items-center space-x-2">
+                            <span className="font-medium text-gray-900">
+                              {isloggedInUser ? "You" : "Admin"}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {moment(item.created_at, "MM-DD-YYYY HH:mm:ss").fromNow()}
+                            </span>
+                          </div>
+                          <div
+                            className={`${isloggedInUser ? "ml-auto" : "mr-auto"} max-w-[70%] rounded-lg ${isloggedInUser ? "bg-gray-100" : "bg-[#c9e0e5]"} p-4 break-words`}
+                          >
+                            <p className="text-gray-700">{item.message}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    )
-                  }) :  <div className='flex items-center justify-center'>
-                         <p className='text-gray-500'>No Comments to show!</p>
+                    );
+                  })
+                ) : (
+                  <div className="flex items-center justify-center">
+                    <p className="text-gray-500">No Comments to show!</p>
                   </div>
-                  }
+                )}
 
                 {/* Admin Response */}
                 {/* <div className="flex items-start space-x-3">
@@ -140,6 +167,8 @@ const TicketInfo = ({ details, ticketId }) => {
             <div className="mt-6 border-t pt-6">
               <h3 className="mb-3 font-medium text-gray-900">Add a reply</h3>
               <textarea
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
                 placeholder="Type your message here..."
                 className="focus:ring-atoll w-full resize-none rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:outline-none"
                 rows="4"
@@ -154,10 +183,12 @@ const TicketInfo = ({ details, ticketId }) => {
                   </span>
                 </div> */}
                 <Button
+                  disabled={message === "" || loading}
                   onClick={sendReply}
                   variant="default"
                   className="bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
                 >
+                  {loading && <GhostSpinner className="mr-3 size-4 border-2" />}
                   Send Reply
                 </Button>
               </div>
