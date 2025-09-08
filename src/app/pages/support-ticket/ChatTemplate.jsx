@@ -2,6 +2,8 @@ import { Avatar, Button, Input, ScrollShadow, Select } from "components/ui";
 import {
   ArrowUpTrayIcon,
   FunnelIcon,
+  PencilIcon,
+  TrashIcon,
   // InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useMemo, useState } from "react";
@@ -11,6 +13,9 @@ import {
   addSupportComment,
   getComments,
   getSupportTicketAssignees,
+  deleteComment,
+  editComment,
+  assignSupportTicket,
 } from "../../../utils/SupportTicketService";
 import { toast } from "sonner";
 import moment from "moment";
@@ -28,6 +33,8 @@ const ChatTemplate = ({ refreshTickets }) => {
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [assignees, setAssignees] = useState([]);
   const [agentFilter, setAgentFilter] = useState("All Agents");
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingMessage, setEditingMessage] = useState("");
 
   const currentUserId = useMemo(() => {
     try {
@@ -98,9 +105,8 @@ const ChatTemplate = ({ refreshTickets }) => {
           ...t,
           statusLabel: statusMap[t.status] || "Unknown",
           priorityLabel: priorityMap[t.priority] || "Normal",
-          assigneeName: t.assignee?.name || "Unassigned", // 👈 normalize here
+          assigneeName: t.assigned_to || "Unassigned", // 👈 use backend field
         }));
-        
 
         setTickets(normalizedTickets);
         if (normalizedTickets.length > 0)
@@ -194,13 +200,55 @@ const ChatTemplate = ({ refreshTickets }) => {
     try {
       const res = await getSupportTicketAssignees();
       if (res.success) {
-        const names = res.data?.data?.map((user) => user.name) || [];
-        const uniqueNames = [...new Set(names)]; // 👈 removes duplicates
-        setAssignees(uniqueNames);
+        // Store both name and id
+        const assigneesData =
+          res.data?.data?.map((user) => ({
+            id: user.id,
+            name: user.name,
+          })) || [];
+        setAssignees(assigneesData);
       }
     } catch (err) {
       console.error("Error fetching assignees:", err);
     }
+  };
+
+  // for delete comment
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("Are you sure you want to delete this comment?"))
+      return;
+
+    const res = await deleteComment(commentId);
+
+    if (res.success) {
+      toast.success("Comment deleted successfully!");
+      fetchComments(selectedTicket.id); // Refresh comments after deletion
+    } else {
+      toast.error(`Failed to delete comment: ${res.error}`);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingMessage.trim()) return;
+
+    const res = await editComment(editingCommentId, editingMessage);
+    if (res.success) {
+      // Update local comments state
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === editingCommentId ? { ...c, message: editingMessage } : c,
+        ),
+      );
+      setEditingCommentId(null);
+      setEditingMessage("");
+    } else {
+      alert(res.error);
+    }
+  };
+
+  const handleEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditingMessage(comment.message);
   };
 
   useEffect(() => {
@@ -236,8 +284,35 @@ const ChatTemplate = ({ refreshTickets }) => {
 
   // const updateStatus = (newStatus) =>
   //   setSelectedTicket((prev) => ({ ...prev, status: newStatus }));
-  const updateAssignee = (newAssignee) =>
-    setSelectedTicket((prev) => ({ ...prev, assignee: newAssignee }));
+  const updateAssignee = async (newAssignee) => {
+    if (!selectedTicket) return;
+
+    // Update UI optimistically
+    setSelectedTicket((prev) => ({
+      ...prev,
+      assignee: newAssignee,
+    }));
+
+    // Skip if 'Unassigned'
+    if (newAssignee === "Unassigned") return;
+
+    // Find user ID for this assignee
+    const assigneeObj = assignees.find((a) => a.name === newAssignee);
+    const ticketOwnerId = assigneeObj?.id || newAssignee; // fallback
+
+    try {
+      const res = await assignSupportTicket(selectedTicket.id, ticketOwnerId);
+      if (res.success) {
+        toast.success(`Ticket assigned to ${newAssignee}`);
+        refreshTickets?.(); // Refresh ticket list
+      } else {
+        toast.error(`Failed to assign ticket: ${res.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error assigning ticket");
+    }
+  };
 
   return (
     <div className="mx-auto flex h-screen max-h-[calc(100vh-240px)] w-full max-w-screen-2xl flex-col overflow-hidden">
@@ -294,7 +369,14 @@ const ChatTemplate = ({ refreshTickets }) => {
                   className="rounded-md border border-black px-3 py-2 text-sm"
                   value={agentFilter}
                   onChange={(e) => setAgentFilter(e.target.value)}
-                  data={["All Agents", "Unassigned", ...assignees]} // 👈 keep as is
+                  data={[
+                    { label: "All Agents", value: "All Agents" },
+                    { label: "Unassigned", value: "Unassigned" },
+                    ...assignees.map((a) => ({
+                      label: a.name,
+                      value: a.name,
+                    })),
+                  ]}
                 />
               </div>
             </div>
@@ -348,19 +430,48 @@ const ChatTemplate = ({ refreshTickets }) => {
                       <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-gray-700">
                         {ticket.description || "No description provided"}
                       </p>
-                      <div className="flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-                        <span>{moment(ticket.created_at).fromNow()}</span>
-                        <span
-                          className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${
-                            ticket.priorityLabel === "High Priority"
-                              ? "text-red-600"
-                              : ticket.priorityLabel === "Medium Priority"
-                                ? "text-yellow-600"
-                                : "text-green-600"
-                          }`}
-                        >
-                          {ticket.priorityLabel}
-                        </span>
+                      <div className="flex flex-col gap-1 text-xs text-gray-500">
+                        {/* First line: Time and Priority */}
+                        <div className="flex justify-between">
+                          <span>{moment(ticket.created_at).fromNow()}</span>
+                          <span
+                            className={`rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${
+                              ticket.priorityLabel === "High Priority"
+                                ? "text-red-600"
+                                : ticket.priorityLabel === "Medium Priority"
+                                  ? "text-yellow-600"
+                                  : "text-green-600"
+                            }`}
+                          >
+                            {ticket.priorityLabel}
+                          </span>
+                        </div>
+
+                        {/* Second line: Assigned To */}
+                        
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          {ticket.assigneeName &&
+                          ticket.assigneeName !== "Unassigned" ? (
+                            <>
+                              <Avatar
+                                initialColor="auto"
+                                size={5} // small avatar
+                                name={ticket.assigneeName}
+                                title={ticket.assigneeName} // tooltip
+                              />
+                              <span
+                                className="truncate"
+                                title={ticket.assigneeName}
+                              >
+                                Assigned to {ticket.assigneeName}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="truncate text-gray-400">
+                              Unassigned
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -435,7 +546,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                       </label>
                       <Select
                         value={selectedTicket.assignee || "Unassigned"}
-                        data={["Unassigned", ...assignees]} // 👈 dynamic
+                        data={["Unassigned", ...assignees.map((a) => a.name)]} // show names only
                         onChange={(e) => updateAssignee(e.target.value)}
                         className="flex-1 text-xs sm:flex-none sm:text-sm"
                       />
@@ -453,7 +564,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                   >
                     <div className="space-y-2 p-2 sm:space-y-3 sm:p-3 md:p-4 lg:p-6">
                       {/* 🔹 Show ticket description first */}
-                      {selectedTicket?.description && (
+                      {/* {selectedTicket?.description && (
                         <div className="flex items-start justify-start gap-2 sm:gap-3">
                           <Avatar
                             initialColor="info"
@@ -469,12 +580,10 @@ const ChatTemplate = ({ refreshTickets }) => {
                                 {moment(selectedTicket.created_at).fromNow()}
                               </span>
                             </div>
-                            <div className="rounded-lg bg-blue-50 p-3 text-left text-sm break-words">
-                              <p>{selectedTicket.description}</p>
-                            </div>
+                            
                           </div>
                         </div>
-                      )}
+                      )} */}
                       {commentsLoading && (
                         <p className="text-gray-500">Loading comments...</p>
                       )}
@@ -489,22 +598,24 @@ const ChatTemplate = ({ refreshTickets }) => {
                         return (
                           <div
                             key={comment.id}
-                            className={`flex items-end gap-2 ${
+                            className={`group relative flex items-start gap-3 ${
                               isAdmin ? "justify-end" : "justify-start"
-                            }`}
+                            }`} // <-- group moved here
                           >
+                            {/* Avatar on the side */}
                             {!isAdmin && (
                               <Avatar
                                 initialColor="info"
-                                className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
+                                className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
                                 name={comment.name}
                               />
                             )}
 
-                            <div className="max-w-[70%]">
-                              {/* Time + Name ABOVE the bubble */}
+                            {/* Bubble + icons */}
+                            <div className="flex max-w-[70%] flex-col">
+                              {/* Time + Name */}
                               <div
-                                className={`mb-1 flex items-center gap-2 text-xs text-gray-500 ${
+                                className={`mb-1 flex items-center gap-2 text-xs text-gray-400 ${
                                   isAdmin
                                     ? "justify-end text-right"
                                     : "justify-start text-left"
@@ -518,22 +629,76 @@ const ChatTemplate = ({ refreshTickets }) => {
                                 </span>
                               </div>
 
-                              {/* Message bubble */}
+                              {/* Message Bubble */}
                               <div
-                                className={`rounded-lg p-2 text-sm break-words sm:p-3 ${
+                                className={`rounded-xl p-3 break-words shadow-sm transition-all duration-300 sm:p-4 ${
                                   isAdmin
-                                    ? "ml-auto bg-teal-100 text-right" // Push right if current user
-                                    : "bg-gray-100 text-left" // Keep left if others
+                                    ? "ml-auto bg-teal-100 text-right hover:bg-teal-200"
+                                    : "bg-gray-100 text-left hover:bg-gray-200"
                                 }`}
                               >
-                                <p>{comment.message}</p>
+                                {editingCommentId === comment.id ? (
+                                  <div className="flex flex-col gap-2 sm:flex-row">
+                                    <input
+                                      type="text"
+                                      value={editingMessage}
+                                      onChange={(e) =>
+                                        setEditingMessage(e.target.value)
+                                      }
+                                      className="flex-1 rounded-md border border-gray-300 p-2 text-sm transition-all duration-200 focus:ring-2 focus:ring-teal-300 focus:outline-none"
+                                    />
+                                    <div className="mt-2 flex gap-2 sm:mt-0">
+                                      <button
+                                        onClick={handleSaveEdit}
+                                        className="rounded bg-teal-500 px-3 py-1 text-white transition-colors hover:bg-teal-600"
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          setEditingCommentId(null)
+                                        }
+                                        className="rounded border border-gray-300 px-3 py-1 text-gray-600 transition-colors hover:bg-gray-200"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <p className="whitespace-pre-wrap">
+                                    {comment.message}
+                                  </p>
+                                )}
                               </div>
+
+                              {/* Edit/Delete icons slightly below bubble */}
+                              {isAdmin && editingCommentId !== comment.id && (
+                                <div className="mt-1 ml-auto flex justify-end gap-2 text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                                  <button
+                                    className="hover:text-gray-700"
+                                    onClick={() => handleEditComment(comment)}
+                                    title="Edit"
+                                  >
+                                    <PencilIcon className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    className="hover:text-red-600"
+                                    onClick={() =>
+                                      handleDeleteComment(comment.id)
+                                    }
+                                    title="Delete"
+                                  >
+                                    <TrashIcon className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
 
+                            {/* Avatar for current user on the side */}
                             {isAdmin && (
                               <Avatar
                                 initialColor="success"
-                                className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
+                                className="mt-4 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
                                 name={comment.name}
                               />
                             )}

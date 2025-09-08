@@ -337,3 +337,98 @@ export const getSupportTicketAssignees = async () => {
     }
   }
 };
+
+/**
+ * Delete a comment by ID
+ * @param {number|string} commentId - ID of the comment to delete
+ * @returns {Promise<Object>} - Success or error response
+ */
+export const deleteComment = async (commentId) => {
+  try {
+    checkAuthHeaders();
+
+    const finalUrl = `/comment/delete/${commentId}`;
+
+    console.log("SupportTicketsService → Deleting comment:", finalUrl);
+
+    const response = await axios.delete(finalUrl);
+
+    console.log(
+      "SupportTicketsService → Delete Comment Response:",
+      response.status,
+      response.data
+    );
+
+    return { success: true, data: response.data, error: null };
+  } catch (error) {
+    console.error("SupportTicketsService → Error deleting comment:", error);
+
+    if (error.response) {
+      return {
+        success: false,
+        data: null,
+        error:
+          error.response.data?.message || `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        data: null,
+        error: "Network error. Please check your connection.",
+      };
+    } else {
+      return {
+        success: false,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
+    }
+  }
+};
+
+
+/**
+ * Edit a comment
+ * @param {string|number} commentId - ID of the comment to edit
+ * @param {string} message - Updated comment message
+ * @returns {Promise<Object>} - Success or error response
+ */
+export const editComment = async (commentId, message) => {
+  try {
+    checkAuthHeaders();
+
+    const finalUrl = `/comment/edit/${commentId}`;
+    const body = { message };
+
+    console.log("SupportTicketsService → Editing comment:", finalUrl, body);
+
+    const response = await axios.patch(finalUrl, body);
+
+    console.log("SupportTicketsService → Edit Comment Response:", response.status, response.data);
+
+    return { success: true, data: response.data, error: null };
+  } catch (error) {
+    console.error("SupportTicketsService → Error editing comment:", error);
+
+    if (error.response) {
+      return {
+        success: false,
+        data: null,
+        error: error.response.data?.message || `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        data: null,
+        error: "Network error. Please check your connection.",
+      };
+    } else {
+      return {
+        success: false,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
+    }
+  }
+};
+

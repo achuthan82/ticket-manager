@@ -53,6 +53,13 @@ const protectedRoutes = {
             Component: (await import("app/pages/users/UserList")).default,
           }),
         },
+           // ✅ New FAQ Route
+        {
+          path: "faq",
+          lazy: async () => ({
+            Component: (await import("app/pages/FAQ/FAQPage")).default,
+          }),
+        },
         {
           path: "*",
           element: <Navigate to="/home" replace />,
