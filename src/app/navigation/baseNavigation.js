@@ -2,7 +2,7 @@ import { NAV_TYPE_ITEM, } from "constants/app.constant";
 import DashboardsIcon from 'assets/dualicons/dashboards.svg?react'
 import TicketIcon from 'assets/dualicons/ticket.svg?react'
 import UserIcon from 'assets/dualicons/user.svg?react'
-import { QuestionMarkCircleIcon, UserGroupIcon } from "@heroicons/react/24/outline";
+import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 // import { 
 // //   DocumentTextIcon, 
 // //   ChatBubbleLeftRightIcon, 
@@ -40,15 +40,15 @@ export const baseNavigation = [
         Icon: UserIcon,
         visible:[ 2]
     },
-      {
-        id: "user",
-        type:NAV_TYPE_ITEM,
-        path: "/users",
-        title:"Users" ,
-        transKey : "nav.user.user",
-        Icon: UserGroupIcon,
-        visible:[1]
-    },
+    //   {
+    //     id: "user",
+    //     type:NAV_TYPE_ITEM,
+    //     path: "/users",
+    //     title:"Users" ,
+    //     transKey : "nav.user.user",
+    //     Icon: UserGroupIcon,
+    //     visible:[1]
+    // },
       // ✅ New FAQ Navigation
     {
         id: "faq",
