@@ -16,6 +16,8 @@ import {
   deleteComment,
   editComment,
   assignSupportTicket,
+  uploadSupportDocument,
+  getSupportDocuments,
 } from "../../../utils/SupportTicketService";
 import { toast } from "sonner";
 import moment from "moment";
@@ -35,6 +37,9 @@ const ChatTemplate = ({ refreshTickets }) => {
   const [agentFilter, setAgentFilter] = useState("All Agents");
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingMessage, setEditingMessage] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  1;
+  const [documents, setDocuments] = useState([]);
 
   const currentUserId = useMemo(() => {
     try {
@@ -130,6 +135,16 @@ const ChatTemplate = ({ refreshTickets }) => {
         setComments(res.data || []);
       } else {
         toast.error(`❌ Failed to load comments: ${res.error}`);
+      }
+
+      // Fetch documents (assuming same ticketId)
+      const docsRes = await getSupportDocuments(ticketId);
+      console.log("Documents Response:", docsRes);
+
+      if (docsRes.success) {
+        setDocuments(docsRes.data?.data || docsRes.data || []);
+      } else {
+        toast.error(`❌ Failed to load documents: ${docsRes.error}`);
       }
     } catch (err) {
       console.error(err);
@@ -448,7 +463,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                         </div>
 
                         {/* Second line: Assigned To */}
-                        
+
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           {ticket.assigneeName &&
                           ticket.assigneeName !== "Unassigned" ? (
@@ -491,6 +506,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                     <h4 className="truncate text-sm font-semibold text-gray-900 sm:text-base md:text-lg">
                       #{selectedTicket.id}-{selectedTicket.subject}
                     </h4>
+
                     <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
                       <div className="flex w-full items-center sm:w-auto">
                         <Avatar
@@ -502,32 +518,43 @@ const ChatTemplate = ({ refreshTickets }) => {
                           <p className="text-xs font-medium text-gray-900 sm:text-sm md:text-base">
                             {selectedTicket.name}
                           </p>
-                          <p className="truncate text-[10px] text-gray-500 sm:text-xs md:text-sm">
-                            {selectedTicket.email}
-                          </p>
+
+                          {/* email + created + priority in ONE line */}
+                          <div className="flex items-center gap-x-2 text-[10px] text-gray-500 sm:text-xs md:text-sm">
+                            {/* truncate only email */}
+                            <p className="max-w-[120px] truncate sm:max-w-[200px] md:max-w-[250px]">
+                              {selectedTicket.email}
+                            </p>
+
+                            <span className="hidden sm:inline">•</span>
+
+                            {/* keep created + priority together */}
+                            <div className="flex items-center gap-x-2 whitespace-nowrap">
+                              <span>
+                                Created{" "}
+                                {moment(selectedTicket.created_at).fromNow()}
+                              </span>
+                              <span className="hidden sm:inline">•</span>
+                              <span
+                                className={`font-medium ${
+                                  selectedTicket.priorityLabel ===
+                                  "High Priority"
+                                    ? "text-red-600"
+                                    : selectedTicket.priorityLabel ===
+                                        "Medium Priority"
+                                      ? "text-yellow-600"
+                                      : "text-green-600"
+                                }`}
+                              >
+                                {selectedTicket.priorityLabel || "Normal"}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-2 text-[10px] text-gray-500 sm:text-xs md:text-sm">
-                        <span className="hidden sm:inline">•</span>
-                        <span>
-                          Created {moment(selectedTicket.created_at).fromNow()}
-                        </span>
-                        <span className="hidden sm:inline">•</span>
-                        <span
-                          className={`font-medium ${
-                            selectedTicket.priorityLabel === "High Priority"
-                              ? "text-red-600"
-                              : selectedTicket.priorityLabel ===
-                                  "Medium Priority"
-                                ? "text-yellow-600"
-                                : "text-green-600"
-                          }`}
-                        >
-                          {selectedTicket.priorityLabel || "Normal"}
-                        </span>
                       </div>
                     </div>
                   </div>
+
                   <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center md:w-auto">
                     <div className="flex w-full items-center space-x-2 sm:w-auto">
                       <label className="shrink-0 text-xs font-medium text-gray-700 sm:text-sm">
@@ -563,27 +590,33 @@ const ChatTemplate = ({ refreshTickets }) => {
                     className="h-full w-full overflow-y-auto"
                   >
                     <div className="space-y-2 p-2 sm:space-y-3 sm:p-3 md:p-4 lg:p-6">
-                      {/* 🔹 Show ticket description first */}
-                      {/* {selectedTicket?.description && (
-                        <div className="flex items-start justify-start gap-2 sm:gap-3">
-                          <Avatar
-                            initialColor="info"
-                            className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
-                            name={selectedTicket.name}
-                          />
-                          <div className="min-w-0 flex-1 sm:max-w-[75%] sm:flex-initial">
-                            <div className="mb-1 flex items-center justify-start gap-2">
-                              <span className="text-sm font-medium text-gray-900">
-                                {selectedTicket.name}
-                              </span>
-                              <span className="text-[11px] text-gray-500 sm:text-xs">
-                                {moment(selectedTicket.created_at).fromNow()}
-                              </span>
-                            </div>
-                            
-                          </div>
+                      {/* 🔹 Render uploaded documents here */}
+                      {documents.length > 0 && (
+                        <div className="mb-4 rounded border border-gray-200 bg-gray-50 p-3">
+                          <h5 className="mb-2 text-sm font-semibold text-gray-700">
+                            Uploaded Documents
+                          </h5>
+                          <ul className="flex flex-col gap-2">
+                            {documents.map((doc, index) => (
+                              <li
+                                key={index}
+                                className="flex items-center gap-2"
+                              >
+                                <a
+                                  href={doc.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="truncate text-blue-600 underline hover:text-blue-800"
+                                  title={doc.name}
+                                >
+                                  {doc.name}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                      )} */}
+                      )}
+
                       {commentsLoading && (
                         <p className="text-gray-500">Loading comments...</p>
                       )}
@@ -711,6 +744,7 @@ const ChatTemplate = ({ refreshTickets }) => {
               </div>
 
               {/* Reply Section */}
+              {/* Reply Section */}
               <div className="flex-1 border-t border-gray-300 bg-white p-2 sm:p-3 md:p-4">
                 <div className="flex w-full flex-col sm:flex-row sm:items-start sm:space-x-3">
                   {/* Avatar */}
@@ -734,23 +768,83 @@ const ChatTemplate = ({ refreshTickets }) => {
 
                     <div className="mt-3 flex flex-col gap-2 sm:mt-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-2">
-                        <Button
-                          variant="flat"
-                          className="flex items-center justify-center text-gray-400 hover:text-gray-600 sm:justify-start"
-                        >
-                          <ArrowUpTrayIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </Button>
+                        {/* File Upload */}
+                        {/* Hidden File Input */}
 
-                        {/* <Select
-                          defaultValue="Use Template"
-                          data={[
-                            "Use Template",
-                            "Payment Issue Response",
-                            "Feature Request Response",
-                            "General Inquiry",
-                          ]}
-                          className="w-full text-sm sm:w-44 md:w-52 lg:w-64"
-                        /> */}
+                        <input
+                          type="file"
+                          id="fileUpload"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            setSelectedFile(file); // ✅ preview only
+                            console.log("File selected:", file);
+                          }}
+                        />
+
+                        {/* Upload Button + File Preview */}
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="flat"
+                            className="flex items-center justify-center text-gray-400 hover:text-gray-600"
+                            onClick={() =>
+                              document.getElementById("fileUpload").click()
+                            }
+                          >
+                            <ArrowUpTrayIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </Button>
+
+                          {/* Show selected file name + remove option */}
+                          {selectedFile && (
+                            <div className="flex items-center gap-2">
+                              <span className="max-w-[150px] truncate text-xs text-gray-600 sm:max-w-[200px] sm:text-sm md:max-w-[250px]">
+                                {selectedFile.name}
+                              </span>
+                              <button
+                                className="text-xs text-red-500 hover:text-red-700"
+                                onClick={() => setSelectedFile(null)}
+                              >
+                                ✕
+                              </button>
+                              <Button
+                                size="sm"
+                                variant="filled"
+                                color="primary"
+                                className="px-2 py-1 text-xs text-white"
+                                onClick={async () => {
+                                  if (!selectedFile || !selectedTicket) return;
+
+                                  try {
+                                    toast.info("Uploading file...");
+                                    const res = await uploadSupportDocument(
+                                      selectedTicket.id,
+                                      selectedFile,
+                                    );
+                                    if (res.success) {
+                                      toast.success(
+                                        "📎 File uploaded successfully!",
+                                      );
+                                      setSelectedFile(null); // clear after success
+                                      fetchComments(selectedTicket.id);
+                                    } else {
+                                      toast.error(
+                                        `❌ Upload failed: ${res.error}`,
+                                      );
+                                    }
+                                  } catch (err) {
+                                    console.error("Upload error:", err);
+                                    toast.error(
+                                      "Something went wrong while uploading.",
+                                    );
+                                  }
+                                }}
+                              >
+                                Upload
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex w-full justify-end sm:w-auto">

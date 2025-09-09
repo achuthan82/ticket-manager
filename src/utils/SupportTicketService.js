@@ -432,3 +432,111 @@ export const editComment = async (commentId, message) => {
   }
 };
 
+
+/**
+ * Upload a document to a support ticket
+ * @param {number} supportId - ID of the support ticket
+ * @param {File} file - File object to upload
+ * @returns {Promise<Object>} - Success or error response
+ */
+export const uploadSupportDocument = async (supportId, file) => {
+  try {
+    checkAuthHeaders();
+
+    const finalUrl = `/support/upload/documents/${supportId}`;
+    const formData = new FormData();
+    formData.append("file", file); // ✅ backend expects "file"
+
+    console.log("SupportTicketsService → Uploading document:", finalUrl, file);
+
+    const response = await axios.post(finalUrl, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    console.log(
+      "SupportTicketsService → Upload Document Response:",
+      response.status,
+      response.data,
+    );
+
+    return { success: true, data: response.data, error: null };
+  } catch (error) {
+    console.error("SupportTicketsService → Error uploading document:", error);
+
+    if (error.response) {
+      return {
+        success: false,
+        data: null,
+        error:
+          error.response.data?.message ||
+          `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        data: null,
+        error: "Network error. Please check your connection.",
+      };
+    } else {
+      return {
+        success: false,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
+    }
+  }
+};
+
+
+/**
+ * Get list of documents for a support ticket
+ * @param {number} supportId - ID of the support ticket
+ * @returns {Promise<Object>} - Success or error response
+ */
+export const getSupportDocuments = async (supportId) => {
+  try {
+    checkAuthHeaders();
+
+    const finalUrl = `/support/list/documents/${supportId}`;
+
+    console.log("SupportTicketsService → Fetching documents:", finalUrl);
+
+    const response = await axios.get(finalUrl);
+
+    console.log(
+      "SupportTicketsService → Documents Response:",
+      response.status,
+      response.data
+    );
+
+    return { success: true, data: response.data, error: null };
+  } catch (error) {
+    console.error(
+      "SupportTicketsService → Error fetching documents:",
+      error
+    );
+
+    if (error.response) {
+      return {
+        success: false,
+        data: null,
+        error:
+          error.response.data?.message || `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        data: null,
+        error: "Network error. Please check your connection.",
+      };
+    } else {
+      return {
+        success: false,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
+    }
+  }
+};
