@@ -23,7 +23,6 @@ const RectangularCards = () => {
   // Map numeric status to labels
   const statusMap = { 1: "New", 2: "Open", 3: "Pending", 4: "Resolved" };
 
-  useEffect(() => {
     const fetchTickets = async () => {
       setLoading(true);
       setError(null);
@@ -60,12 +59,15 @@ const RectangularCards = () => {
       setLoading(false);
     };
 
+  useEffect(() => {
+  
+
     fetchTickets();
 
     // Poll every 10 seconds
-    const interval = setInterval(fetchTickets, 2000);
+    // const interval = setInterval(fetchTickets, 2000);
 
-    return () => clearInterval(interval); // cleanup
+    // return () => clearInterval(interval); // cleanup
   }, []);
 
   const cardsData = [
@@ -141,6 +143,7 @@ const RectangularCards = () => {
           ticketCounts={ticketCounts}
           loading={loading}
           error={error}
+          refreshTickets={fetchTickets} 
         />
       </div>
     </div>

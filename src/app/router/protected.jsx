@@ -27,6 +27,13 @@ const protectedRoutes = {
           }),
         },
         {
+          path: "notifications",
+          lazy: async () => ({
+            Component: (await import("app/pages/notifications/NotificationList"))
+              .default,
+          }),
+        },
+        {
           path: "support-ticket",
           lazy: async () => ({
             Component: (await import("app/pages/support-ticket/SupportTicket"))
@@ -51,6 +58,13 @@ const protectedRoutes = {
           path: "users",
           lazy: async () => ({
             Component: (await import("app/pages/users/UserList")).default,
+          }),
+        },
+           // ✅ New FAQ Route
+        {
+          path: "faq",
+          lazy: async () => ({
+            Component: (await import("app/pages/FAQ/FAQPage")).default,
           }),
         },
         {

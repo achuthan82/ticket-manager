@@ -2,7 +2,7 @@ import { NAV_TYPE_ITEM, } from "constants/app.constant";
 import DashboardsIcon from 'assets/dualicons/dashboards.svg?react'
 import TicketIcon from 'assets/dualicons/ticket.svg?react'
 import UserIcon from 'assets/dualicons/user.svg?react'
-import { UserGroupIcon } from "@heroicons/react/24/outline";
+import { QuestionMarkCircleIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 // import { 
 // //   DocumentTextIcon, 
 // //   ChatBubbleLeftRightIcon, 
@@ -48,6 +48,16 @@ export const baseNavigation = [
         transKey : "nav.user.user",
         Icon: UserGroupIcon,
         visible:[1]
+    },
+      // ✅ New FAQ Navigation
+    {
+        id: "faq",
+        type: NAV_TYPE_ITEM,
+        path: "/faq",
+        title: "Manage FAQ",
+        transKey: "nav.faq.faq",
+        Icon: QuestionMarkCircleIcon,
+        visible: [1] // showing for admin page.
     }
     // {
     //     id: 'documents',

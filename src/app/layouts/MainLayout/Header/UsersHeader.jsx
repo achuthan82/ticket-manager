@@ -1,11 +1,12 @@
 // Import Dependencies
 // import { useState, useEffect } from "react";
-import { BellIcon, UserPlusIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
+import {  UserPlusIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 
 // Local Imports
 import { SidebarToggleBtn } from "components/shared/SidebarToggleBtn";
 import { useSidebarContext } from "app/contexts/sidebar/context";
 import { Button } from "components/ui";
+import { Notifications } from 'components/template/Notifications';
 
 // ----------------------------------------------------------------------
 
@@ -77,10 +78,11 @@ export default function UsersHeader({ onInviteClick, onExportClick }) {
             </div>
             
             {/* Notifications */}
-            <button className="relative p-2 text-neutral-500 hover:text-[#2A5A9D] transition-colors">
+            <Notifications/>
+            {/* <button className="relative p-2 text-neutral-500 hover:text-[#2A5A9D] transition-colors">
               <BellIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-[#DC3545] rounded-full"></span>
-            </button>
+            </button> */}
             
             {/* Date/Time */}
             {/* <div className="text-xs sm:text-sm text-neutral-500 hidden sm:block">
