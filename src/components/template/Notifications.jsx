@@ -3,122 +3,167 @@ import {
   Popover,
   PopoverButton,
   PopoverPanel,
-  Tab,
   TabGroup,
-  TabList,
   TabPanel,
   TabPanels,
   Transition,
 } from "@headlessui/react";
 import PropTypes from "prop-types";
 import {
-  ArchiveBoxXMarkIcon,
+  // ArchiveBoxXMarkIcon,
   Cog6ToothIcon,
   DocumentTextIcon,
   EnvelopeIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
-import clsx from "clsx";
-import { Fragment, useState } from "react";
+// import clsx from "clsx";
+import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router";
-
+import moment from "moment";
 // Local Imports
 import { Avatar, AvatarDot, Badge, Button } from "components/ui";
 import { useThemeContext } from "app/contexts/theme/context";
 import AlarmIcon from "assets/dualicons/alarm.svg?react";
 import GirlEmptyBox from "assets/illustrations/girl-empty-box.svg?react";
+import { getNotification } from "utils/notificationService";
 
 // ----------------------------------------------------------------------
 
 const types = {
-  message: {
-    title: "Message",
+  1: {
+    title: "Ticket Created",
     Icon: EnvelopeIcon,
-    color: "info",
+    color: "primary",
   },
-  task: {
-    title: "Task",
+  2: {
+    title: "Ticket Assigned",
     Icon: IoCheckmarkDoneOutline,
     color: "success",
   },
-  log: {
-    title: "Log",
+  3: {
+    title: "Comment Added",
     Icon: DocumentTextIcon,
     color: "neutral",
   },
-  security: {
-    title: "Security",
+  4: {
+    title: "Status Changed",
     Icon: ExclamationTriangleIcon,
     color: "error",
   },
+    5: {
+    title: "Ticket Edited",
+    Icon: ExclamationTriangleIcon,
+    color: "info",
+  },
 };
 
-const fakeNotifications = [
+// const fakeNotifications = [
+//   {
+//     id: 1,
+//     title: "User Photo Changed",
+//     description: "John Doe changed his avatar photo",
+//     type: "log",
+//     time: "2 hours ago",
+//   },
+//   {
+//     id: 2,
+//     title: "New user registered",
+//     description: "Jane Doe has registered",
+//     type: "message",
+//     time: "2 hours ago",
+//   },
+//   {
+//     id: 3,
+//     title: "Security alert",
+//     description: "New device login detected ",
+//     type: "security",
+//     time: "11 hours ago",
+//   },
+//   {
+//     id: 4,
+//     title: "Design ERP Completed",
+//     description: "Design ERP completed",
+//     type: "task",
+//     time: "a day ago",
+//   },
+//   {
+//     id: 5,
+//     title: "Weekly Report",
+//     description: "The weekly report was uploaded",
+//     type: "log",
+//     time: "2 days ago",
+//   },
+//   {
+//     id: 6,
+//     title: "Vercel Conf",
+//     description: "Join to online Vercel conference",
+//     type: "message",
+//     time: "3 days ago",
+//   },
+//   {
+//     id: 7,
+//     title: "Images Added",
+//     description: "Mores Clarke added new image gallery",
+//     type: "log",
+//     time: "5 days ago",
+//   },
+// ];
+const sampleNotifications = [
   {
-    id: 1,
-    title: "User Photo Changed",
-    description: "John Doe changed his avatar photo",
-    type: "log",
-    time: "2 hours ago",
+    id: 101,
+    message: "New ticket assigned",
+    ticket_id: 555,
+    event_id: 2,
+    created_at: "09-08-2025 20:12:34",
+    viewed: false,
   },
   {
-    id: 2,
-    title: "New user registered",
-    description: "Jane Doe has registered",
-    type: "message",
-    time: "2 hours ago",
+    id: 102,
+    message: "Ticket updated",
+    ticket_id: 556,
+    event_id: 5,
+    created_at: "09-07-2025 18:45:12",
+    viewed: true,
   },
   {
-    id: 3,
-    title: "Security alert",
-    description: "New device login detected ",
-    type: "security",
-    time: "11 hours ago",
+    id: 103,
+    message: "Ticket Created",
+    ticket_id: 556,
+    event_id: 1,
+    created_at: "09-07-2025 18:45:12",
+    viewed: true,
   },
   {
-    id: 4,
-    title: "Design ERP Completed",
-    description: "Design ERP completed",
-    type: "task",
-    time: "a day ago",
+    id: 104,
+    message: "Comment Added",
+    ticket_id: 556,
+    event_id: 3,
+    created_at: "09-07-2025 18:45:12",
+    viewed: true,
   },
   {
-    id: 5,
-    title: "Weekly Report",
-    description: "The weekly report was uploaded",
-    type: "log",
-    time: "2 days ago",
-  },
-  {
-    id: 6,
-    title: "Vercel Conf",
-    description: "Join to online Vercel conference",
-    type: "message",
-    time: "3 days ago",
-  },
-  {
-    id: 7,
-    title: "Images Added",
-    description: "Mores Clarke added new image gallery",
-    type: "log",
-    time: "5 days ago",
+    id: 105,
+    message: "Status Changed",
+    ticket_id: 556,
+    event_id: 4,
+    created_at: "09-07-2025 18:45:12",
+    viewed: true,
   },
 ];
-
 const typesKey = Object.keys(types);
 
 export function Notifications() {
-  const [notifications, setNotifications] = useState(fakeNotifications);
-  const [activeTab, setActiveTab] = useState(0);
+  const [notifications, setNotifications] = useState(sampleNotifications);
+  const [activeTab] = useState(0);
 
   const filteredNotifications = notifications.filter(
     (notification) => notification.type === Object.keys(types)[activeTab - 1],
   );
 
-  const removeNotification = (id) => {
-    setNotifications((n) => n.filter((n) => n.id !== id));
-  };
+  // const removeNotification = (id) => {
+  //   setNotifications((n) => n.filter((n) => n.id !== id));
+  // };
 
   const clearNotifications = () => {
     if (activeTab === 0) {
@@ -129,7 +174,21 @@ export function Notifications() {
       );
     }
   };
-
+  const fetchNotifications = () => {
+    getNotification(1, 5).then((response) => {
+      if (response.success) {
+        console.log("Messages:", response.data);
+        if (response.data.data) {
+          // setMessages(response.data.data);
+        }
+      } else {
+        console.error("Error:", response.error);
+      }
+    });
+  };
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
   return (
     <Popover className="relative flex">
       <PopoverButton
@@ -138,7 +197,7 @@ export function Notifications() {
         isIcon
         className="relative size-9 rounded-full"
       >
-        <AlarmIcon className="size-6 text-gray-900 dark:text-dark-100" />
+        <AlarmIcon className="dark:text-dark-100 size-6 text-gray-900" />
         {notifications.length > 0 && (
           <AvatarDot
             color="error"
@@ -157,14 +216,14 @@ export function Notifications() {
       >
         <PopoverPanel
           anchor={{ to: "bottom end", gap: 8 }}
-          className="z-70 mx-4 flex h-[min(32rem,calc(100vh-6rem))] w-[calc(100vw-2rem)] flex-col rounded-lg border border-gray-150 bg-white shadow-soft dark:border-dark-800 dark:bg-dark-700 dark:shadow-soft-dark sm:m-0 sm:w-80"
+          className="border-gray-150 shadow-soft dark:border-dark-800 dark:bg-dark-700 dark:shadow-soft-dark z-70 mx-4 flex  w-[calc(100vw-2rem)] bg-white flex-col rounded-lg border  sm:m-0 sm:w-80"
         >
           {({ close }) => (
             <div className="flex grow flex-col overflow-hidden">
-              <div className="rounded-t-lg bg-gray-100 dark:bg-dark-800">
+              <div className="dark:bg-dark-800 rounded-t-lg bg-gray-100">
                 <div className="flex items-center justify-between px-4 pt-2">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-gray-800 dark:text-dark-100">
+                    <h3 className="dark:text-dark-100 font-medium text-gray-800">
                       Notifications
                     </h3>
                     {notifications.length > 0 && (
@@ -192,64 +251,21 @@ export function Notifications() {
               <TabGroup
                 as={Fragment}
                 selectedIndex={activeTab}
-                onChange={setActiveTab}
+                // onChange={setActiveTab}
               >
-                <TabList className="hide-scrollbar flex shrink-0 overflow-x-auto scroll-smooth bg-gray-100 px-3 dark:bg-dark-800">
-                  <Tab
-                    onFocus={(e) => {
-                      e.target.parentNode.scrollLeft =
-                        e.target.offsetLeft -
-                        e.target.parentNode.offsetWidth / 2;
-                    }}
-                    className={({ selected }) =>
-                      clsx(
-                        "shrink-0 scroll-mx-16 whitespace-nowrap border-b-2 px-3 py-2 font-medium",
-                        selected
-                          ? "border-primary-600 text-primary-600 dark:border-primary-500 dark:text-primary-400"
-                          : "border-transparent hover:text-gray-800 focus:text-gray-800 dark:hover:text-dark-100 dark:focus:text-dark-100",
-                      )
-                    }
-                    as={Button}
-                    unstyled
-                  >
-                    All
-                  </Tab>
-                  {typesKey.map((key) => (
-                    <Tab
-                      onFocus={(e) => {
-                        e.target.parentNode.scrollLeft =
-                          e.target.offsetLeft -
-                          e.target.parentNode.offsetWidth / 2;
-                      }}
-                      key={key}
-                      className={({ selected }) =>
-                        clsx(
-                          "shrink-0 scroll-mx-16 whitespace-nowrap border-b-2 px-3 py-2 font-medium",
-                          selected
-                            ? "border-primary-600 text-primary-600 dark:border-primary-500 dark:text-primary-400"
-                            : "border-transparent hover:text-gray-800 focus:text-gray-800 dark:hover:text-dark-100 dark:focus:text-dark-100",
-                        )
-                      }
-                      as={Button}
-                      unstyled
-                    >
-                      {types[key].title}
-                    </Tab>
-                  ))}
-                </TabList>
                 {(notifications.length > 0 && activeTab === 0) ||
                 filteredNotifications.length > 0 ? (
                   <TabPanels as={Fragment}>
-                    <TabPanel className="custom-scrollbar grow space-y-4 overflow-y-auto overflow-x-hidden p-4 outline-hidden">
+                    <TabPanel className= {`custom-scrollbar grow space-y-7 overflow-x-hidden overflow-y-auto p-4 outline-hidden`}>
                       {notifications.map((item) => (
                         <NotificationItem
                           key={item.id}
-                          remove={removeNotification}
+                          // remove={removeNotification}
                           data={item}
                         />
                       ))}
                     </TabPanel>
-                    {typesKey.map((key) => (
+                    {/* {typesKey.map((key) => (
                       <TabPanel
                         key={key}
                         className="custom-scrollbar scrollbar-hide grow space-y-4 overflow-y-auto overflow-x-hidden p-4"
@@ -262,7 +278,7 @@ export function Notifications() {
                           />
                         ))}
                       </TabPanel>
-                    ))}
+                    ))} */}
                   </TabPanels>
                 ) : (
                   <Empty />
@@ -270,13 +286,16 @@ export function Notifications() {
               </TabGroup>
               {((notifications.length > 0 && activeTab === 0) ||
                 filteredNotifications.length > 0) && (
-                <div className="shrink-0 overflow-hidden rounded-b-lg bg-gray-100 dark:bg-dark-800">
+                <div className="dark:bg-dark-800 shrink-0 overflow-hidden rounded-b-lg bg-gray-100">
                   <Button
                     // variant="flat"
+                    component={Link}
+                    to="/notifications"
+                    color="primary"
                     className="w-full rounded-t-none"
                     onClick={clearNotifications}
                   >
-                    <span>Archive all notifications</span>
+                    <span>View all notifications</span>
                   </Button>
                 </div>
               )}
@@ -306,36 +325,36 @@ function Empty() {
   );
 }
 
-function NotificationItem({ data, remove }) {
-  const Icon = types[data.type].Icon;
+function NotificationItem({ data }) {
+  const Icon = types[data.event_id].Icon;
   return (
     <div className="group flex items-center justify-between gap-3">
       <div className="flex min-w-0 gap-3">
         <Avatar
           size={10}
-          initialColor={types[data.type].color}
+          initialColor={types[data.event_id].color}
           classNames={{ display: "rounded-lg" }}
         >
           <Icon className="size-4.5" />
         </Avatar>
         <div className="min-w-0">
-          <p className="-mt-0.5 truncate font-medium text-gray-800 dark:text-dark-100">
-            {data.title}
+          <p className="dark:text-dark-100 -mt-0.5 truncate font-medium text-gray-800">
+            {types[data.event_id].title}
           </p>
-          <div className="mt-0.5 truncate text-xs">{data.description}</div>
-          <div className="mt-1 truncate text-xs text-gray-400 dark:text-dark-300">
-            {data.time}
+          <div className="mt-0.5 truncate text-xs">{data.message}</div>
+          <div className="dark:text-dark-300 mt-1 truncate text-xs text-gray-400">
+            {moment(data.created_at, "MM-DD-YYYY HH:mm:ss").fromNow()}
           </div>
         </div>
       </div>
-      <Button
+      {/* <Button
         variant="flat"
         isIcon
         onClick={() => remove(data.id)}
         className="size-7 rounded-full opacity-0 group-hover:opacity-100 ltr:-mr-2 rtl:-ml-2"
       >
         <ArchiveBoxXMarkIcon className="size-4" />
-      </Button>
+      </Button> */}
     </div>
   );
 }

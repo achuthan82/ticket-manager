@@ -9,6 +9,7 @@ import PromptHeader from "./PromptHeader";
 import SupportUserHeader from "./SupportUserHeader";
 import SupportTicketHeader from "./SupportTicketHeader";
 import FAQHeader from "./ManageFAQHeader";
+import NotificationHeader from "./NotificationHeader";
 
 // ----------------------------------------------------------------------
 
@@ -35,6 +36,8 @@ export default function DynamicHeader({ onUploadClick, onInviteClick, onExportCl
     />
   } else if (pathname.startsWith('/support-ticket')) {
     return <SupportTicketHeader />
+  }  else if (pathname.startsWith('/notifications')) {
+    return <NotificationHeader/>
   }
    else if (pathname.startsWith('/faq')) {   // ✅ Added FAQ route check
     return <FAQHeader onAddClick={onAddFaqClick} />; // ✅ pass prop to trigger modal
