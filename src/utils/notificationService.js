@@ -2,10 +2,10 @@ import axios from './axios';
 import { checkAuthHeaders } from './authDebug';
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
-export const getNotification = (page, per_page) => {
+export const getNotification = (page, per_page, viewed) => {
   checkAuthHeaders();
   return axios
-    .get(`/notification?page=${page}&per_page=${per_page}&time_zone=${timezone}`)
+    .get(`/notification?page=${page}&per_page=${per_page}&time_zone=${timezone}&viewed=${viewed}`)
     .then((response) => {
       return { success: true, data: response.data, error: null };
     })
