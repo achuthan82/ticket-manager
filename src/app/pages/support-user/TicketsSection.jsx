@@ -6,7 +6,7 @@ import { getTickets } from "utils/supportUserService";
 import moment from "moment";
 
 function timeAgo(date) {
-  return moment(date).fromNow(); 
+  return moment(date).fromNow();
 }
 
 function TicketCard({ id, title, excerpt, status, meta = [], created }) {
@@ -93,18 +93,18 @@ export default function TicketsSection({ filter, setFilter }) {
       setError("");
 
       const params = {
-        page, 
-        per_page: perPage, 
+        page,
+        per_page: perPage,
         time_zone: "Asia/Kolkata",
       };
       if (filter !== "all") params.status = filter;
 
       const { success, data, error } = await getTickets(params);
 
-      console.log("API full response:", data); 
-
+      console.log("API full response:", data);
       if (success && data?.data?.length) {
         const ticketsArray = data.data[0] || [];
+        const paginationInfo = data.data[1] || {};
 
         setTickets(
           ticketsArray.map((t) => ({
@@ -120,29 +120,32 @@ export default function TicketsSection({ filter, setFilter }) {
           }))
         );
 
-        if (data.meta?.total_pages) {
-          setTotalPages(data.meta.total_pages);
+        // Calculate total pages based on API response
+        if (paginationInfo.total && paginationInfo.per_page) {
+          setTotalPages(Math.ceil(paginationInfo.total / paginationInfo.per_page));
         } else {
-          // fallback → if API doesn't give total_pages
-          setTotalPages(ticketsArray.length < perPage ? page : page + 1);
+          setTotalPages(1); // fallback
         }
       } else {
+        setTickets([]);
+        setTotalPages(1);
         setError(error || "No tickets found");
       }
 
       setLoading(false);
+
     }
 
     fetchTickets();
 
-  
+
     const handleTicketCreated = () => fetchTickets();
     window.addEventListener("ticketCreated", handleTicketCreated);
 
     return () => {
       window.removeEventListener("ticketCreated", handleTicketCreated);
     };
-  }, [filter, page, perPage]); 
+  }, [filter, page, perPage]);
 
   return (
     <div>
@@ -155,7 +158,7 @@ export default function TicketsSection({ filter, setFilter }) {
             value={filter}
             onChange={(e) => {
               setFilter(e.target.value);
-              setPage(1); 
+              setPage(1);
             }}
             data={[
               { label: "All Tickets", value: "all" },
@@ -166,7 +169,7 @@ export default function TicketsSection({ filter, setFilter }) {
               { label: "Closed", value: 5 },
             ]}
           />
-          
+
         </div>
       </div>
 

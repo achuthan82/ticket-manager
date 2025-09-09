@@ -58,6 +58,13 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
     { label: "General Enquiry", value: "general" },
   ];
 
+  const clearFiles = () => {
+  for (let i = files.length - 1; i >= 0; i--) {
+    remove(i);
+  }
+};
+
+
   const submitForm = async (data) => {
     const payload = {
       ...data,
@@ -77,6 +84,7 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
 
       reset();
       setAttachment(null);
+      clearFiles();
       onClose?.();
     } else {
       console.error("❌ Failed to create ticket:", result.error);
@@ -88,6 +96,7 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
   const handleClose = () => {
     reset();
     setAttachment(null);
+    clearFiles();
     onClose?.();
   };
 
