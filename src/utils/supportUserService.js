@@ -227,3 +227,43 @@ export const toggleFaqHelpful = async (faqId, isHelpful) => {
     }
   }
 };
+
+/**
+ * Get FAQ details (API 2)
+ * @param {string} faqId
+ * @returns {Promise<Object>}
+ */
+export const getFaqDetails = async (faqId) => {
+  try {
+    checkAuthHeaders();
+    const response = await axios.get(`/faq/view/${faqId}`);
+    return { success: true, data: response.data.data, error: null };
+  } catch (error) {
+    console.error("Error fetching FAQ details:", error);
+    if (error.response) {
+      return { success: false, data: null, error: error.response.data?.message || `HTTP ${error.response.status}` };
+    } else if (error.request) {
+      return { success: false, data: null, error: "Network error" };
+    } else {
+      return { success: false, data: null, error: error.message };
+    }
+  }
+};
+
+/**
+ * Increment FAQ view count (API 3)
+ * @param {string} faqId
+ * @returns {Promise<boolean>}
+ */
+export const incrementFaqViewCount = async (faqId) => {
+  try {
+    checkAuthHeaders();
+    // Use PATCH instead of POST
+    const response = await axios.patch(`/faq/view_count/${faqId}`);
+    console.log("View count increment response:", response.status, response.data);
+    return true;
+  } catch (error) {
+    console.error("Error incrementing FAQ view count:", error?.response || error);
+    return false;
+  }
+};

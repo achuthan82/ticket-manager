@@ -12,16 +12,84 @@ import {
   AccordionItem,
   AccordionPanel,
 } from "components/ui";
-import { getFaqs, toggleFaqHelpful } from "utils/supportUserService";
+import { getFaqDetails, getFaqs, incrementFaqViewCount, toggleFaqHelpful } from "utils/supportUserService";
 
 const Multiple = ({ categoryOptions }) => {
   const [faqs, setFaqs] = useState([]);
-  const [category, setCategory] = useState("billing"); // default billing
+  const [category, setCategory] = useState(""); // default billing
   const [page, setPage] = useState(1);
   const [perPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [loadingAnswers, setLoadingAnswers] = useState([]);
+
+  const [openFaqs, setOpenFaqs] = useState([]);
+
+  //  const [viewedFaqs, setViewedFaqs] = useState([]);
+
+  // const handleAccordionOpen = async (faqId) => {
+  //   try {
+  //     // Fetch FAQ details
+  //     const { success, data } = await getFaqDetails(faqId);
+  //     if (success && data) {
+  //       setFaqs((prev) =>
+  //         prev.map((f) =>
+  //           f.id === faqId
+  //             ? { ...f, answer: data.answer, is_helpful: data.is_helpful }
+  //             : f
+  //         )
+  //       );
+  //     }
+
+  //     // ✅ Increment only once per session
+  //     if (!viewedFaqs.includes(faqId)) {
+  //       await incrementFaqViewCount(faqId);
+  //       setViewedFaqs((prev) => [...prev, faqId]); // mark as counted
+  //     }
+
+  //   } catch (err) {
+  //     console.error("Error on accordion open:", err);
+  //   }
+  // };
+
+  const handleAccordionToggle = async (faqId) => {
+    try {
+      if (openFaqs.includes(faqId)) {
+        // closing → remove from openFaqs
+        setOpenFaqs((prev) => prev.filter((id) => id !== faqId));
+      } else {
+        // opening → add to openFaqs
+        setOpenFaqs((prev) => [...prev, faqId]);
+
+        // Mark as loading for this FAQ
+        setLoadingAnswers((prev) => [...prev, faqId]);
+
+        // increment view count
+        await incrementFaqViewCount(faqId);
+
+        // fetch details
+        const { success, data } = await getFaqDetails(faqId);
+        if (success && data) {
+          setFaqs((prev) =>
+            prev.map((f) =>
+              f.id === faqId
+                ? { ...f, answer: data.answer, is_helpful: data.is_helpful }
+                : f
+            )
+          );
+        }
+
+        // ✅ Remove loading flag
+        setLoadingAnswers((prev) => prev.filter((id) => id !== faqId));
+      }
+    } catch (err) {
+      console.error("Error toggling accordion:", err);
+      setLoadingAnswers((prev) => prev.filter((id) => id !== faqId));
+    }
+  };
+
+
 
   useEffect(() => {
     async function fetchFaqs() {
@@ -41,7 +109,7 @@ const Multiple = ({ categoryOptions }) => {
               id: f.id,
               question: f.question,
               answer: f.answer,
-              is_helpful: f.is_helpful || false, // ensure boolean
+              is_helpful: f.is_helpful || false, 
             }))
           );
 
@@ -64,20 +132,22 @@ const Multiple = ({ categoryOptions }) => {
     fetchFaqs();
   }, [category, page, perPage]);
 
-  const handleToggleHelpful = async (faqId, currentValue) => {
+  // Updated toggle function for like/dislike
+  const handleToggleHelpful = async (faqId, value) => {
     try {
-      const newValue = !currentValue;
-      await toggleFaqHelpful(faqId, newValue);
+      // value: true = like, false = dislike
+      await toggleFaqHelpful(faqId, value);
 
       setFaqs((prev) =>
         prev.map((f) =>
-          f.id === faqId ? { ...f, is_helpful: newValue } : f
+          f.id === faqId ? { ...f, is_helpful: value } : f
         )
       );
     } catch (err) {
       console.error("Error toggling helpful:", err);
     }
   };
+
 
   return (
     <div className="w-full">
@@ -111,7 +181,7 @@ const Multiple = ({ categoryOptions }) => {
           multiple
           className="flex flex-col divide-y divide-gray-150 dark:divide-dark-500"
         >
-          {faqs.map(({ id, question, answer, is_helpful }, index) => (
+          {faqs.map(({ id, question, answer }, index) => (
             <AccordionItem
               key={id}
               value={id}
@@ -122,6 +192,7 @@ const Multiple = ({ categoryOptions }) => {
               )}
             >
               <AccordionButton
+                onClick={() => handleAccordionToggle(id)}
                 className={clsx(
                   "flex w-full cursor-pointer items-center justify-between p-4 text-base font-medium text-gray-700 outline-none ring-primary-500/50 ring-offset-2 ring-offset-white focus-visible:ring dark:text-dark-100 dark:ring-offset-dark-700 transition-colors duration-200",
                   "bg-white group-hover:bg-[#FFFEF0]"
@@ -141,28 +212,63 @@ const Multiple = ({ categoryOptions }) => {
                   </>
                 )}
               </AccordionButton>
-              <AccordionPanel className="p-4 pt-0 transition-colors duration-200 bg-white group-hover:bg-[#FFFEF0]">
-                {/* Answer text */}
-                <p className="text-gray-700 mb-2">{answer}</p>
 
-                {/* Like button below answer, aligned right */}
-                <div className="flex justify-end">
+              <AccordionPanel className="p-4 pt-0 transition-colors duration-200 bg-white group-hover:bg-[#FFFEF0]">
+                {loadingAnswers.includes(id) ? (
+                  <p className="text-gray-400 italic text-sm">Loading answer...</p>
+                ) : (
+                  <p className="text-gray-700 mb-2">{answer}</p>
+                )}
+
+                <div className="flex justify-end gap-3">
+                  {/* Like button */}
                   <button
                     type="button"
-                    onClick={() => handleToggleHelpful(id, is_helpful)}
-                    className="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors"
+                    onClick={() => handleToggleHelpful(id, true)}
+                    disabled={loadingAnswers.includes(id)} // disable during loading
+                    className={clsx(
+                      "flex items-center gap-2 transition-colors",
+                      loadingAnswers.includes(id)
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-500 hover:text-blue-600"
+                    )}
                   >
-                    {is_helpful ? (
+                    {loadingAnswers.includes(id) ? (
+                      <OutlineHandThumbUpIcon className="size-5" />
+                    ) : faqs.find(f => f.id === id)?.is_helpful === true ? (
                       <SolidHandThumbUpIcon className="size-5 text-blue-600" />
                     ) : (
                       <OutlineHandThumbUpIcon className="size-5" />
                     )}
-                    <span className="text-sm">
-                      {is_helpful ? "Marked Helpful" : "Mark as Helpful"}
-                    </span>
+                    <span className="text-sm">Helpful</span>
+                  </button>
+
+                  {/* Dislike button */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleHelpful(id, false)}
+                    disabled={loadingAnswers.includes(id)} // disable during loading
+                    className={clsx(
+                      "flex items-center gap-2 transition-colors",
+                      loadingAnswers.includes(id)
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-500 hover:text-red-600"
+                    )}
+                  >
+                    {loadingAnswers.includes(id) ? (
+                      <OutlineHandThumbUpIcon className="size-5 rotate-180" />
+                    ) : faqs.find(f => f.id === id)?.is_helpful === false ? (
+                      <SolidHandThumbUpIcon className="size-5 text-red-600 rotate-180" />
+                    ) : (
+                      <OutlineHandThumbUpIcon className="size-5 rotate-180" />
+                    )}
+                    <span className="text-sm">Not Helpful</span>
                   </button>
                 </div>
+
+
               </AccordionPanel>
+
             </AccordionItem>
           ))}
         </Accordion>

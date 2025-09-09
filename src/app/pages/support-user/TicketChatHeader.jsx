@@ -4,17 +4,19 @@ import moment from 'moment'
 const TicketChatHeader = ({ticketId,backToTickets,closeTicket, headerDetails}) => {
   
   const badgeStyles = {
-    1: "bg-amber-100 text-amber-800", // Open
-    2: "bg-blue-100 text-blue-800",   // Pending
-    3: "bg-green-100 text-green-800", // Resolved
-    4: "bg-gray-200 text-gray-700",   // Closed
+    1: "bg-blue-100 text-blue-800", // New
+    2: "bg-amber-100 text-amber-800", // Open
+    3: "bg-purple-100 text-purple-800", // Pending
+    4: "bg-green-100 text-green-800", // Resolved
+    5: "bg-gray-200 text-gray-700", // Closed
   };
 
   const statusLabels = {
-    1: "Open",
-    2: "Pending",
-    3: "Resolved",
-    4: "Closed",
+    1: "New",
+    2: "Open",
+    3: "Pending",
+    4: "Resolved",
+    5: "Closed",
   };
   return (
     <>
