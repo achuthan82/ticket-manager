@@ -27,6 +27,13 @@ const protectedRoutes = {
           }),
         },
         {
+          path: "notifications",
+          lazy: async () => ({
+            Component: (await import("app/pages/notifications/NotificationList"))
+              .default,
+          }),
+        },
+        {
           path: "support-ticket",
           lazy: async () => ({
             Component: (await import("app/pages/support-ticket/SupportTicket"))
