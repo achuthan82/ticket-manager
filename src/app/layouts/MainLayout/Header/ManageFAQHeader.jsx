@@ -2,6 +2,7 @@ import { SidebarToggleBtn } from "components/shared/SidebarToggleBtn";
 import { useSidebarContext } from "app/contexts/sidebar/context";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "components/ui";
+import { Notifications } from "components/template/Notifications";
 
 export default function FAQHeader({ onAddClick }) {
   const { toggle } = useSidebarContext();
@@ -28,14 +29,17 @@ export default function FAQHeader({ onAddClick }) {
           </div>
 
           {/* Add FAQ Button */}
-          <div>
+          <div className="flex space-x-2">
             <Button
               onClick={onAddClick}
               color="primary"
-              className="flex items-center gap-2 rounded-lg  px-4 py-2 text-white shadow"
+              className="flex items-center gap-2 rounded-lg px-4 py-2 text-white shadow"
             >
-              <PlusIcon  className="h-5 w-5" /> Add FAQ
+              <PlusIcon className="h-5 w-5" /> Add FAQ
             </Button>
+            <div>
+              <Notifications />
+            </div>
           </div>
         </div>
       </div>
