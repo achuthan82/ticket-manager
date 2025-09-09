@@ -1,12 +1,19 @@
-// import { PaperClipIcon } from "@heroicons/react/24/outline";
+import { PaperClipIcon } from "@heroicons/react/24/outline";
 import { Avatar, Button, GhostSpinner } from "components/ui";
 import { useRef, useState, useEffect } from "react";
-import { getComments, addComment } from "utils/ticketSinglePageService";
+import {
+  getComments,
+  addComment,
+  uploadSupportDocument,
+} from "utils/ticketSinglePageService";
 import { useAuthContext } from "app/contexts/auth/context";
 import { toast } from "sonner";
-import moment from 'moment'
+import moment from "moment";
 
 const TicketInfo = ({ details, ticketId }) => {
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const { user } = useAuthContext();
   const scrollRef = useRef(null);
   const priorityStyle = {
@@ -50,14 +57,32 @@ const TicketInfo = ({ details, ticketId }) => {
         setLoading(false);
       });
   };
+
+  const handleFileUpload = async () => {
+    if (!file) {
+      toast.error("Please select a file to upload");
+      return;
+    }
+
+    setUploading(true);
+    const result = await uploadSupportDocument(ticketId, file);
+
+    if (result.success) {
+      toast.success("Document uploaded successfully!");
+      setFile(null);
+    } else {
+      toast.error(`Upload failed: ${result.error}`);
+    }
+    setUploading(false);
+  };
   useEffect(() => {
     fetchMessages();
   }, []);
   useEffect(() => {
-  if (scrollRef.current) {
-    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }
-}, [messages]);
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
   return (
     <>
       <div className="flex-1 overflow-y-auto p-6">
@@ -116,7 +141,10 @@ const TicketInfo = ({ details, ticketId }) => {
                               {isloggedInUser ? "You" : "Admin"}
                             </span>
                             <span className="text-xs text-gray-500">
-                              {moment(item.created_at, "MM-DD-YYYY HH:mm:ss").fromNow()}
+                              {moment(
+                                item.created_at,
+                                "MM-DD-YYYY HH:mm:ss",
+                              ).fromNow()}
                             </span>
                           </div>
                           <div
@@ -173,25 +201,48 @@ const TicketInfo = ({ details, ticketId }) => {
                 className="focus:ring-atoll w-full resize-none rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:outline-none"
                 rows="4"
               ></textarea>
-              <div className="mt-3 flex items-center justify-end">
-                {/* <div className="flex items-center space-x-3">
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <PaperClipIcon className="h-5 w-5 text-gray-600" />
-                  </button>
-                  <span className="text-sm text-gray-500">
-                    Attach files (Max 10MB)
-                  </span>
-                </div> */}
-                <Button
-                  disabled={message === "" || loading}
-                  onClick={sendReply}
-                  variant="default"
-                  className="bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
-                >
-                  {loading && <GhostSpinner className="mr-3 size-4 border-2" />}
-                  Send Reply
-                </Button>
-              </div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                onChange={(e) => setFile(e.target.files[0])}
+              />
+              <div className="mt-3 flex items-center justify-end space-x-3">
+  {/* Attach file button */}
+  <button
+    className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
+    onClick={() => fileInputRef.current.click()}
+    disabled={uploading}
+  >
+    <PaperClipIcon className="h-5 w-5" />
+    <span className="text-sm">{file ? file.name : "Attach file"}</span>
+  </button>
+
+  {/* Upload file button */}
+  {file && (
+    <Button
+      disabled={uploading}
+      onClick={handleFileUpload}
+      variant="default"
+      className="bg-green-600 text-white hover:bg-green-800"
+    >
+      {uploading && <GhostSpinner className="mr-3 size-4 border-2" />}
+      Upload
+    </Button>
+  )}
+
+  {/* Send reply button */}
+  <Button
+    disabled={message === "" || loading}
+    onClick={sendReply}
+    variant="default"
+    className="bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
+  >
+    {loading && <GhostSpinner className="mr-3 size-4 border-2" />}
+    Send Reply
+  </Button>
+</div>
+
             </div>
           </div>
         </div>

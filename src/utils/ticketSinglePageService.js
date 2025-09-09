@@ -1,7 +1,7 @@
-import axios from './axios';
-import { checkAuthHeaders } from './authDebug';
+import axios from "./axios";
+import { checkAuthHeaders } from "./authDebug";
 
-const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 export const getTicketInfo = (ticketId) => {
   checkAuthHeaders();
   return axios
@@ -68,7 +68,7 @@ export const getComments = (ticketId) => {
 export const closeTicket = (ticketId) => {
   checkAuthHeaders();
   return axios
-    .patch(`/support/edit/${ticketId}`, {status:5})
+    .patch(`/support/edit/${ticketId}`, { status: 5 })
     .then((response) => {
       return { success: true, data: response.data, error: null };
     })
@@ -132,4 +132,49 @@ export const addComment = (ticketId, message) => {
         };
       }
     });
+};
+
+// Upload Documents.
+export const uploadSupportDocument = async (supportId, file) => {
+  try {
+    checkAuthHeaders();
+
+    // Prepare form data
+    const formData = new FormData();
+    formData.append("file", file); // The API key for the file might be 'document', confirm with backend
+
+    const response = await axios.post(
+      `/support/upload/documents/${supportId}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+
+    return { success: true, data: response.data, error: null };
+  } catch (error) {
+    console.error("Error uploading document:", error);
+    if (error.response) {
+      return {
+        success: false,
+        data: null,
+        error:
+          error.response.data?.message || `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        data: null,
+        error: "Network error. Please check your connection.",
+      };
+    } else {
+      return {
+        success: false,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
+    }
+  }
 };

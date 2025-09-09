@@ -215,11 +215,11 @@ const ChatTemplate = ({ refreshTickets }) => {
     try {
       const res = await getSupportTicketAssignees();
       if (res.success) {
-        // Store both name and id
         const assigneesData =
           res.data?.data?.map((user) => ({
             id: user.id,
             name: user.name,
+            is_assigned: user.is_assigned, // ✅ important
           })) || [];
         setAssignees(assigneesData);
       }
@@ -308,18 +308,23 @@ const ChatTemplate = ({ refreshTickets }) => {
       assignee: newAssignee,
     }));
 
-    // Skip if 'Unassigned'
+    // ✅ Update tickets list so left-hand side updates
+    setTickets((prevTickets) =>
+      prevTickets.map((t) =>
+        t.id === selectedTicket.id ? { ...t, assigneeName: newAssignee } : t,
+      ),
+    );
+
     if (newAssignee === "Unassigned") return;
 
-    // Find user ID for this assignee
     const assigneeObj = assignees.find((a) => a.name === newAssignee);
-    const ticketOwnerId = assigneeObj?.id || newAssignee; // fallback
+    const ticketOwnerId = assigneeObj?.id || newAssignee;
 
     try {
       const res = await assignSupportTicket(selectedTicket.id, ticketOwnerId);
       if (res.success) {
         toast.success(`Ticket assigned to ${newAssignee}`);
-        refreshTickets?.(); // Refresh ticket list
+        refreshTickets?.();
       } else {
         toast.error(`Failed to assign ticket: ${res.error}`);
       }
@@ -339,7 +344,7 @@ const ChatTemplate = ({ refreshTickets }) => {
             <div className="flex-shrink-0 border-b border-gray-200 p-3 sm:p-4">
               <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
                 <Input
-                  className="w-full"
+                  className="w-full text-sm" // 👈 make input text smaller
                   placeholder="Search Tickets..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -352,9 +357,10 @@ const ChatTemplate = ({ refreshTickets }) => {
                   <FunnelIcon className="h-6 w-6" />
                 </Button>
               </div>
+
               <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
                 <Select
-                  className="rounded-md border border-black px-3 py-2 text-sm"
+                  className="rounded-md border border-black px-2 py-1 text-xs" // 👈 smaller padding + font size
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   data={[
@@ -368,7 +374,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                 />
 
                 <Select
-                  className="rounded-md border border-black px-3 py-2 text-sm"
+                  className="rounded-md border border-black px-2 py-1 text-xs"
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
                   data={[
@@ -381,7 +387,7 @@ const ChatTemplate = ({ refreshTickets }) => {
 
                 {/* Agents Filter */}
                 <Select
-                  className="rounded-md border border-black px-3 py-2 text-sm"
+                  className="rounded-md border border-black px-2 py-1 text-xs"
                   value={agentFilter}
                   onChange={(e) => setAgentFilter(e.target.value)}
                   data={[
@@ -411,8 +417,11 @@ const ChatTemplate = ({ refreshTickets }) => {
                   <div
                     key={ticket.id}
                     onClick={() => {
-                      setSelectedTicket(ticket);
-                      fetchComments(ticket.id); // 👈 fetch comments when selecting
+                      setSelectedTicket({
+                        ...ticket,
+                        assignee: ticket.assigneeName || "Unassigned", // selected value
+                      });
+                      fetchComments(ticket.id);
                     }}
                     className={`group cursor-pointer border border-gray-200 p-2 shadow-sm transition-all duration-200 ${selectedTicket?.id === ticket.id ? "border-blue-400 bg-blue-50" : "bg-white hover:-translate-y-1 hover:shadow-md"} `}
                   >
@@ -470,7 +479,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                             <>
                               <Avatar
                                 initialColor="auto"
-                                size={5} // small avatar
+                                size={7} // small avatar
                                 name={ticket.assigneeName}
                                 title={ticket.assigneeName} // tooltip
                               />
@@ -571,12 +580,36 @@ const ChatTemplate = ({ refreshTickets }) => {
                       <label className="shrink-0 text-xs font-medium text-gray-700 sm:text-sm">
                         Assign to:
                       </label>
-                      <Select
-                        value={selectedTicket.assignee || "Unassigned"}
-                        data={["Unassigned", ...assignees.map((a) => a.name)]} // show names only
-                        onChange={(e) => updateAssignee(e.target.value)}
-                        className="flex-1 text-xs sm:flex-none sm:text-sm"
-                      />
+                      {selectedTicket && (
+                        <>
+                          {(() => {
+                            const assignOptions = [
+                              "Unassigned",
+                              ...[
+                                ...assignees
+                                  .filter(
+                                    (a) =>
+                                      !a.is_assigned ||
+                                      a.name === selectedTicket.assignee,
+                                  )
+                                  .map((a) => a.name),
+                              ].filter(
+                                (value, index, self) =>
+                                  self.indexOf(value) === index,
+                              ), // remove duplicates
+                            ];
+
+                            return (
+                              <Select
+                                value={selectedTicket.assignee || "Unassigned"}
+                                data={assignOptions}
+                                onChange={(e) => updateAssignee(e.target.value)}
+                                className="flex-1 text-xs sm:flex-none sm:text-sm"
+                              />
+                            );
+                          })()}
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -597,46 +630,80 @@ const ChatTemplate = ({ refreshTickets }) => {
                             Uploaded Documents
                           </h5>
                           <ul className="flex flex-col gap-2">
-                            {documents.map((doc, index) => (
-                              <li
-                                key={index}
-                                className="flex items-center gap-2"
-                              >
-                                <a
-                                  href={doc.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="truncate text-blue-600 underline hover:text-blue-800"
-                                  title={doc.name}
+                            {documents.map((doc, index) => {
+                              console.log(
+                                "Rendering document:",
+                                doc.name,
+                                doc.url,
+                              ); // 👈 for clarity
+
+                              const isImage =
+                                /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(
+                                  doc.name,
+                                );
+
+                              return (
+                                <li
+                                  key={index}
+                                  className="flex items-center gap-2"
                                 >
-                                  {doc.name}
-                                </a>
-                              </li>
-                            ))}
+                                  {isImage ? (
+                                    <img
+                                      src={doc.url} // 👈 FIXED: use doc.url, not doc.name
+                                      alt={doc.name}
+                                      className="max-h-[150px] max-w-[150px] rounded border object-cover"
+                                    />
+                                  ) : (
+                                    <a
+                                      href={doc.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="truncate text-blue-600 underline hover:text-blue-800"
+                                      title={doc.name}
+                                    >
+                                      {doc.name}
+                                    </a>
+                                  )}
+                                </li>
+                              );
+                            })}
                           </ul>
                         </div>
                       )}
 
                       {commentsLoading && (
-                        <p className="text-gray-500">Loading comments...</p>
+                        <p className="text-center text-gray-500">
+                          Loading comments...
+                        </p>
                       )}
                       {!commentsLoading && comments.length === 0 && (
-                        <p className="text-gray-500">No comments yet.</p>
+                        <p className="text-center text-gray-500">
+                          No comments yet.
+                        </p>
                       )}
                       {/* const currentUserId = userData.id; // from your stored
                       userData */}
                       {comments.map((comment) => {
-                        const isAdmin = comment.created_by === currentUserId;
+                        // Log current user's role_id
+                        console.log(
+                          "Current user's role_id:",
+                          currentUser?.role,
+                        );
+
+                        // Determine if user can edit/delete the comment
+                        const canEdit =
+                          currentUser?.role === 1 ||
+                          comment.created_by === currentUser?.id;
 
                         return (
                           <div
                             key={comment.id}
                             className={`group relative flex items-start gap-3 ${
-                              isAdmin ? "justify-end" : "justify-start"
-                            }`} // <-- group moved here
+                              canEdit ? "justify-end" : "justify-start"
+                            }`}
                           >
                             {/* Avatar on the side */}
-                            {!isAdmin && (
+                            {!canEdit && (
                               <Avatar
                                 initialColor="info"
                                 className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
@@ -649,7 +716,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                               {/* Time + Name */}
                               <div
                                 className={`mb-1 flex items-center gap-2 text-xs text-gray-400 ${
-                                  isAdmin
+                                  canEdit
                                     ? "justify-end text-right"
                                     : "justify-start text-left"
                                 }`}
@@ -665,7 +732,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                               {/* Message Bubble */}
                               <div
                                 className={`rounded-xl p-3 break-words shadow-sm transition-all duration-300 sm:p-4 ${
-                                  isAdmin
+                                  canEdit
                                     ? "ml-auto bg-teal-100 text-right hover:bg-teal-200"
                                     : "bg-gray-100 text-left hover:bg-gray-200"
                                 }`}
@@ -704,8 +771,8 @@ const ChatTemplate = ({ refreshTickets }) => {
                                 )}
                               </div>
 
-                              {/* Edit/Delete icons slightly below bubble */}
-                              {isAdmin && editingCommentId !== comment.id && (
+                              {/* Edit/Delete icons */}
+                              {canEdit && editingCommentId !== comment.id && (
                                 <div className="mt-1 ml-auto flex justify-end gap-2 text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                                   <button
                                     className="hover:text-gray-700"
@@ -728,7 +795,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                             </div>
 
                             {/* Avatar for current user on the side */}
-                            {isAdmin && (
+                            {canEdit && (
                               <Avatar
                                 initialColor="success"
                                 className="mt-4 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"

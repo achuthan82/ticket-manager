@@ -19,27 +19,26 @@ export default function FAQPage() {
   const [loading, setLoading] = useState(false);
 
   // Fetch all FAQs
-const fetchFaqs = async () => {
-  setLoading(true);
-  try {
-    const result = await getFaqs({ page: 1, per_page: 50 });
-    if (result.success) {
-      const faqsWithOpen = (result.data.data || []).map((faq) => ({
-        ...faq,
-        open: false,
-        category_name: categoryNameMap[faq.category_id] || "General", // <-- Add this line
-      }));
-      setFaqs(faqsWithOpen);
-    } else {
-      console.error("Failed to fetch FAQs:", result.error);
+  const fetchFaqs = async () => {
+    setLoading(true);
+    try {
+      const result = await getFaqs({ page: 1, per_page: 10 });
+      if (result.success) {
+        const faqsWithOpen = (result.data.data || []).map((faq) => ({
+          ...faq,
+          open: false,
+          category_name: categoryNameMap[faq.category_id] || "General",
+        }));
+        setFaqs(faqsWithOpen);
+      } else {
+        console.error("Failed to fetch FAQs:", result.error);
+      }
+    } catch (err) {
+      console.error("Error fetching FAQs:", err);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Error fetching FAQs:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   useEffect(() => {
     fetchFaqs();
@@ -48,9 +47,7 @@ const fetchFaqs = async () => {
   // Toggle accordion
   const handleToggle = (id) => {
     setFaqs((prev) =>
-      prev.map((faq) =>
-        faq.id === id ? { ...faq, open: !faq.open } : faq
-      )
+      prev.map((faq) => (faq.id === id ? { ...faq, open: !faq.open } : faq)),
     );
   };
 
@@ -67,8 +64,12 @@ const fetchFaqs = async () => {
   };
 
   // Save FAQ (add or update)
-  const handleSave = async (formData) => {
+// Save FAQ (add or update)
+// Save FAQ (add or update)
+const handleSave = async (formData) => {
+  try {
     if (editingFaq) {
+      // --- Update existing FAQ ---
       const result = await updateFaq(editingFaq.id, formData);
       if (result.success) {
         setFaqs((prev) =>
@@ -77,32 +78,64 @@ const fetchFaqs = async () => {
               ? {
                   ...faq,
                   ...formData,
-                  open: faq.open,
-                  category_name:
-                    categoryNameMap[formData.category_id] || "General",
+                  open: faq.open, // keep accordion state
+                  category_name: categoryNameMap[formData.category_id] || "General",
+                  details: {
+                    question: formData.question,
+                    answer: formData.answer,
+                    category_name:
+                      categoryNameMap[formData.category_id] || "General",
+                    helpful_count: faq.details?.helpful_count || 0,
+                    unhelpful_count: faq.details?.unhelpful_count || 0,
+                  },
                 }
               : faq
           )
         );
         handleCloseModal();
+      } else {
+        console.error("Failed to update FAQ:", result.error);
       }
     } else {
+      // --- Add new FAQ ---
       const result = await addFaq(formData);
       if (result.success) {
-        setFaqs((prev) => [
-          ...prev,
-          {
-            ...result.data,
-            open: false,
-            category_name: categoryNameMap[result.data.category_id] || "General",
+        // Use the returned FAQ from API
+        const apiFaq = result.data?.data || result.data;
+        if (!apiFaq?.id) {
+          console.error("New FAQ object missing id:", apiFaq);
+          return;
+        }
+
+        const newFaq = {
+          ...apiFaq,
+          open: false,
+          category_name: categoryNameMap[apiFaq.category_id] || "General",
+          details: {
+            question: apiFaq.question,
+            answer: apiFaq.answer,
+            category_name:
+              categoryNameMap[apiFaq.category_id] || "General",
+            helpful_count: 0,
+            unhelpful_count: 0,
           },
-        ]);
+        };
+
+        setFaqs((prev) => [...prev, newFaq]); // ✅ UI updates immediately
         handleCloseModal();
+      } else {
+        console.error("Failed to add FAQ:", result.error);
       }
     }
-  };
+  } catch (err) {
+    console.error("Error saving FAQ:", err);
+  }
+};
 
-  // Optional: handleDelete function if you implement delete
+
+
+
+  // Delete FAQ
   const handleDelete = async (faqId) => {
     try {
       const result = await deleteFaq(faqId);
@@ -129,7 +162,7 @@ const fetchFaqs = async () => {
               key={faq.id}
               faq={faq}
               onToggle={() => handleToggle(faq.id)}
-              onEdit={() => handleOpenModal(faq)}
+              onEdit={(faqDetails) => handleOpenModal(faqDetails)}
               onDelete={() => handleDelete(faq.id)}
             />
           ))}

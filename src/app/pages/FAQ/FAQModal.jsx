@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Transition, Dialog } from "@headlessui/react";
 
-// Map categories to backend UUIDs
 const categoryMap = {
   billing: "82b5d872-744d-429a-ab2b-9a3694e10ea7",
   leads: "5601d4a7-a534-4da1-aac3-95c10e2e212b",
@@ -12,28 +11,23 @@ const categoryMap = {
 };
 
 export default function FAQModal({ faq, open, onClose, onSave }) {
-  const [form, setForm] = useState({
-    question: "",
-    answer: "",
-    category: "general",
-  });
+  const [form, setForm] = useState({ question: "", answer: "", category: "general" });
   const [saving, setSaving] = useState(false);
 
+  // Update form when editing FAQ
   useEffect(() => {
     if (faq) {
       const categoryKey =
-        Object.keys(categoryMap).find(
-          (key) => categoryMap[key] === faq.category_id
-        ) || "general";
+        Object.keys(categoryMap).find(key => categoryMap[key] === faq.category_id) || "general";
       setForm({
-        question: faq.question,
-        answer: faq.answer,
+        question: faq.question || "",
+        answer: faq.answer || "",
         category: categoryKey,
       });
     } else {
       setForm({ question: "", answer: "", category: "general" });
     }
-  }, [faq]);
+  }, [faq?.id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,12 +47,7 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
 
   return (
     <Transition show={open}>
-      <Dialog
-        as="div"
-        className="relative z-50"
-        onClose={onClose}
-      >
-        {/* Backdrop */}
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
         <Transition.Child
           enter="ease-out duration-300"
           enterFrom="opacity-0"
@@ -93,15 +82,11 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
                 <form onSubmit={handleSubmit} className="mt-4 space-y-4">
                   {/* Question */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Question
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700">Question</label>
                     <input
                       type="text"
                       value={form.question}
-                      onChange={(e) =>
-                        setForm({ ...form, question: e.target.value })
-                      }
+                      onChange={(e) => setForm({ ...form, question: e.target.value })}
                       required
                       disabled={saving}
                       className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-100"
@@ -110,29 +95,21 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
 
                   {/* Answer */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Answer
-                    </label>
-                    <div
-                      contentEditable={!saving}
+                    <label className="block text-sm font-medium text-gray-700">Answer</label>
+                    <textarea
+                      value={form.answer}
+                      onChange={(e) => setForm({ ...form, answer: e.target.value })}
+                      disabled={saving}
                       className="mt-1 min-h-[150px] w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-100"
-                      onInput={(e) =>
-                        setForm({ ...form, answer: e.currentTarget.innerHTML })
-                      }
-                      dangerouslySetInnerHTML={{ __html: form.answer }}
                     />
                   </div>
 
                   {/* Category */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Category
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700">Category</label>
                     <select
                       value={form.category}
-                      onChange={(e) =>
-                        setForm({ ...form, category: e.target.value })
-                      }
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
                       disabled={saving}
                       className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-100"
                     >
