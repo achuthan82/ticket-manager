@@ -86,7 +86,7 @@ const Multiple = ({ categoryOptions }) => {
         <h2 className="text-xl font-semibold text-gray-900">
           Frequently Asked Questions
         </h2>
-        <div className="w-50">
+        <div className="w-45">
           <Select
             className="text-sm border border-black rounded-md px-3 py-2"
             value={category}
