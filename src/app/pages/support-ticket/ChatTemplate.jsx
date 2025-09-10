@@ -699,7 +699,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                                   <img
                                     src={doc.url}
                                     alt={doc.name}
-                                    className="max-h-[150px] max-w-[150px] rounded object-cover"
+                                    className="max-h-[250px] max-w-[250px] rounded object-cover"
                                   />
                                 ) : (
                                   <a
