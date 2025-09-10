@@ -8,7 +8,7 @@ const ComponentSpinner = () => {
         zIndex: "999",
         left: "0",
         top: "0",
-        background: "rgba(255,255,255,0.84)",
+        background: "rgb(255,255,255)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
