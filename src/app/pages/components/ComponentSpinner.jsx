@@ -14,7 +14,7 @@ const ComponentSpinner = () => {
         alignItems: "center",
       }}
     >
-      <div className="h-16 w-16 animate-spin rounded-full border-b-2 border-blue-600"></div>
+      <div className="h-26 w-26 animate-spin rounded-full border-b-2 border-blue-600"></div>
     </div>
   );
 };
