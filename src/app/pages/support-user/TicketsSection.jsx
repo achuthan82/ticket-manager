@@ -162,7 +162,7 @@ export default function TicketsSection({ filter, setFilter }) {
         <h2 className="text-xl font-semibold text-gray-900">My Support Tickets</h2>
         <div className="w-32">
           <Select
-            className="text-sm border border-black rounded-md px-3 py-2"
+            className="text-sm border border-black rounded-md px-3 py-2 cursor-pointer"
             value={filter}
             onChange={(e) => {
               setFilter(e.target.value);
@@ -195,19 +195,19 @@ export default function TicketsSection({ filter, setFilter }) {
       </div>
 
       {/* Pagination */}
-{!loading && !error && totalPages > 1 && (
-  <div className="flex justify-center mt-6">
-    <Pagination
-      total={totalPages}
-      value={page}
-      onChange={(newPage) => setPage(newPage)}
-    >
-      <PaginationPrevious />
-      <PaginationItems />
-      <PaginationNext />
-    </Pagination>
-  </div>
-)}
+      {!loading && !error && totalPages > 1 && (
+        <div className="flex justify-center mt-6">
+          <Pagination
+            total={totalPages}
+            value={page}
+            onChange={(newPage) => setPage(newPage)}
+          >
+            <PaginationPrevious />
+            <PaginationItems />
+            <PaginationNext />
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }
