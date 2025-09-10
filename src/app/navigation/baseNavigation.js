@@ -2,7 +2,7 @@ import { NAV_TYPE_ITEM, } from "constants/app.constant";
 import DashboardsIcon from 'assets/dualicons/dashboards.svg?react'
 import TicketIcon from 'assets/dualicons/ticket.svg?react'
 import UserIcon from 'assets/dualicons/user.svg?react'
-import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftCircleIcon, QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 // import { 
 // //   DocumentTextIcon, 
 // //   ChatBubbleLeftRightIcon, 
@@ -39,6 +39,15 @@ export const baseNavigation = [
         transKey : "nav.support-user.support-user",
         Icon: UserIcon,
         visible:[ 2]
+    },
+    {
+        id: "back-to-shieldnest",
+        type:NAV_TYPE_ITEM,
+        path: "https://hub.shieldnestleads.com",
+        title:"Back to ShieldNest" ,
+        transKey : "nav.support-user.support-user",
+        Icon: ArrowLeftCircleIcon,
+        visible:[1, 2]
     },
     //   {
     //     id: "user",
