@@ -15,10 +15,13 @@ import { useDropzone } from "react-dropzone";
 import { useForm, Controller } from "react-hook-form";
 import { createTicket } from "utils/supportUserService";
 import { toast } from "sonner";
+import { useNotificationContext } from "app/contexts/notification/context";
 
 export default function NewTicketModal({ open, onClose, prefillCategory }) {
   const [files, { remove, append }] = useListState();
   const [attachment, setAttachment] = useState(null);
+
+  const { callApi, setCallApi } = useNotificationContext()
 
   const {
     handleSubmit,
@@ -59,10 +62,10 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
   ];
 
   const clearFiles = () => {
-  for (let i = files.length - 1; i >= 0; i--) {
-    remove(i);
-  }
-};
+    for (let i = files.length - 1; i >= 0; i--) {
+      remove(i);
+    }
+  };
 
 
   const submitForm = async (data) => {
@@ -79,12 +82,13 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
       console.log("✅ Ticket created successfully:", result.data);
       toast.success("Ticket created successfully!");
 
-      // 🔥 Dispatch event for TicketsSection to listen
+      //  Dispatch event for TicketsSection to listen
       window.dispatchEvent(new Event("ticketCreated"));
 
       reset();
       setAttachment(null);
       clearFiles();
+      setCallApi(!callApi);
       onClose?.();
     } else {
       console.error("❌ Failed to create ticket:", result.error);
