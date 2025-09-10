@@ -63,9 +63,16 @@ const NotificationList = () => {
       .then((response) => {
         if (response.success) {
           console.log("pagination", response.data.pagination);
-          if (response.data.data) {
+          if (response.data.status === 200) {
             setNotifications(response.data.data);
             setPagination(response.data.pagination);
+          } else if (response.data.status === 204) {
+            setNotifications([]);
+            setPagination(null);
+          } else {
+            toast.error("Failed to fetch notifications");
+            setNotifications([]);
+            setPagination(null);
           }
         } else {
           toast.error("Failed to fetch notifications");
@@ -83,7 +90,7 @@ const NotificationList = () => {
         if (response.success) {
           if (response.data.status === 200) {
             toast.success("Marked as Viewed!");
-            fetchNotifications(currentPage, selectedIndex)
+            fetchNotifications(currentPage, selectedIndex);
           } else {
             toast.error(
               response.data.message || "Failed..Please try again later",
@@ -198,7 +205,9 @@ const NotificationList = () => {
           ) : (
             <tr>
               <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
-                No notifications found.
+                {selectedIndex === 0
+                  ? "No new notifications!"
+                  : "No notification found"}
               </td>
             </tr>
           )}
