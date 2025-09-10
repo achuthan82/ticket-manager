@@ -2,10 +2,48 @@ import axios from './axios';
 import { checkAuthHeaders } from './authDebug';
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
-export const getNotification = (page, per_page) => {
+export const getNotification = (page, per_page, viewed) => {
   checkAuthHeaders();
   return axios
-    .get(`/notification?page=${page}&per_page=${per_page}&time_zone=${timezone}`)
+    .get(`/notification?page=${page}&per_page=${per_page}&time_zone=${timezone}&viewed=${viewed}`)
+    .then((response) => {
+      return { success: true, data: response.data, error: null };
+    })
+    .catch((error) => {
+      console.error("Error fetching ticket info:", error);
+      if (error.response) {
+        return {
+          success: false,
+          data: null,
+          error:
+            error.response.data?.message ||
+            `HTTP ${error.response.status} error`,
+        };
+      } else if (error.request) {
+        return {
+          success: false,
+          data: null,
+          error: "Network error. Please check your connection.",
+        };
+      } else {
+        return {
+          success: false,
+          data: null,
+          error: error.message || "Something went wrong",
+        };
+      }
+    });
+};
+export const readNotification = (id) => {
+  checkAuthHeaders();
+  let payload = {}
+  if (Array.isArray(id)) {
+    payload={ids: id}
+  } else {
+    payload={ids: [id]}
+  }
+  return axios
+    .patch(`/notification/mark-as-read`, payload)
     .then((response) => {
       return { success: true, data: response.data, error: null };
     })

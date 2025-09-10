@@ -11,6 +11,7 @@ import { Button, Card, Checkbox, Input, InputErrorMsg } from "components/ui";
 import { useAuthContext } from "app/contexts/auth/context";
 import { schema } from "./schema";
 import { Page } from "components/shared/Page";
+import ComponentSpinner from "../components/ComponentSpinner";
 
 // ----------------------------------------------------------------------
 
@@ -67,6 +68,10 @@ export default function SignIn() {
     <Page title="Login">
       <main className="min-h-100vh grid w-full grow grid-cols-1 place-items-center">
         <div className="w-full max-w-[26rem] p-4 sm:px-5">
+          {
+            isLoading && params?.token &&  <ComponentSpinner/>
+          }
+         
           <div className="text-center">
             {/* <Logo className="mx-auto size-16" /> */}
             <div className="flex w-full justify-center">

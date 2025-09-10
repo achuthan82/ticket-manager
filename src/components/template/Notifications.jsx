@@ -10,13 +10,15 @@ import {
 } from "@headlessui/react";
 import PropTypes from "prop-types";
 import {
+  CheckCircleIcon,
   // ArchiveBoxXMarkIcon,
   Cog6ToothIcon,
   DocumentTextIcon,
-  EnvelopeIcon,
   ExclamationTriangleIcon,
+  PencilSquareIcon,
+  PlusCircleIcon,
 } from "@heroicons/react/24/outline";
-import { IoCheckmarkDoneOutline } from "react-icons/io5";
+// import { IoCheckmarkDoneOutline } from "react-icons/io5";
 // import clsx from "clsx";
 import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router";
@@ -33,12 +35,12 @@ import { getNotification } from "utils/notificationService";
 const types = {
   1: {
     title: "Ticket Created",
-    Icon: EnvelopeIcon,
+    Icon: PlusCircleIcon,
     color: "primary",
   },
   2: {
     title: "Ticket Assigned",
-    Icon: IoCheckmarkDoneOutline,
+    Icon: CheckCircleIcon,
     color: "success",
   },
   3: {
@@ -53,7 +55,7 @@ const types = {
   },
     5: {
     title: "Ticket Edited",
-    Icon: ExclamationTriangleIcon,
+    Icon:PencilSquareIcon,
     color: "info",
   },
 };
@@ -114,7 +116,7 @@ const sampleNotifications = [
     id: 101,
     message: "New ticket assigned",
     ticket_id: 555,
-    event_id: 2,
+    event: 2,
     created_at: "09-08-2025 20:12:34",
     viewed: false,
   },
@@ -122,7 +124,7 @@ const sampleNotifications = [
     id: 102,
     message: "Ticket updated",
     ticket_id: 556,
-    event_id: 5,
+    event: 5,
     created_at: "09-07-2025 18:45:12",
     viewed: true,
   },
@@ -130,7 +132,7 @@ const sampleNotifications = [
     id: 103,
     message: "Ticket Created",
     ticket_id: 556,
-    event_id: 1,
+    event: 1,
     created_at: "09-07-2025 18:45:12",
     viewed: true,
   },
@@ -138,7 +140,7 @@ const sampleNotifications = [
     id: 104,
     message: "Comment Added",
     ticket_id: 556,
-    event_id: 3,
+    event: 3,
     created_at: "09-07-2025 18:45:12",
     viewed: true,
   },
@@ -146,7 +148,7 @@ const sampleNotifications = [
     id: 105,
     message: "Status Changed",
     ticket_id: 556,
-    event_id: 4,
+    event: 4,
     created_at: "09-07-2025 18:45:12",
     viewed: true,
   },
@@ -175,20 +177,30 @@ export function Notifications() {
     }
   };
   const fetchNotifications = () => {
-    getNotification(1, 5).then((response) => {
+    console.log('1min Test')
+    getNotification(1, 5, 0).then((response) => {
       if (response.success) {
         console.log("Messages:", response.data);
         if (response.data.data) {
-          // setMessages(response.data.data);
+          setNotifications(response.data.data)
         }
       } else {
+        setNotifications([])
         console.error("Error:", response.error);
       }
     });
   };
   useEffect(() => {
-    fetchNotifications();
+    setInterval(() => {
+        fetchNotifications()
+    }, [300000])
   }, []);
+   useEffect(() => {
+     fetchNotifications()
+  }, []);
+  useEffect(() => {
+   console.log('notifications', notifications)
+  }, [notifications])
   return (
     <Popover className="relative flex">
       <PopoverButton
@@ -265,20 +277,7 @@ export function Notifications() {
                         />
                       ))}
                     </TabPanel>
-                    {/* {typesKey.map((key) => (
-                      <TabPanel
-                        key={key}
-                        className="custom-scrollbar scrollbar-hide grow space-y-4 overflow-y-auto overflow-x-hidden p-4"
-                      >
-                        {filteredNotifications.map((item) => (
-                          <NotificationItem
-                            key={item.id}
-                            remove={removeNotification}
-                            data={item}
-                          />
-                        ))}
-                      </TabPanel>
-                    ))} */}
+                    
                   </TabPanels>
                 ) : (
                   <Empty />
@@ -326,20 +325,21 @@ function Empty() {
 }
 
 function NotificationItem({ data }) {
-  const Icon = types[data.event_id].Icon;
+  console.log('notification-item', data)
+  const Icon = types[data.event].Icon;
   return (
     <div className="group flex items-center justify-between gap-3">
       <div className="flex min-w-0 gap-3">
         <Avatar
           size={10}
-          initialColor={types[data.event_id].color}
+          initialColor={types[data.event].color}
           classNames={{ display: "rounded-lg" }}
         >
           <Icon className="size-4.5" />
         </Avatar>
         <div className="min-w-0">
           <p className="dark:text-dark-100 -mt-0.5 truncate font-medium text-gray-800">
-            {types[data.event_id].title}
+            {types[data.event].title}
           </p>
           <div className="mt-0.5 truncate text-xs">{data.message}</div>
           <div className="dark:text-dark-300 mt-1 truncate text-xs text-gray-400">
