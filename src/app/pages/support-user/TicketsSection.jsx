@@ -5,9 +5,13 @@ import { useNavigate } from "react-router";
 import { getTickets } from "utils/supportUserService";
 import moment from "moment";
 
-function timeAgo(date) {
-  return moment(date).fromNow();
-}
+// New imports for JSX-based pagination
+import {
+  Pagination,
+  PaginationItems,
+  PaginationNext,
+  PaginationPrevious,
+} from "components/ui";
 
 function TicketCard({ id, title, excerpt, status, meta = [], created }) {
   const navigate = useNavigate();
@@ -27,6 +31,10 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
     4: "Resolved",
     5: "Closed",
   };
+
+  function timeAgo(date) {
+    return moment(date).fromNow();
+  }
 
   const topMeta = meta.find((m) => m.label === "Updated" || m.label === "Resolved");
   const filteredMeta = meta.filter((m) => m.label !== "Updated" && m.label !== "Resolved");
@@ -187,27 +195,19 @@ export default function TicketsSection({ filter, setFilter }) {
       </div>
 
       {/* Pagination */}
-      {!loading && !error && totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-6">
-          <button
-            className="px-3 py-1 rounded-md border text-sm disabled:opacity-50"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Prev
-          </button>
-          <span className="text-sm text-gray-600">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            className="px-3 py-1 rounded-md border text-sm disabled:opacity-50"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-          >
-            Next
-          </button>
-        </div>
-      )}
+{!loading && !error && totalPages > 1 && (
+  <div className="flex justify-center mt-6">
+    <Pagination
+      total={totalPages}
+      value={page}
+      onChange={(newPage) => setPage(newPage)}
+    >
+      <PaginationPrevious />
+      <PaginationItems />
+      <PaginationNext />
+    </Pagination>
+  </div>
+)}
     </div>
   );
 }

@@ -14,6 +14,14 @@ import {
 } from "components/ui";
 import { getFaqDetails, getFaqs, incrementFaqViewCount, toggleFaqHelpful } from "utils/supportUserService";
 
+import {
+  Pagination,
+  PaginationItems,
+  PaginationNext,
+  PaginationPrevious,
+} from "components/ui";
+
+
 const Multiple = ({ categoryOptions }) => {
   const [faqs, setFaqs] = useState([]);
   const [category, setCategory] = useState(""); // default billing
@@ -109,25 +117,31 @@ const Multiple = ({ categoryOptions }) => {
               id: f.id,
               question: f.question,
               answer: f.answer,
-              is_helpful: f.is_helpful || false, 
+              is_helpful: f.is_helpful || false,
             }))
           );
 
-          if (data.meta?.total_pages) {
-            setTotalPages(data.meta.total_pages);
+          // Use backend's pagination
+          if (data.pagination) {
+            setTotalPages(Math.ceil(data.pagination.total / data.pagination.per_page));
           } else {
-            setTotalPages(data.data.length < perPage ? page : page + 1);
+            setTotalPages(1);
           }
         } else {
           setError(fetchError || "No FAQs found");
+          setFaqs([]);
+          setTotalPages(1);
         }
       } catch (err) {
         console.error("Error fetching FAQs:", err);
         setError("Something went wrong while fetching FAQs.");
+        setFaqs([]);
+        setTotalPages(1);
       }
 
       setLoading(false);
     }
+
 
     fetchFaqs();
   }, [category, page, perPage]);
@@ -276,24 +290,16 @@ const Multiple = ({ categoryOptions }) => {
 
       {/* Pagination */}
       {!loading && !error && totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-6">
-          <button
-            className="px-3 py-1 rounded-md border text-sm disabled:opacity-50"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
+        <div className="flex justify-center mt-6">
+          <Pagination
+            total={totalPages}
+            value={page}
+            onChange={(newPage) => setPage(newPage)}
           >
-            Prev
-          </button>
-          <span className="text-sm text-gray-600">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            className="px-3 py-1 rounded-md border text-sm disabled:opacity-50"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-          >
-            Next
-          </button>
+            <PaginationPrevious />
+            <PaginationItems />
+            <PaginationNext />
+          </Pagination>
         </div>
       )}
     </div>
