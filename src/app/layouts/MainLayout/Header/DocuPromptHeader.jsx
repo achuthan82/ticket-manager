@@ -1,16 +1,18 @@
 // Import Dependencies
 import { useState, useEffect } from "react";
-import { BellIcon } from '@heroicons/react/24/outline'
 
 // Local Imports
 import { SidebarToggleBtn } from "components/shared/SidebarToggleBtn";
 import { useSidebarContext } from "app/contexts/sidebar/context";
+import { Notifications } from "components/template/Notifications";
+import { useNotificationContext } from "app/contexts/notification/context";
 
 // ----------------------------------------------------------------------
 
 export default function DocuPromptHeader() {
   const { toggle } = useSidebarContext();
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+    const {callApi, setCallApi} = useNotificationContext()
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -54,9 +56,10 @@ export default function DocuPromptHeader() {
           
           <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Notifications */}
-            <button className="relative p-2 text-neutral-500 hover:text-[#2A5A9D] transition-colors">
-              <BellIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-[#DC3545] rounded-full"></span>
+            <button
+               onClick={() => {setCallApi(!callApi)}}
+            className="relative p-2 text-neutral-500 hover:text-[#2A5A9D] transition-colors">
+              <Notifications/>
             </button>
             
             {/* Date/Time */}

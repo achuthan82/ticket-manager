@@ -21,6 +21,7 @@ import {
 } from "../../../utils/SupportTicketService";
 import { toast } from "sonner";
 import moment from "moment";
+import { useNotificationContext } from "app/contexts/notification/context";
 
 const ChatTemplate = ({ refreshTickets }) => {
   const [tickets, setTickets] = useState([]);
@@ -40,6 +41,9 @@ const ChatTemplate = ({ refreshTickets }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   1;
   const [documents, setDocuments] = useState([]);
+
+  // event for ticket_assigned , status_updated and comment_added
+  const { callApi, setCallApi } = useNotificationContext();
 
   const currentUserId = useMemo(() => {
     try {
@@ -184,6 +188,8 @@ const ChatTemplate = ({ refreshTickets }) => {
       // alert(`✅ Status changed to ${newStatusLabel}`);
       toast.success(`Ticket Status updated to ${newStatusLabel}`);
       refreshTickets?.();
+      // event called
+      setCallApi(!callApi);
     } else {
       console.error("❌ Failed to update status:", res.error);
       alert("Failed to update ticket status. Please try again.");
@@ -203,6 +209,8 @@ const ChatTemplate = ({ refreshTickets }) => {
 
       fetchComments(selectedTicket.id);
       refreshTickets?.();
+      // event called
+      setCallApi(!callApi);
 
       // (Optional) Reload messages here once we wire up "list comments"
     } else {
@@ -325,6 +333,7 @@ const ChatTemplate = ({ refreshTickets }) => {
       if (res.success) {
         toast.success(`Ticket assigned to ${newAssignee}`);
         refreshTickets?.();
+        setCallApi(!callApi);
       } else {
         toast.error(`Failed to assign ticket: ${res.error}`);
       }
@@ -408,7 +417,7 @@ const ChatTemplate = ({ refreshTickets }) => {
 
               <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
                 <Select
-                className="text-xs"
+                  className="text-xs"
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   data={statusOptions.map((s) => ({
@@ -432,7 +441,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                 />
                 {/* Agents Filter */}
                 <Select
-                className="text-xs"
+                  className="text-xs"
                   value={agentFilter}
                   onChange={(e) => setAgentFilter(e.target.value)}
                   data={agentOptions.map((a) => ({
@@ -666,52 +675,53 @@ const ChatTemplate = ({ refreshTickets }) => {
                   >
                     <div className="space-y-2 p-2 sm:space-y-3 sm:p-3 md:p-4 lg:p-6">
                       {/* 🔹 Render uploaded documents here */}
-                      {documents.length > 0 && (
-                        <div className="mb-4 rounded border border-gray-200 bg-gray-50 p-3">
-                          <h5 className="mb-2 text-sm font-semibold text-gray-700">
-                            Uploaded Documents
-                          </h5>
-                          <ul className="flex flex-col gap-2">
-                            {documents.map((doc, index) => {
-                              console.log(
-                                "Rendering document:",
-                                doc.name,
-                                doc.url,
-                              ); // 👈 for clarity
+                      {/* 🔹 Render uploaded documents inside chat flow */}
+                      {documents.map((doc, index) => {
+                        const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(
+                          doc.name,
+                        );
 
-                              const isImage =
-                                /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(
-                                  doc.name,
-                                );
+                        return (
+                          <div
+                            key={`doc-${index}`}
+                            className="group relative flex items-start justify-end gap-3"
+                          >
+                            <div className="flex max-w-[70%] flex-col">
+                              <div className="mb-1 flex justify-end text-xs text-gray-400">
+                                <span className="font-medium text-gray-900">
+                                  You
+                                </span>
+                                <span> • just now</span>
+                              </div>
 
-                              return (
-                                <li
-                                  key={index}
-                                  className="flex items-center gap-2"
-                                >
-                                  {isImage ? (
-                                    <img
-                                      src={doc.url} // 👈 FIXED: use doc.url, not doc.name
-                                      alt={doc.name}
-                                      className="max-h-[150px] max-w-[150px] rounded border object-cover"
-                                    />
-                                  ) : (
-                                    <a
-                                      href={doc.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="truncate text-blue-600 underline hover:text-blue-800"
-                                      title={doc.name}
-                                    >
-                                      {doc.name}
-                                    </a>
-                                  )}
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-                      )}
+                              <div className="ml-auto rounded-xl bg-teal-100 p-2 shadow-sm hover:bg-teal-200">
+                                {isImage ? (
+                                  <img
+                                    src={doc.url}
+                                    alt={doc.name}
+                                    className="max-h-[150px] max-w-[150px] rounded object-cover"
+                                  />
+                                ) : (
+                                  <a
+                                    href={doc.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="truncate text-blue-600 underline hover:text-blue-800"
+                                    title={doc.name}
+                                  >
+                                    {doc.name}
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                            <Avatar
+                              initialColor="success"
+                              className="mt-4 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
+                              name={currentUser?.name || "You"}
+                            />
+                          </div>
+                        );
+                      })}
 
                       {commentsLoading && (
                         <p className="text-center text-gray-500">

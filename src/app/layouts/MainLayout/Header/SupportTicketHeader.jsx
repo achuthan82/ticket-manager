@@ -1,11 +1,13 @@
 // Import Dependencies
-import { BellIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 
 // Local Imports
 import { SidebarToggleBtn } from "components/shared/SidebarToggleBtn";
 import { useSidebarContext } from "app/contexts/sidebar/context";
 import { useState } from "react";
 import TicketModal from "app/pages/support-ticket/TicketModal";
+import { Notifications } from "components/template/Notifications";
+import { useNotificationContext } from "app/contexts/notification/context";
 // import { Button } from "@headlessui/react";
 
 // ----------------------------------------------------------------------
@@ -13,6 +15,7 @@ import TicketModal from "app/pages/support-ticket/TicketModal";
 export default function SupportTicketHeader() {
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const { toggle } = useSidebarContext();
+    const {callApi, setCallApi} = useNotificationContext()
 
   return (
     <header className="border-b border-neutral-300 bg-white shadow-sm">
@@ -43,9 +46,11 @@ export default function SupportTicketHeader() {
             </button>
 
             {/* Notifications */}
-            <button className="relative p-2 text-neutral-500 transition-colors hover:text-[#2A5A9D]">
-              <BellIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#DC3545]"></span>
+            <button
+               onClick={() => {setCallApi(!callApi)}}
+            className="relative p-2 text-neutral-500 transition-colors hover:text-[#2A5A9D]">
+              <Notifications />
+             
             </button>
           </div>
         </div>

@@ -83,7 +83,7 @@ const NotificationList = () => {
         if (response.success) {
           if (response.data.status === 200) {
             toast.success("Marked as Viewed!");
-            fetchNotifications(currentPage, selectedIndex === 0 ? 1 : 0)
+            fetchNotifications(currentPage, selectedIndex)
           } else {
             toast.error(
               response.data.message || "Failed..Please try again later",
@@ -103,7 +103,7 @@ const NotificationList = () => {
     fetchNotifications(val, selectedIndex);
   };
   useEffect(() => {
-    fetchNotifications(currentPage, selectedIndex === 0 ? 1 : 0);
+    fetchNotifications(currentPage, selectedIndex);
   }, [selectedIndex]);
   const NotificationTable = ({ readOnly }) => {
     return (
