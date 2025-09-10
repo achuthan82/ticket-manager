@@ -3338,6 +3338,7 @@ __metadata:
     color: "npm:^5.0.0"
     dayjs: "npm:^1.11.13"
     draft-js: "npm:^0.11.7"
+    draftjs-to-html: "npm:^0.9.1"
     eslint: "npm:^9.23.0"
     eslint-config-prettier: "npm:^10.1.1"
     eslint-define-config: "npm:^2.1.0"
@@ -3351,6 +3352,7 @@ __metadata:
     fuse.js: "npm:^7.1.0"
     globals: "npm:^16.0.0"
     html-react-parser: "npm:^5.2.2"
+    html-to-draftjs: "npm:^1.5.0"
     i18next: "npm:^24.2.3"
     i18next-browser-languagedetector: "npm:^8.0.4"
     jwt-decode: "npm:^4.0.0"
@@ -3465,6 +3467,13 @@ __metadata:
     react: ">=0.14.0"
     react-dom: ">=0.14.0"
   checksum: 10c0/25943c73cbacf7e00e3ee6bef3496feffe14f09c436cec9233a4fc1bb2b4302f2bcf5fc66f4a5f8e3a9135808d20783aff75e42659da3b21d50f63185bedf557
+  languageName: node
+  linkType: hard
+
+"draftjs-to-html@npm:^0.9.1":
+  version: 0.9.1
+  resolution: "draftjs-to-html@npm:0.9.1"
+  checksum: 10c0/5b7fa0e337e5f3e64d728fa2bd4f04dcfcb70705b552e571dfba6477f951b8a9b09c6c768c64a3a0d6eade5f532d56e36010850a0ff4ec3905f9a7859a1f86a0
   languageName: node
   linkType: hard
 

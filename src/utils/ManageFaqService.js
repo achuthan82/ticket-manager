@@ -54,40 +54,37 @@ export const addFaq = async (faqData) => {
   }
 };
 
-
-/**
- * Fetch paginated FAQs
- * @param {Object} params - { page: number, per_page: number, category_id: string (optional) }
- * @returns {Object} { success, data, error }
- */
 export const getFaqs = async ({ page = 1, per_page = 10, category_id = "" } = {}) => {
   try {
-    checkAuthHeaders(); // Ensure auth headers are attached
-
-    console.log("ManageFaqService → Fetching FAQs:", { page, per_page, category_id });
+    checkAuthHeaders();
 
     const response = await axios.get("/faq/paginated", {
       params: { page, per_page, category_id },
     });
 
-    console.log("ManageFaqService → Response:", response.status, response.data);
+    const resData = response.data;
 
-    // ✅ Handle backend-level error even if HTTP status is 200
-    if (response.data.status && response.data.status >= 400) {
-      console.error("ManageFaqService → Backend error:", response.data.message);
-      return { success: false, data: null, error: response.data.message };
+    if (resData.status && resData.status >= 400) {
+      return { success: false, data: null, error: resData.message };
     }
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      data: resData.data || [],
+      pagination: resData.pagination || {
+        current_page: page,
+        per_page,
+        total: (resData.data || []).length,
+        length: (resData.data || []).length,
+      },
+      error: null,
+    };
   } catch (error) {
-    console.error("ManageFaqService → Failed to fetch FAQs:", error);
-
     if (error.response) {
       return {
         success: false,
         data: null,
-        error:
-          error.response.data?.message || `HTTP ${error.response.status} error`,
+        error: error.response.data?.message || `HTTP ${error.response.status} error`,
       };
     } else if (error.request) {
       return {
@@ -104,6 +101,7 @@ export const getFaqs = async ({ page = 1, per_page = 10, category_id = "" } = {}
     }
   }
 };
+
 
 
 /**

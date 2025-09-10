@@ -13,12 +13,13 @@ const categoryMap = {
 export default function FAQModal({ faq, open, onClose, onSave }) {
   const [form, setForm] = useState({ question: "", answer: "", category: "general" });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(""); // 🔥 UI error state
 
-  // Update form when editing FAQ
   useEffect(() => {
     if (faq) {
       const categoryKey =
-        Object.keys(categoryMap).find(key => categoryMap[key] === faq.category_id) || "general";
+        Object.keys(categoryMap).find((key) => categoryMap[key] === faq.category_id) ||
+        "general";
       setForm({
         question: faq.question || "",
         answer: faq.answer || "",
@@ -27,10 +28,12 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
     } else {
       setForm({ question: "", answer: "", category: "general" });
     }
+    setError(""); // reset error on open
   }, [faq?.id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     setSaving(true);
     try {
       await onSave({
@@ -39,7 +42,7 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
         category_id: categoryMap[form.category],
       });
     } catch (err) {
-      console.error("Failed to save FAQ", err);
+      setError(err.message || "Failed to save FAQ");
     } finally {
       setSaving(false);
     }
@@ -80,6 +83,13 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
                 </div>
 
                 <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+                  {/* Error Message */}
+                  {error && (
+                    <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+                      {error}
+                    </div>
+                  )}
+
                   {/* Question */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Question</label>

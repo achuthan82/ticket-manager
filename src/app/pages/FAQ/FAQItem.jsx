@@ -113,7 +113,7 @@ export default function FAQItem({ faq, onToggle, onEdit, onDelete }) {
               <div className="flex gap-3 pt-4">
                 {onEdit && (
                   <button
-                    onClick={() => onEdit({ ...faq, ...details })}
+                    onClick={() => onEdit(details ? { ...faq, ...details } : faq)}
                     className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
                   >
                     <PencilSquareIcon className="h-4 w-4" /> Edit

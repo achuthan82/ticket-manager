@@ -2,8 +2,13 @@ import { useState, useEffect } from "react";
 import FAQItem from "./FAQItem";
 import FAQModal from "./FAQModal";
 import { addFaq, getFaqs, updateFaq, deleteFaq } from "utils/ManageFaqService";
+import {
+  Pagination,
+  PaginationItems,
+  PaginationNext,
+  PaginationPrevious,
+} from "components/ui";
 
-// Map backend UUIDs to human-readable category names
 const categoryNameMap = {
   "82b5d872-744d-429a-ab2b-9a3694e10ea7": "Billing",
   "5601d4a7-a534-4da1-aac3-95c10e2e212b": "Leads",
@@ -18,129 +23,91 @@ export default function FAQPage() {
   const [editingFaq, setEditingFaq] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch all FAQs
-  const fetchFaqs = async () => {
-    setLoading(true);
-    try {
-      const result = await getFaqs({ page: 1, per_page: 10 });
-      if (result.success) {
-        const faqsWithOpen = (result.data.data || []).map((faq) => ({
-          ...faq,
-          open: false,
-          category_name: categoryNameMap[faq.category_id] || "General",
-        }));
-        setFaqs(faqsWithOpen);
-      } else {
-        console.error("Failed to fetch FAQs:", result.error);
-      }
-    } catch (err) {
-      console.error("Error fetching FAQs:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // pagination state (from backend)
+  const [page, setPage] = useState(1);
+  const perPage = 7;
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
+  // Fetch FAQs with backend pagination
+  const fetchFaqs = async () => {
+  setLoading(true);
+  try {
+    const result = await getFaqs({ page, per_page: perPage });
+    if (result.success) {
+      const faqsWithOpen = result.data.map((faq) => ({
+        ...faq,
+        open: false,
+        category_name: categoryNameMap[faq.category_id] || "General",
+      }));
+
+      setFaqs(faqsWithOpen);
+      setTotalItems(result.pagination.total);
+      setTotalPages(Math.ceil(result.pagination.total / result.pagination.per_page));
+    } else {
+      console.error("Failed to fetch FAQs:", result.error);
+    }
+  } catch (err) {
+    console.error("Error fetching FAQs:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  // Refetch when page changes
   useEffect(() => {
     fetchFaqs();
+  }, [page]);
+
+  // 🔥 Listen for "openFaqModal" event from header
+  useEffect(() => {
+    const handleOpen = () => handleOpenModal(null);
+    window.addEventListener("openFaqModal", handleOpen);
+    return () => window.removeEventListener("openFaqModal", handleOpen);
   }, []);
 
-  // Toggle accordion
   const handleToggle = (id) => {
     setFaqs((prev) =>
-      prev.map((faq) => (faq.id === id ? { ...faq, open: !faq.open } : faq)),
+      prev.map((faq) => (faq.id === id ? { ...faq, open: !faq.open } : faq))
     );
   };
 
-  // Open modal for edit or add
   const handleOpenModal = (faq = null) => {
     setEditingFaq(faq);
     setModalOpen(true);
   };
 
-  // Close modal
   const handleCloseModal = () => {
     setEditingFaq(null);
     setModalOpen(false);
   };
 
-  // Save FAQ (add or update)
-// Save FAQ (add or update)
-// Save FAQ (add or update)
-const handleSave = async (formData) => {
-  try {
-    if (editingFaq) {
-      // --- Update existing FAQ ---
-      const result = await updateFaq(editingFaq.id, formData);
-      if (result.success) {
-        setFaqs((prev) =>
-          prev.map((faq) =>
-            faq.id === editingFaq.id
-              ? {
-                  ...faq,
-                  ...formData,
-                  open: faq.open, // keep accordion state
-                  category_name: categoryNameMap[formData.category_id] || "General",
-                  details: {
-                    question: formData.question,
-                    answer: formData.answer,
-                    category_name:
-                      categoryNameMap[formData.category_id] || "General",
-                    helpful_count: faq.details?.helpful_count || 0,
-                    unhelpful_count: faq.details?.unhelpful_count || 0,
-                  },
-                }
-              : faq
-          )
-        );
-        handleCloseModal();
-      } else {
-        console.error("Failed to update FAQ:", result.error);
-      }
-    } else {
-      // --- Add new FAQ ---
-      const result = await addFaq(formData);
-      if (result.success) {
-        // Use the returned FAQ from API
-        const apiFaq = result.data?.data || result.data;
-        if (!apiFaq?.id) {
-          console.error("New FAQ object missing id:", apiFaq);
-          return;
+  const handleSave = async (formData) => {
+    try {
+      if (editingFaq) {
+        const result = await updateFaq(editingFaq.id, formData);
+        if (result.success) {
+          await fetchFaqs();
+          handleCloseModal();
         }
-
-        const newFaq = {
-          ...apiFaq,
-          open: false,
-          category_name: categoryNameMap[apiFaq.category_id] || "General",
-          details: {
-            question: apiFaq.question,
-            answer: apiFaq.answer,
-            category_name:
-              categoryNameMap[apiFaq.category_id] || "General",
-            helpful_count: 0,
-            unhelpful_count: 0,
-          },
-        };
-
-        setFaqs((prev) => [...prev, newFaq]); // ✅ UI updates immediately
-        handleCloseModal();
       } else {
-        console.error("Failed to add FAQ:", result.error);
+        const result = await addFaq(formData);
+        if (result.success) {
+          await fetchFaqs();
+          handleCloseModal();
+        }
       }
+    } catch (err) {
+      console.error("Error saving FAQ:", err);
     }
-  } catch (err) {
-    console.error("Error saving FAQ:", err);
-  }
-};
+  };
 
-
-
-
-  // Delete FAQ
   const handleDelete = async (faqId) => {
     try {
       const result = await deleteFaq(faqId);
       if (result.success) {
-        setFaqs((prev) => prev.filter((faq) => faq.id !== faqId));
+        await fetchFaqs();
       }
     } catch (err) {
       console.error("Failed to delete FAQ:", err);
@@ -151,7 +118,7 @@ const handleSave = async (formData) => {
     <div className="min-h-screen bg-gray-50 p-6">
       {loading ? (
         <div className="text-center text-gray-500">Loading FAQs...</div>
-      ) : faqs.length === 0 ? (
+      ) : totalItems === 0 ? (
         <div className="rounded-lg bg-gray-100 p-6 text-center text-gray-600">
           No FAQs available.
         </div>
@@ -166,6 +133,19 @@ const handleSave = async (formData) => {
               onDelete={() => handleDelete(faq.id)}
             />
           ))}
+
+          <div className="mt-6 flex items-center justify-between text-sm text-gray-600">
+            <span>
+              Showing {(page - 1) * perPage + 1}–
+              {Math.min(page * perPage, totalItems)} of {totalItems} FAQs
+            </span>
+
+            <Pagination total={totalPages} value={page} onChange={setPage}>
+              <PaginationPrevious />
+              <PaginationItems />
+              <PaginationNext />
+            </Pagination>
+          </div>
         </div>
       )}
 

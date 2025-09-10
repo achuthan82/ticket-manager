@@ -101,7 +101,7 @@ const ChatTemplate = ({ refreshTickets }) => {
     try {
       const response = await getSupportTickets({
         page: 1,
-        per_page: 50,
+        per_page: 500,
         time_zone: timeZone,
       });
       if (response.success) {
@@ -334,6 +334,54 @@ const ChatTemplate = ({ refreshTickets }) => {
     }
   };
 
+  // --- Status counts ---
+  const statusOptions = [
+    "All Status",
+    "New",
+    "Open",
+    "Pending",
+    "Resolved",
+    "Closed",
+  ];
+  const statusCounts = statusOptions.reduce((acc, status) => {
+    acc[status] =
+      status === "All Status"
+        ? tickets.length
+        : tickets.filter((t) => t.statusLabel === status).length;
+    return acc;
+  }, {});
+
+  // --- Priority counts ---
+  const priorityOptions = [
+    "All Priority",
+    "High Priority",
+    "Medium Priority",
+    "Low Priority",
+  ];
+  const priorityCounts = priorityOptions.reduce((acc, priority) => {
+    acc[priority] =
+      priority === "All Priority"
+        ? tickets.length
+        : tickets.filter((t) => t.priorityLabel === priority).length;
+    return acc;
+  }, {});
+
+  // --- Agent counts ---
+  const agentOptions = [
+    "All Agents",
+    "Unassigned",
+    ...[...new Set(assignees.map((a) => a.name))],
+  ];
+  const agentCounts = agentOptions.reduce((acc, agent) => {
+    acc[agent] =
+      agent === "All Agents"
+        ? tickets.length
+        : agent === "Unassigned"
+          ? tickets.filter((t) => t.assigneeName === "Unassigned").length
+          : tickets.filter((t) => t.assigneeName === agent).length;
+    return acc;
+  }, {});
+
   return (
     <div className="mx-auto flex h-screen max-h-[calc(100vh-240px)] w-full max-w-screen-2xl flex-col overflow-hidden">
       <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
@@ -360,44 +408,38 @@ const ChatTemplate = ({ refreshTickets }) => {
 
               <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
                 <Select
-                  className="rounded-md border border-black px-2 py-1 text-xs" // 👈 smaller padding + font size
+                className="text-xs"
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
-                  data={[
-                    { label: "All Status", value: "All Status" },
-                    { label: "New", value: "New" },
-                    { label: "Open", value: "Open" },
-                    { label: "Pending", value: "Pending" },
-                    { label: "Resolved", value: "Resolved" },
-                    { label: "Closed", value: "Closed" },
-                  ]}
+                  data={statusOptions.map((s) => ({
+                    label:
+                      s === "All Status" ? s : `${s} (${statusCounts[s] || 0})`,
+                    value: s,
+                  }))}
                 />
 
                 <Select
-                  className="rounded-md border border-black px-2 py-1 text-xs"
                   value={priorityFilter}
+                  className="text-xs"
                   onChange={(e) => setPriorityFilter(e.target.value)}
-                  data={[
-                    "All Priority",
-                    "High Priority",
-                    "Medium Priority",
-                    "Low Priority",
-                  ]}
+                  data={priorityOptions.map((p) => ({
+                    label:
+                      p === "All Priority"
+                        ? p
+                        : `${p} (${priorityCounts[p] || 0})`,
+                    value: p,
+                  }))}
                 />
-
                 {/* Agents Filter */}
                 <Select
-                  className="rounded-md border border-black px-2 py-1 text-xs"
+                className="text-xs"
                   value={agentFilter}
                   onChange={(e) => setAgentFilter(e.target.value)}
-                  data={[
-                    { label: "All Agents", value: "All Agents" },
-                    { label: "Unassigned", value: "Unassigned" },
-                    ...assignees.map((a) => ({
-                      label: a.name,
-                      value: a.name,
-                    })),
-                  ]}
+                  data={agentOptions.map((a) => ({
+                    label:
+                      a === "All Agents" ? a : `${a} (${agentCounts[a] || 0})`,
+                    value: a,
+                  }))}
                 />
               </div>
             </div>

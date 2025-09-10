@@ -23,45 +23,45 @@ const RectangularCards = () => {
   // Map numeric status to labels
   const statusMap = { 1: "New", 2: "Open", 3: "Pending", 4: "Resolved" };
 
-    const fetchTickets = async () => {
-      setLoading(true);
-      setError(null);
+  const fetchTickets = async () => {
+    setLoading(true);
+    setError(null);
 
-      let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (timeZone === "Asia/Calcutta") timeZone = "Asia/Kolkata";
+    let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timeZone === "Asia/Calcutta") timeZone = "Asia/Kolkata";
 
-      try {
-        const response = await getSupportTickets({
-          page: 1,
-          per_page: 100,
-          time_zone: timeZone,
+    try {
+      const response = await getSupportTickets({
+        page: 1,
+        per_page: 200,
+        time_zone: timeZone,
+      });
+
+      if (response.success && response.data?.data?.[0]) {
+        const ticketsArray = response.data.data[0];
+
+        // Count tickets by status
+        const counts = { New: 0, Open: 0, Pending: 0, Resolved: 0 };
+        ticketsArray.forEach((ticket) => {
+          const statusLabel = statusMap[ticket.status];
+          if (statusLabel && counts[statusLabel] !== undefined) {
+            counts[statusLabel]++;
+          }
         });
 
-        if (response.success && response.data?.data?.[0]) {
-          const ticketsArray = response.data.data[0];
-
-          // Count tickets by status
-          const counts = { New: 0, Open: 0, Pending: 0, Resolved: 0 };
-          ticketsArray.forEach((ticket) => {
-            const statusLabel = statusMap[ticket.status] || "New";
-            if (counts[statusLabel] !== undefined) counts[statusLabel]++;
-          });
-
-          setTicketCounts(counts);
-          setTickets(ticketsArray);
-        } else {
-          setError(response.error || "Failed to fetch tickets");
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Error fetching tickets");
+        setTicketCounts(counts);
+        setTickets(ticketsArray);
+      } else {
+        setError(response.error || "Failed to fetch tickets");
       }
-      setLoading(false);
-    };
+    } catch (err) {
+      console.error(err);
+      setError("Error fetching tickets");
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-  
-
     fetchTickets();
 
     // Poll every 10 seconds
@@ -143,7 +143,7 @@ const RectangularCards = () => {
           ticketCounts={ticketCounts}
           loading={loading}
           error={error}
-          refreshTickets={fetchTickets} 
+          refreshTickets={fetchTickets}
         />
       </div>
     </div>
