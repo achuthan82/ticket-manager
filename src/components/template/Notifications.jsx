@@ -29,7 +29,7 @@ import { useThemeContext } from "app/contexts/theme/context";
 import AlarmIcon from "assets/dualicons/alarm.svg?react";
 import GirlEmptyBox from "assets/illustrations/girl-empty-box.svg?react";
 import { getNotification } from "utils/notificationService";
-
+import { useNotificationContext } from "app/contexts/notification/context";
 // ----------------------------------------------------------------------
 
 const types = {
@@ -158,11 +158,11 @@ const typesKey = Object.keys(types);
 export function Notifications() {
   const [notifications, setNotifications] = useState(sampleNotifications);
   const [activeTab] = useState(0);
+  const {callApi} = useNotificationContext()
 
   const filteredNotifications = notifications.filter(
     (notification) => notification.type === Object.keys(types)[activeTab - 1],
   );
-
   // const removeNotification = (id) => {
   //   setNotifications((n) => n.filter((n) => n.id !== id));
   // };
@@ -197,7 +197,7 @@ export function Notifications() {
   }, []);
    useEffect(() => {
      fetchNotifications()
-  }, []);
+  }, [callApi]);
   useEffect(() => {
    console.log('notifications', notifications)
   }, [notifications])
