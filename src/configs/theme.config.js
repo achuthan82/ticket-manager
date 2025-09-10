@@ -11,7 +11,9 @@ const DEFAULT_PRIMARY_COLOR = "blue";
 
 // Default theme configuration  
 export const defaultTheme = {  
+
     // themeMode: "system",  
+    
     // Options: "light", "dark", "system"  
     isMonochrome: false,  
     // If true, the theme uses a monochrome color palette  
