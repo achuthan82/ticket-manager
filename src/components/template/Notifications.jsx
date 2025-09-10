@@ -177,12 +177,13 @@ export function Notifications() {
     }
   };
   const fetchNotifications = () => {
-    console.log('1min Test')
     getNotification(1, 5, 0).then((response) => {
       if (response.success) {
         console.log("Messages:", response.data);
-        if (response.data.data) {
+        if (response.data.status === 200) {
           setNotifications(response.data.data)
+        } else {
+          setNotifications([])
         }
       } else {
         setNotifications([])
@@ -283,7 +284,7 @@ export function Notifications() {
                   <Empty />
                 )}
               </TabGroup>
-              {((notifications.length > 0 && activeTab === 0) ||
+              {(( activeTab === 0) ||
                 filteredNotifications.length > 0) && (
                 <div className="dark:bg-dark-800 shrink-0 overflow-hidden rounded-b-lg bg-gray-100">
                   <Button
