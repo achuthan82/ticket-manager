@@ -1,6 +1,5 @@
 // Import Dependencies
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
-
 // Local Imports
 import { SidebarToggleBtn } from "components/shared/SidebarToggleBtn";
 import { useSidebarContext } from "app/contexts/sidebar/context";
@@ -15,7 +14,7 @@ import { useNotificationContext } from "app/contexts/notification/context";
 export default function SupportTicketHeader() {
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const { toggle } = useSidebarContext();
-    const {callApi, setCallApi} = useNotificationContext()
+  const { callApi, setCallApi } = useNotificationContext();
 
   return (
     <header className="border-b border-neutral-300 bg-white shadow-sm">
@@ -47,10 +46,12 @@ export default function SupportTicketHeader() {
 
             {/* Notifications */}
             <button
-               onClick={() => {setCallApi(!callApi)}}
-            className="relative p-2 text-neutral-500 transition-colors hover:text-[#2A5A9D]">
+              onClick={() => {
+                setCallApi(!callApi);
+              }}
+              className="relative p-2 text-neutral-500 transition-colors hover:text-[#2A5A9D]"
+            >
               <Notifications />
-             
             </button>
           </div>
         </div>

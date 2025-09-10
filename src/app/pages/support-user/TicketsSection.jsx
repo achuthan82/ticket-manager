@@ -5,9 +5,13 @@ import { useNavigate } from "react-router";
 import { getTickets } from "utils/supportUserService";
 import moment from "moment";
 
-function timeAgo(date) {
-  return moment(date).fromNow(); 
-}
+// New imports for JSX-based pagination
+import {
+  Pagination,
+  PaginationItems,
+  PaginationNext,
+  PaginationPrevious,
+} from "components/ui";
 
 function TicketCard({ id, title, excerpt, status, meta = [], created }) {
   const navigate = useNavigate();
@@ -27,6 +31,10 @@ function TicketCard({ id, title, excerpt, status, meta = [], created }) {
     4: "Resolved",
     5: "Closed",
   };
+
+  function timeAgo(date) {
+    return moment(date).fromNow();
+  }
 
   const topMeta = meta.find((m) => m.label === "Updated" || m.label === "Resolved");
   const filteredMeta = meta.filter((m) => m.label !== "Updated" && m.label !== "Resolved");
@@ -93,18 +101,18 @@ export default function TicketsSection({ filter, setFilter }) {
       setError("");
 
       const params = {
-        page, 
-        per_page: perPage, 
+        page,
+        per_page: perPage,
         time_zone: "Asia/Kolkata",
       };
       if (filter !== "all") params.status = filter;
 
       const { success, data, error } = await getTickets(params);
 
-      console.log("API full response:", data); 
-
+      console.log("API full response:", data);
       if (success && data?.data?.length) {
         const ticketsArray = data.data[0] || [];
+        const paginationInfo = data.data[1] || {};
 
         setTickets(
           ticketsArray.map((t) => ({
@@ -120,29 +128,32 @@ export default function TicketsSection({ filter, setFilter }) {
           }))
         );
 
-        if (data.meta?.total_pages) {
-          setTotalPages(data.meta.total_pages);
+        // Calculate total pages based on API response
+        if (paginationInfo.total && paginationInfo.per_page) {
+          setTotalPages(Math.ceil(paginationInfo.total / paginationInfo.per_page));
         } else {
-          // fallback → if API doesn't give total_pages
-          setTotalPages(ticketsArray.length < perPage ? page : page + 1);
+          setTotalPages(1); // fallback
         }
       } else {
+        setTickets([]);
+        setTotalPages(1);
         setError(error || "No tickets found");
       }
 
       setLoading(false);
+
     }
 
     fetchTickets();
 
-  
+
     const handleTicketCreated = () => fetchTickets();
     window.addEventListener("ticketCreated", handleTicketCreated);
 
     return () => {
       window.removeEventListener("ticketCreated", handleTicketCreated);
     };
-  }, [filter, page, perPage]); 
+  }, [filter, page, perPage]);
 
   return (
     <div>
@@ -151,11 +162,11 @@ export default function TicketsSection({ filter, setFilter }) {
         <h2 className="text-xl font-semibold text-gray-900">My Support Tickets</h2>
         <div className="w-32">
           <Select
-            className="text-sm border border-black rounded-md px-3 py-2"
+            className="text-sm border border-black rounded-md px-3 py-2 cursor-pointer"
             value={filter}
             onChange={(e) => {
               setFilter(e.target.value);
-              setPage(1); 
+              setPage(1);
             }}
             data={[
               { label: "All Tickets", value: "all" },
@@ -166,7 +177,7 @@ export default function TicketsSection({ filter, setFilter }) {
               { label: "Closed", value: 5 },
             ]}
           />
-          
+
         </div>
       </div>
 
@@ -185,24 +196,16 @@ export default function TicketsSection({ filter, setFilter }) {
 
       {/* Pagination */}
       {!loading && !error && totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-6">
-          <button
-            className="px-3 py-1 rounded-md border text-sm disabled:opacity-50"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
+        <div className="flex justify-center mt-6">
+          <Pagination
+            total={totalPages}
+            value={page}
+            onChange={(newPage) => setPage(newPage)}
           >
-            Prev
-          </button>
-          <span className="text-sm text-gray-600">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            className="px-3 py-1 rounded-md border text-sm disabled:opacity-50"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-          >
-            Next
-          </button>
+            <PaginationPrevious />
+            <PaginationItems />
+            <PaginationNext />
+          </Pagination>
         </div>
       )}
     </div>
