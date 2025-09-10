@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getNotification } from "utils/notificationService";
+import { getNotification, readNotification } from "utils/notificationService";
 import { toast } from "sonner";
 import {
   CheckCircleIcon,
@@ -10,7 +10,15 @@ import {
   PencilSquareIcon,
   PlusCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Avatar, Button } from "components/ui";
+import {
+  Avatar,
+  Button,
+  Pagination,
+  PaginationItems,
+  PaginationNext,
+  PaginationPrevious,
+  GhostSpinner,
+} from "components/ui";
 import moment from "moment";
 import clsx from "clsx";
 
@@ -45,21 +53,19 @@ const NotificationList = () => {
   };
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [notifications, setNotifications] = useState([]);
-  const [page, setPage] = useState(1);
-  const [perPage] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
+  const [pagination, setPagination] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [readId, setReadId] = useState("");
   const [loading, setLoading] = useState(false);
-  const fetchNotifications = (viewed) => {
+  const fetchNotifications = (page, viewed) => {
     setLoading(true);
-    getNotification(1, perPage, viewed)
+    getNotification(page, 10, viewed)
       .then((response) => {
         if (response.success) {
           console.log("pagination", response.data.pagination);
           if (response.data.data) {
             setNotifications(response.data.data);
-            if (response.data.pagination) {
-              setTotalPages(response.data.pagination.total);
-            }
+            setPagination(response.data.pagination);
           }
         } else {
           toast.error("Failed to fetch notifications");
@@ -70,8 +76,34 @@ const NotificationList = () => {
         setLoading(false);
       });
   };
+  const markAsRead = (id) => {
+    setReadId(id);
+    readNotification(id)
+      .then((response) => {
+        if (response.success) {
+          if (response.data.status === 200) {
+            toast.success("Marked as Viewed!");
+            fetchNotifications(currentPage, selectedIndex === 0 ? 1 : 0)
+          } else {
+            toast.error(
+              response.data.message || "Failed..Please try again later",
+            );
+          }
+        }
+      })
+      .catch(() => {
+        toast.error("Failed..Please try again later");
+      })
+      .finally(() => {
+        setReadId("");
+      });
+  };
+  const handlePage = (val) => {
+    setCurrentPage(val);
+    fetchNotifications(val, selectedIndex);
+  };
   useEffect(() => {
-    fetchNotifications(selectedIndex);
+    fetchNotifications(currentPage, selectedIndex === 0 ? 1 : 0);
   }, [selectedIndex]);
   const NotificationTable = ({ readOnly }) => {
     return (
@@ -135,16 +167,29 @@ const NotificationList = () => {
                       ).fromNow()}
                     </div>
                   </td>
+                  {/* {loading && <GhostSpinner className="mr-3 size-4 border-2" />}{" "} */}
+
                   {!readOnly && (
                     <td className="px-4 py-2">
-                      <button
+                      <Button
+                        disabled={readId === notification.id}
+                        color="secondary"
+                        isIcon
+                        className="size-9 rounded-full"
+                        onClick={() => markAsRead(notification.id)}
+                      >
+                        {readId === notification.id ? (
+                          <GhostSpinner className="size-4 border-2" />
+                        ) : (
+                          <EyeIcon className="size-5" />
+                        )}{" "}
+                      </Button>
+                      {/* <button
                         className="rounded-full p-2 hover:bg-gray-200"
-                        onClick={() =>
-                          console.log("Mark viewed", notification.id)
-                        }
+                        onClick={() => markAsRead(notification.id)}
                       >
                         <EyeIcon className="size-5 text-gray-600" />
-                      </button>
+                      </button> */}
                     </td>
                   )}
                 </tr>
@@ -178,8 +223,8 @@ const NotificationList = () => {
             as={Button}
             unstyled
           >
-            Viewed Notifications
-          </Tab>{" "}
+            New Notifications
+          </Tab>
           <Tab
             className={({ selected }) =>
               clsx(
@@ -192,42 +237,35 @@ const NotificationList = () => {
             as={Button}
             unstyled
           >
-            New Notifications
-          </Tab>
+            Viewed Notifications
+          </Tab>{" "}
         </TabList>
 
         {/* Shared Content */}
         <TabPanels className="mt-4">
           <TabPanel>
-            <NotificationTable readOnly={true} />
-          </TabPanel>
-
-          <TabPanel>
             <NotificationTable readOnly={false} />
+          </TabPanel>
+          <TabPanel>
+            <NotificationTable readOnly={true} />
           </TabPanel>
         </TabPanels>
       </TabGroup>
-      {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-center gap-4">
-          <button
-            className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Prev
-          </button>
-          <span className="text-sm text-gray-600">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <div className="mt-6 flex items-center justify-center">
+        {pagination && (
+          <div className="max-w-xl">
+            <Pagination
+              total={Math.ceil(pagination.total / 10)}
+              value={currentPage}
+              onChange={(val) => handlePage(val)}
+            >
+              <PaginationPrevious />
+              <PaginationItems />
+              <PaginationNext />
+            </Pagination>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
