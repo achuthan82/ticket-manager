@@ -30,49 +30,63 @@ export default function FAQPage() {
   const [totalItems, setTotalItems] = useState(0);
 
   //  Fetch categories once on mount
-  useEffect(() => {
-    (async () => {
-      const res = await getCategories();
-      if (res.success && res.data.length > 0) {
-        // build map {id: name}
-        const map = res.data.reduce((acc, cat) => {
-          acc[cat.id] = cat.name;
-          return acc;
-        }, {});
-        setCategories(map);
-      } else {
-        toast.error(res.error || "Failed to load categories");
-      }
-    })();
-  }, []);
+ useEffect(() => {
+  (async () => {
+    const res = await getCategories();
+
+    if (res.success && res.status === 200 && res.data.length > 0) {
+      // build map {id: name}
+      const map = res.data.reduce((acc, cat) => {
+        acc[cat.id] = cat.name;
+        return acc;
+      }, {});
+      setCategories(map);
+    } else if (res.success && res.status === 204) {
+      //  No categories found
+      setCategories({});
+      toast.info("No categories found");
+    } else {
+      toast.error(res.error || "Failed to load categories");
+    }
+  })();
+}, []);
+
 
   // Fetch FAQs with backend pagination
   const fetchFaqs = async () => {
     setLoading(true);
-    try {
-      const result = await getFaqs({ page, per_page: perPage });
-      if (result.success) {
-        const faqsWithOpen = result.data.map((faq) => ({
-          ...faq,
-          open: false,
-          category_name: categories[faq.category_id] || "Uncategorized",
-        }));
+   try {
+  const result = await getFaqs({ page, per_page: perPage });
 
-        setFaqs(faqsWithOpen);
-        setTotalItems(result.pagination.total);
-        setTotalPages(
-          Math.ceil(result.pagination.total / result.pagination.per_page),
-        );
-      } else {
-        console.error("Failed to fetch FAQs:", result.error);
-        toast.error("Failed to load FAQs");
-      }
-    } catch (err) {
-      console.error("Error fetching FAQs:", err);
-      toast.error("Something went wrong while fetching FAQs");
-    } finally {
-      setLoading(false);
-    }
+  if (result.success && result.status === 200) {
+    const faqsWithOpen = result.data.map((faq) => ({
+      ...faq,
+      open: false,
+      category_name: categories[faq.category_id] || "Uncategorized",
+    }));
+
+    setFaqs(faqsWithOpen);
+    setTotalItems(result.pagination.total);
+    setTotalPages(
+      Math.ceil(result.pagination.total / result.pagination.per_page),
+    );
+  } else if (result.success && result.status === 204) {
+    //  No Content case
+    setFaqs([]);
+    setTotalItems(0);
+    setTotalPages(0);
+    toast.info("No data found");
+  } else {
+    console.error("Failed to fetch FAQs:", result.error);
+    toast.error("Failed to load FAQs");
+  }
+} catch (err) {
+  console.error("Error fetching FAQs:", err);
+  toast.error("Something went wrong while fetching FAQs");
+} finally {
+  setLoading(false);
+}
+
   };
 
   // Refetch when page changes OR categories are loaded

@@ -92,7 +92,7 @@ export const editSupportTicketStatus = async (supportId, status) => {
 
     const finalUrl = `/support/edit/${supportId}`;
 
-    // ✅ Ensure status is always a number
+    //  Ensure status is always a number
     const body = { status: Number(status) };
 
     console.log(
@@ -219,7 +219,7 @@ export const addSupportComment = async (supportId, message) => {
 
     const finalUrl = `/comment/add/${supportId}`;
 
-    // ✅ Hardcoding attachment & send_notification
+    //  Hardcoding attachment & send_notification
     const body = {
       attachment: false,
       message,

@@ -13,7 +13,7 @@ import { useNotificationContext } from "app/contexts/notification/context";
 
 export default function SupportTicketHeader() {
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
-  const { toggle, isExpanded } = useSidebarContext();   // ⬅️ use isExpanded here
+  const { toggle, isExpanded } = useSidebarContext();   // use isExpanded here
   const { callApi, setCallApi } = useNotificationContext();
 
   return (

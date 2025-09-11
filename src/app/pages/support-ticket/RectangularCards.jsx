@@ -63,11 +63,6 @@ const RectangularCards = () => {
 
   useEffect(() => {
     fetchTickets();
-
-    // Poll every 10 seconds
-    // const interval = setInterval(fetchTickets, 2000);
-
-    // return () => clearInterval(interval); // cleanup
   }, []);
 
   const cardsData = [

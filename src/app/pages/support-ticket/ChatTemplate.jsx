@@ -4,7 +4,6 @@ import {
   FunnelIcon,
   PencilIcon,
   TrashIcon,
-  // InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -39,26 +38,9 @@ const ChatTemplate = ({ refreshTickets }) => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingMessage, setEditingMessage] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
-  1;
   const [documents, setDocuments] = useState([]);
 
-  // event for ticket_assigned , status_updated and comment_added
   const { callApi, setCallApi } = useNotificationContext();
-
-  const currentUserId = useMemo(() => {
-    try {
-      const raw = localStorage.getItem("userData"); // ✅ localStorage
-      if (!raw) return undefined;
-      const parsed = JSON.parse(raw);
-      console.log("Parsed userData in ChatTemplate:", parsed);
-      return parsed?.id; // should be your "73ba57..." value
-    } catch (err) {
-      console.error("Failed to parse userData:", err);
-      return undefined;
-    }
-  }, []);
-
-  console.log("Current User ID in ChatTemplate:", currentUserId);
 
   const currentUser = useMemo(() => {
     try {
@@ -84,7 +66,6 @@ const ChatTemplate = ({ refreshTickets }) => {
     5: "Closed",
   };
 
-  // 🔁 reverse mapping
   const statusLabelToNumber = Object.fromEntries(
     Object.entries(statusMap).map(([num, label]) => [label, Number(num)]),
   );
@@ -95,7 +76,6 @@ const ChatTemplate = ({ refreshTickets }) => {
     3: "High Priority",
   };
 
-  // Fetch tickets
   const fetchTickets = async () => {
     setLoading(true);
     setError(null);
@@ -108,25 +88,34 @@ const ChatTemplate = ({ refreshTickets }) => {
         per_page: 500,
         time_zone: timeZone,
       });
-      if (response.success) {
+
+      if (response.success && response.status === 200) {
         const ticketsArray = response.data?.data?.[0] || [];
         const normalizedTickets = ticketsArray.map((t) => ({
           ...t,
           statusLabel: statusMap[t.status] || "Unknown",
           priorityLabel: priorityMap[t.priority] || "Normal",
-          assigneeName: t.assigned_to || "Unassigned", // 👈 use backend field
+          assigneeName: t.assigned_to || "Unassigned",
         }));
 
         setTickets(normalizedTickets);
-        if (normalizedTickets.length > 0)
+
+        if (normalizedTickets.length > 0) {
           setSelectedTicket(normalizedTickets[0]);
+        }
+      } else if (response.status === 204) {
+        setTickets([]); // clear tickets
+        setSelectedTicket(null); // clear selection
+        toast.info("No tickets found");
       } else {
         setError(response.error || "Failed to fetch tickets");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching tickets:", err);
       setError("Error fetching tickets");
+      toast.error("Error fetching tickets");
     }
+
     setLoading(false);
   };
 
@@ -135,33 +124,35 @@ const ChatTemplate = ({ refreshTickets }) => {
     setCommentsLoading(true);
     try {
       const res = await getComments(ticketId, "Asia/Kolkata");
-      if (res.success) {
+      if (res.success && (res.status === 200 || res.status === 201)) {
         setComments(res.data || []);
+      } else if (res.status === 204) {
+        setComments([]);
+        toast.info("No comments found");
       } else {
-        toast.error(`❌ Failed to load comments: ${res.error}`);
+        toast.error(`Failed to load comments: ${res.error}`);
       }
 
-      // Fetch documents (assuming same ticketId)
       const docsRes = await getSupportDocuments(ticketId);
-      // console.log("Documents Response:", docsRes);
-console.log(docsRes);
-
-
-      if (docsRes.success) {
+      if (
+        docsRes.success &&
+        (docsRes.status === 200 || docsRes.status === 201)
+      ) {
         setDocuments(docsRes.data?.data || []);
+      } else if (docsRes.status === 204) {
+        setDocuments([]);
+        toast.info("No documents found");
       } else {
-        setDocuments([])
-        toast.error(`❌ Failed to load documents: ${docsRes.error}`);
+        toast.error(`Failed to load documents: ${docsRes.error}`);
       }
     } catch (err) {
-      setDocuments([])
-      console.error(err);
-      toast.error("Error fetching comments");
+      console.error("Error fetching comments/documents:", err);
+      toast.error("Error fetching comments/documents");
     }
+
     setCommentsLoading(false);
   };
 
-  // 🔹 Update ticket status with API call
   const handleStatusChange = async (newStatusLabel) => {
     if (!selectedTicket) return;
 
@@ -172,15 +163,13 @@ console.log(docsRes);
       newStatusNumber,
     );
 
-    if (res.success) {
-      // ✅ Update selected ticket (right panel)
+    if (res.success && (res.status === 200 || res.status === 201)) {
       setSelectedTicket((prev) => ({
         ...prev,
         status: newStatusNumber,
         statusLabel: newStatusLabel,
       }));
 
-      // ✅ Update the ticket inside the left-hand tickets list
       setTickets((prevTickets) =>
         prevTickets.map((t) =>
           t.id === selectedTicket.id
@@ -189,13 +178,11 @@ console.log(docsRes);
         ),
       );
 
-      // alert(`✅ Status changed to ${newStatusLabel}`);
       toast.success(`Ticket Status updated to ${newStatusLabel}`);
       refreshTickets?.();
-      // event called
       setCallApi(!callApi);
     } else {
-      console.error("❌ Failed to update status:", res.error);
+      console.error(" Failed to update status:", res.error);
       alert("Failed to update ticket status. Please try again.");
     }
   };
@@ -205,62 +192,60 @@ console.log(docsRes);
 
     const res = await addSupportComment(selectedTicket.id, replyMessage);
 
-    if (res.success) {
-      toast.success(" Comment added successfully!");
-
-      // Clear the text area
+    if (res.success && (res.status === 200 || res.status === 201)) {
+      toast.success("Comment added successfully!");
       setReplyMessage("");
-
       fetchComments(selectedTicket.id);
       refreshTickets?.();
-      // event called
       setCallApi(!callApi);
-
-      // (Optional) Reload messages here once we wire up "list comments"
     } else {
-      toast.error(`❌ Failed to add comment: ${res.error}`);
+      toast.error(` Failed to add comment: ${res.error}`);
     }
   };
 
-  // 🔹 Fetch assignees
   const fetchAssignees = async () => {
     try {
       const res = await getSupportTicketAssignees();
-      if (res.success) {
+
+      if (res.success && res.status === 200) {
         const assigneesData =
           res.data?.data?.map((user) => ({
             id: user.id,
             name: user.name,
-            is_assigned: user.is_assigned, // ✅ important
+            is_assigned: user.is_assigned,
           })) || [];
         setAssignees(assigneesData);
+      } else if (res.status === 204) {
+        toast.info("No assignees found");
       }
     } catch (err) {
       console.error("Error fetching assignees:", err);
+      toast.error("Failed to fetch assignees");
     }
   };
 
-  // for delete comment
-  const handleDeleteComment = async (commentId) => {
-    if (!window.confirm("Are you sure you want to delete this comment?"))
-      return;
-
-    const res = await deleteComment(commentId);
-
-    if (res.success) {
-      toast.success("Comment deleted successfully!");
-      fetchComments(selectedTicket.id); // Refresh comments after deletion
-    } else {
-      toast.error(`Failed to delete comment: ${res.error}`);
-    }
+  const handleDeleteComment = (commentId) => {
+    toast.warning("Are you sure you want to delete this comment?", {
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          const res = await deleteComment(commentId);
+          if (res.success && res.status === 200) {
+            toast.success("Comment deleted successfully!");
+            fetchComments(selectedTicket.id);
+          } else {
+            toast.error(`Failed to delete comment: ${res.error}`);
+          }
+        },
+      },
+    });
   };
 
   const handleSaveEdit = async () => {
     if (!editingMessage.trim()) return;
 
     const res = await editComment(editingCommentId, editingMessage);
-    if (res.success) {
-      // Update local comments state
+    if (res.success && (res.status === 200 || res.status === 201)) {
       setComments((prev) =>
         prev.map((c) =>
           c.id === editingCommentId ? { ...c, message: editingMessage } : c,
@@ -280,14 +265,9 @@ console.log(docsRes);
 
   useEffect(() => {
     fetchTickets();
-    fetchAssignees(); // 👈 load names once
-    if (tickets.length > 0) {
-      setSelectedTicket(tickets[0]);
-      fetchComments(tickets[0].id);
-    }
+    fetchAssignees();
   }, []);
 
-  // Filter tickets by status and search query
   const filteredTickets = tickets.filter((t) => {
     const matchesFilter =
       filter === "All Status" ? true : t.statusLabel === filter;
@@ -309,18 +289,14 @@ console.log(docsRes);
     return matchesFilter && matchesPriority && matchesSearch && matchesAgent;
   });
 
-  // const updateStatus = (newStatus) =>
-  //   setSelectedTicket((prev) => ({ ...prev, status: newStatus }));
   const updateAssignee = async (newAssignee) => {
     if (!selectedTicket) return;
 
-    // Update UI optimistically
     setSelectedTicket((prev) => ({
       ...prev,
       assignee: newAssignee,
     }));
 
-    // ✅ Update tickets list so left-hand side updates
     setTickets((prevTickets) =>
       prevTickets.map((t) =>
         t.id === selectedTicket.id ? { ...t, assigneeName: newAssignee } : t,
@@ -334,7 +310,7 @@ console.log(docsRes);
 
     try {
       const res = await assignSupportTicket(selectedTicket.id, ticketOwnerId);
-      if (res.success) {
+      if (res.success && (res.status === 200 || res.status === 201)) {
         toast.success(`Ticket assigned to ${newAssignee}`);
         refreshTickets?.();
         setCallApi(!callApi);
@@ -347,7 +323,6 @@ console.log(docsRes);
     }
   };
 
-  // --- Status counts ---
   const statusOptions = [
     "All Status",
     "New",
@@ -364,7 +339,6 @@ console.log(docsRes);
     return acc;
   }, {});
 
-  // --- Priority counts ---
   const priorityOptions = [
     "All Priority",
     "High Priority",
@@ -379,7 +353,6 @@ console.log(docsRes);
     return acc;
   }, {});
 
-  // --- Agent counts ---
   const agentOptions = [
     "All Agents",
     "Unassigned",
@@ -405,7 +378,7 @@ console.log(docsRes);
             <div className="flex-shrink-0 border-b border-gray-200 p-3 sm:p-4">
               <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
                 <Input
-                  className="w-full text-sm" // 👈 make input text smaller
+                  className="w-full text-sm"
                   placeholder="Search Tickets..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -421,7 +394,7 @@ console.log(docsRes);
 
               <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
                 <Select
-                  className="text-xs"
+                  className="max-w-[180px] min-w-[120px] flex-1 text-xs"
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   data={statusOptions.map((s) => ({
@@ -432,8 +405,8 @@ console.log(docsRes);
                 />
 
                 <Select
+                  className="max-w-[180px] min-w-[120px] flex-1 text-xs"
                   value={priorityFilter}
-                  className="text-xs"
                   onChange={(e) => setPriorityFilter(e.target.value)}
                   data={priorityOptions.map((p) => ({
                     label:
@@ -443,9 +416,9 @@ console.log(docsRes);
                     value: p,
                   }))}
                 />
-                {/* Agents Filter */}
+
                 <Select
-                  className="text-xs"
+                  className="max-w-[180px] min-w-[100px] flex-1 text-xs"
                   value={agentFilter}
                   onChange={(e) => setAgentFilter(e.target.value)}
                   data={agentOptions.map((a) => ({
@@ -474,7 +447,7 @@ console.log(docsRes);
                     onClick={() => {
                       setSelectedTicket({
                         ...ticket,
-                        assignee: ticket.assigneeName || "Unassigned", // selected value
+                        assignee: ticket.assigneeName || "Unassigned",
                       });
                       fetchComments(ticket.id);
                     }}
@@ -510,7 +483,6 @@ console.log(docsRes);
                         {ticket.description || "No description provided"}
                       </p>
                       <div className="flex flex-col gap-1 text-xs text-gray-500">
-                        {/* First line: Time and Priority */}
                         <div className="flex justify-between">
                           <span>{moment(ticket.created_at).fromNow()}</span>
                           <span
@@ -526,17 +498,15 @@ console.log(docsRes);
                           </span>
                         </div>
 
-                        {/* Second line: Assigned To */}
-
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           {ticket.assigneeName &&
                           ticket.assigneeName !== "Unassigned" ? (
                             <>
                               <Avatar
                                 initialColor="auto"
-                                size={7} // small avatar
+                                size={7}
                                 name={ticket.assigneeName}
-                                title={ticket.assigneeName} // tooltip
+                                title={ticket.assigneeName}
                               />
                               <span
                                 className="truncate"
@@ -583,16 +553,13 @@ console.log(docsRes);
                             {selectedTicket.name}
                           </p>
 
-                          {/* email + created + priority in ONE line */}
                           <div className="flex items-center gap-x-2 text-[10px] text-gray-500 sm:text-xs md:text-sm">
-                            {/* truncate only email */}
                             <p className="max-w-[120px] truncate sm:max-w-[200px] md:max-w-[250px]">
                               {selectedTicket.email}
                             </p>
 
                             <span className="hidden sm:inline">•</span>
 
-                            {/* keep created + priority together */}
                             <div className="flex items-center gap-x-2 whitespace-nowrap">
                               <span>
                                 Created{" "}
@@ -600,15 +567,7 @@ console.log(docsRes);
                               </span>
                               <span className="hidden sm:inline">•</span>
                               <span
-                                className={`font-medium ${
-                                  selectedTicket.priorityLabel ===
-                                  "High Priority"
-                                    ? "text-red-600"
-                                    : selectedTicket.priorityLabel ===
-                                        "Medium Priority"
-                                      ? "text-yellow-600"
-                                      : "text-green-600"
-                                }`}
+                                className={`font-medium ${selectedTicket.priorityLabel === "High Priority" ? "text-red-600" : selectedTicket.priorityLabel === "Medium Priority" ? "text-yellow-600" : "text-green-600"}`}
                               >
                                 {selectedTicket.priorityLabel || "Normal"}
                               </span>
@@ -635,36 +594,26 @@ console.log(docsRes);
                       <label className="shrink-0 text-xs font-medium text-gray-700 sm:text-sm">
                         Assign to:
                       </label>
-                      {selectedTicket && (
-                        <>
-                          {(() => {
-                            const assignOptions = [
-                              "Unassigned",
-                              ...[
-                                ...assignees
-                                  .filter(
-                                    (a) =>
-                                      !a.is_assigned ||
-                                      a.name === selectedTicket.assignee,
-                                  )
-                                  .map((a) => a.name),
-                              ].filter(
-                                (value, index, self) =>
-                                  self.indexOf(value) === index,
-                              ), // remove duplicates
-                            ];
-
-                            return (
-                              <Select
-                                value={selectedTicket.assignee || "Unassigned"}
-                                data={assignOptions}
-                                onChange={(e) => updateAssignee(e.target.value)}
-                                className="flex-1 text-xs sm:flex-none sm:text-sm"
-                              />
-                            );
-                          })()}
-                        </>
-                      )}
+                      <Select
+                        value={selectedTicket.assignee || "Unassigned"}
+                        data={[
+                          "Unassigned",
+                          ...[
+                            ...assignees
+                              .filter(
+                                (a) =>
+                                  !a.is_assigned ||
+                                  a.name === selectedTicket.assignee,
+                              )
+                              .map((a) => a.name),
+                          ].filter(
+                            (value, index, self) =>
+                              self.indexOf(value) === index,
+                          ),
+                        ]}
+                        onChange={(e) => updateAssignee(e.target.value)}
+                        className="flex-1 text-xs sm:flex-none sm:text-sm"
+                      />
                     </div>
                   </div>
                 </div>
@@ -678,8 +627,6 @@ console.log(docsRes);
                     className="h-full w-full overflow-y-auto"
                   >
                     <div className="space-y-2 p-2 sm:space-y-3 sm:p-3 md:p-4 lg:p-6">
-                      {/* 🔹 Render uploaded documents here */}
-                      {/* 🔹 Render uploaded documents inside chat flow */}
                       {documents.map((doc, index) => {
                         const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(
                           doc.name,
@@ -737,16 +684,8 @@ console.log(docsRes);
                           No comments yet.
                         </p>
                       )}
-                      {/* const currentUserId = userData.id; // from your stored
-                      userData */}
-                      {comments.map((comment) => {
-                        // Log current user's role_id
-                        console.log(
-                          "Current user's role_id:",
-                          currentUser?.role,
-                        );
 
-                        // Determine if user can edit/delete the comment
+                      {comments.map((comment) => {
                         const canEdit =
                           currentUser?.role === 1 ||
                           comment.created_by === currentUser?.id;
@@ -754,11 +693,8 @@ console.log(docsRes);
                         return (
                           <div
                             key={comment.id}
-                            className={`group relative flex items-start gap-3 ${
-                              canEdit ? "justify-end" : "justify-start"
-                            }`}
+                            className={`group relative flex items-start gap-3 ${canEdit ? "justify-end" : "justify-start"}`}
                           >
-                            {/* Avatar on the side */}
                             {!canEdit && (
                               <Avatar
                                 initialColor="info"
@@ -767,15 +703,9 @@ console.log(docsRes);
                               />
                             )}
 
-                            {/* Bubble + icons */}
                             <div className="flex max-w-[70%] flex-col">
-                              {/* Time + Name */}
                               <div
-                                className={`mb-1 flex items-center gap-2 text-xs text-gray-400 ${
-                                  canEdit
-                                    ? "justify-end text-right"
-                                    : "justify-start text-left"
-                                }`}
+                                className={`mb-1 flex items-center gap-2 text-xs text-gray-400 ${canEdit ? "justify-end text-right" : "justify-start text-left"}`}
                               >
                                 <span>
                                   {moment(comment.created_at).fromNow()}
@@ -785,13 +715,8 @@ console.log(docsRes);
                                 </span>
                               </div>
 
-                              {/* Message Bubble */}
                               <div
-                                className={`rounded-xl p-3 break-words shadow-sm transition-all duration-300 sm:p-4 ${
-                                  canEdit
-                                    ? "ml-auto bg-teal-100 text-right hover:bg-teal-200"
-                                    : "bg-gray-100 text-left hover:bg-gray-200"
-                                }`}
+                                className={`rounded-xl p-3 break-words shadow-sm transition-all duration-300 sm:p-4 ${canEdit ? "ml-auto bg-teal-100 text-right hover:bg-teal-200" : "bg-gray-100 text-left hover:bg-gray-200"}`}
                               >
                                 {editingCommentId === comment.id ? (
                                   <div className="flex flex-col gap-2 sm:flex-row">
@@ -827,18 +752,17 @@ console.log(docsRes);
                                 )}
                               </div>
 
-                              {/* Edit/Delete icons */}
                               {canEdit && editingCommentId !== comment.id && (
                                 <div className="mt-1 ml-auto flex justify-end gap-2 text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                                   <button
-                                    className="hover:text-gray-700 cursor-pointer"
+                                    className="cursor-pointer hover:text-gray-700"
                                     onClick={() => handleEditComment(comment)}
                                     title="Edit"
                                   >
-                                    <PencilIcon className="h-4 w-4 " />
+                                    <PencilIcon className="h-4 w-4" />
                                   </button>
                                   <button
-                                    className="hover:text-red-600 cursor-pointer"
+                                    className="cursor-pointer hover:text-red-600"
                                     onClick={() =>
                                       handleDeleteComment(comment.id)
                                     }
@@ -850,7 +774,6 @@ console.log(docsRes);
                               )}
                             </div>
 
-                            {/* Avatar for current user on the side */}
                             {canEdit && (
                               <Avatar
                                 initialColor="success"
@@ -867,10 +790,8 @@ console.log(docsRes);
               </div>
 
               {/* Reply Section */}
-              {/* Reply Section */}
               <div className="flex-1 border-t border-gray-300 bg-white p-2 sm:p-3 md:p-4">
                 <div className="flex w-full flex-col sm:flex-row sm:items-start sm:space-x-3">
-                  {/* Avatar */}
                   <div className="mb-2 flex flex-shrink-0 justify-center sm:mb-0 sm:justify-start">
                     <Avatar
                       initialColor="info"
@@ -879,7 +800,6 @@ console.log(docsRes);
                     />
                   </div>
 
-                  {/* Input & Actions */}
                   <div className="flex flex-1 flex-col">
                     <textarea
                       placeholder="Type your response..."
@@ -891,9 +811,6 @@ console.log(docsRes);
 
                     <div className="mt-3 flex flex-col gap-2 sm:mt-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-2">
-                        {/* File Upload */}
-                        {/* Hidden File Input */}
-
                         <input
                           type="file"
                           id="fileUpload"
@@ -901,12 +818,10 @@ console.log(docsRes);
                           onChange={(e) => {
                             const file = e.target.files[0];
                             if (!file) return;
-                            setSelectedFile(file); // ✅ preview only
-                            console.log("File selected:", file);
+                            setSelectedFile(file);
                           }}
                         />
 
-                        {/* Upload Button + File Preview */}
                         <div className="flex items-center gap-2">
                           <Button
                             variant="flat"
@@ -918,7 +833,6 @@ console.log(docsRes);
                             <ArrowUpTrayIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                           </Button>
 
-                          {/* Show selected file name + remove option */}
                           {selectedFile && (
                             <div className="flex items-center gap-2">
                               <span className="max-w-[150px] truncate text-xs text-gray-600 sm:max-w-[200px] sm:text-sm md:max-w-[250px]">
@@ -937,22 +851,24 @@ console.log(docsRes);
                                 className="px-2 py-1 text-xs text-white"
                                 onClick={async () => {
                                   if (!selectedFile || !selectedTicket) return;
-
                                   try {
                                     toast.info("Uploading file...");
                                     const res = await uploadSupportDocument(
                                       selectedTicket.id,
                                       selectedFile,
                                     );
-                                    if (res.success) {
+                                    if (
+                                      res.success &&
+                                      (res.status === 200 || res.status === 201)
+                                    ) {
                                       toast.success(
-                                        "📎 File uploaded successfully!",
+                                        " File uploaded successfully!",
                                       );
-                                      setSelectedFile(null); // clear after success
+                                      setSelectedFile(null);
                                       fetchComments(selectedTicket.id);
                                     } else {
                                       toast.error(
-                                        `❌ Upload failed: ${res.error}`,
+                                        ` Upload failed: ${res.error}`,
                                       );
                                     }
                                   } catch (err) {
@@ -986,7 +902,6 @@ console.log(docsRes);
           )}
         </div>
       </div>
-      {/* <SonnerToaster richColors position="top-right" /> */}
     </div>
   );
 };
