@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import HelpSection from "./HelpSection";
 import TicketsSection from "./TicketsSection";
 import { Multiple } from "./Accordion";
-import { getFaqCategories } from "utils/supportUserService";
+import { getCategories } from "utils/supportUserService";
 
 export default function SupportUser() {
   const [filter, setFilter] = useState("all");
@@ -10,7 +10,7 @@ export default function SupportUser() {
 
   useEffect(() => {
     async function fetchCategories() {
-      const { success, data, error } = await getFaqCategories();
+      const { success, data, error } = await getCategories();
       if (success && data?.length) {
         setCategoryOptions(
           data.map((cat) => ({
