@@ -3,7 +3,7 @@ import { useEffect, useReducer } from "react";
 import isObject from "lodash/isObject";
 import PropTypes from "prop-types";
 import isString from "lodash/isString";
-
+import { JWT_HOST_TEST_API } from "configs/auth.config";
 // Local Imports
 import axios, { setInitializing } from "utils/axios";
 import {
@@ -271,7 +271,7 @@ export function AuthProvider({ children }) {
 
     try {
       const response = await axios.post(
-        "https://shieldnest-backend-staging-437a38552d5f.herokuapp.com/auth/login",
+        `${JWT_HOST_TEST_API}/auth/login`,
         {
           email,
           password,
