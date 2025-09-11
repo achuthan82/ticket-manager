@@ -36,7 +36,7 @@ export default function AuthGuard() {
     console.log("🔐 AuthGuard: Redirecting to login");
     return (
       <Navigate
-        to={`${GHOST_ENTRY_PATH}?${REDIRECT_URL_KEY}=${location.pathname}`}
+        to={`${GHOST_ENTRY_PATH}?${REDIRECT_URL_KEY}=${'/home'}`}
         replace
       />
     );
