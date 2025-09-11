@@ -2,6 +2,33 @@ import axios from './axios';
 import { checkAuthHeaders } from './authDebug';
 
 /**
+ * Get FAQ categories
+ */
+export const getFaqCategories = async () => {
+  try {
+    checkAuthHeaders();
+    const response = await axios.get(`/faq/categories`);
+
+    return { success: true, data: response.data, error: null };
+  } catch (error) {
+    console.error("Error fetching FAQ categories:", error);
+
+    if (error.response) {
+      return {
+        success: false,
+        data: null,
+        error: error.response.data?.message || `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return { success: false, data: null, error: "Network error. Please check your connection." };
+    } else {
+      return { success: false, data: null, error: error.message || "Something went wrong" };
+    }
+  }
+};
+
+
+/**
  * Support Tickets API Service
  * Handles fetching support tickets with pagination, filtering and search
  */
