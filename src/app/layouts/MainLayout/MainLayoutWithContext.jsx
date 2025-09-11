@@ -21,7 +21,7 @@ export default function MainLayoutWithContext() {
 
   useEffect(() => {
     const handleOpenModal = (e) => {
-      setPrefillCategory(e.detail?.category || "");
+      setPrefillCategory(e.detail?.categoryId || "");
       setIsNewTicketOpen(true);
     };
 

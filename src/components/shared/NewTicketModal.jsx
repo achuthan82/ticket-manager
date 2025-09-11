@@ -13,15 +13,17 @@ import clsx from "clsx";
 import { FileItem } from "components/shared/form/FileItem";
 import { useDropzone } from "react-dropzone";
 import { useForm, Controller } from "react-hook-form";
-import { createTicket } from "utils/supportUserService";
+import { createTicket, getCategories } from "utils/supportUserService";
 import { toast } from "sonner";
 import { useNotificationContext } from "app/contexts/notification/context";
 
 export default function NewTicketModal({ open, onClose, prefillCategory }) {
   const [files, { remove, append }] = useListState();
   const [attachment, setAttachment] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
-  const { callApi, setCallApi } = useNotificationContext()
+  const { callApi, setCallApi } = useNotificationContext();
 
   const {
     handleSubmit,
@@ -38,6 +40,26 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
     },
   });
 
+  // 🔹 Fetch categories from backend
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoadingCategories(true);
+      const result = await getCategories();
+      if (result.success) {
+        const formatted = result.data.map((c) => ({
+          label: c.name,
+          value: c.id, // ✅ backend category ID
+        }));
+        setCategories([{ label: "Select a category", value: "" }, ...formatted]);
+      } else {
+        toast.error(result.error || "Failed to load categories");
+      }
+      setLoadingCategories(false);
+    };
+    fetchCategories();
+  }, []);
+
+  // 🔹 Pre-fill category when HelpSection clicks
   useEffect(() => {
     if (prefillCategory) {
       setValue("category", prefillCategory, { shouldValidate: true });
@@ -52,37 +74,22 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
     accept: { "image/png": [".png", ".jpeg", ".jpg"] },
   });
 
-  const categories = [
-    { label: "Select a category", value: "" },
-    { label: "Billing & Payments", value: "billing" },
-    { label: "Leads & Territories", value: "leads" },
-    { label: "Technical Support", value: "technical" },
-    { label: "Feature Request", value: "feature" },
-    { label: "General Enquiry", value: "general" },
-  ];
-
   const clearFiles = () => {
     for (let i = files.length - 1; i >= 0; i--) {
       remove(i);
     }
   };
 
-
   const submitForm = async (data) => {
     const payload = {
       ...data,
-      attachment, // optional
+      attachment,
     };
-
-    console.log("Submitting ticket payload:", payload);
 
     const result = await createTicket(payload);
 
-    if (result.success) {
-      console.log("✅ Ticket created successfully:", result.data);
+    if (result?.data?.status === 201) {
       toast.success("Ticket created successfully!");
-
-      //  Dispatch event for TicketsSection to listen
       window.dispatchEvent(new Event("ticketCreated"));
 
       reset();
@@ -91,11 +98,11 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
       setCallApi(!callApi);
       onClose?.();
     } else {
-      console.error("❌ Failed to create ticket:", result.error);
-      toast.error(`Failed to create ticket: ${result.error}`);
+      toast.error(
+        `Failed to create ticket: ${result?.error || "Unknown error"}`
+      );
     }
   };
-
 
   const handleClose = () => {
     reset();
@@ -109,8 +116,8 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
       type="button"
       onClick={() => setValue("priority", value, { shouldValidate: true })}
       className={`rounded-lg p-3 cursor-pointer text-center border-l-4 ${selected === value
-        ? `${colorClasses.activeBorder} ${colorClasses.activeBg}`
-        : "border-neutral-300 hover:border-neutral-400 bg-white"
+          ? `${colorClasses.activeBorder} ${colorClasses.activeBg}`
+          : "border-neutral-300 hover:border-neutral-400 bg-white"
         }`}
     >
       <div className={`text-base font-semibold ${colorClasses.text}`}>
@@ -128,28 +135,12 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
         onClose={handleClose}
       >
         {/* Backdrop */}
-        <TransitionChild
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
+        <TransitionChild as={Fragment}>
           <div className="fixed inset-0 bg-gray-900/50 pointer-events-none" />
         </TransitionChild>
 
         {/* Modal */}
-        <TransitionChild
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0 scale-95"
-          enterTo="opacity-100 scale-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100 scale-100"
-          leaveTo="opacity-0 scale-95"
-        >
+        <TransitionChild as={Fragment}>
           <DialogPanel className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-3 flex-shrink-0">
@@ -179,6 +170,7 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
                         {...field}
                         data={categories}
                         className="w-full"
+                        disabled={loadingCategories}
                       />
                     )}
                   />
@@ -236,11 +228,6 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
                       </div>
                     )}
                   />
-                  {errors.priority && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {errors.priority.message}
-                    </p>
-                  )}
                 </div>
 
                 {/* Subject */}
@@ -257,11 +244,6 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
                       />
                     )}
                   />
-                  {errors.subject && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {errors.subject.message}
-                    </p>
-                  )}
                 </div>
 
                 {/* Description */}
@@ -279,11 +261,6 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
                       />
                     )}
                   />
-                  {errors.description && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {errors.description.message}
-                    </p>
-                  )}
                 </div>
 
                 {/* Upload */}
@@ -299,28 +276,17 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
                         className={clsx(
                           "mt-3 w-full shrink-0 flex-col rounded-lg border-2 border-dashed py-4",
                           isDragActive
-                            ? "border-primary-600 dark:border-primary-500"
-                            : "border-gray-300 dark:border-dark-450"
+                            ? "border-primary-600"
+                            : "border-gray-300"
                         )}
                       >
                         <ArrowUpTrayIcon className="size-8 text-gray-500" />
-                        <span
-                          className={clsx(
-                            "pointer-events-none mt-2",
-                            isDragActive
-                              ? "text-primary-600 dark:text-primary-400"
-                              : "text-gray-600 dark:text-dark-200"
-                          )}
-                        >
-                          <span className="text-primary-600 dark:text-primary-400">
-                            Browse
-                          </span>
+                        <span className="pointer-events-none mt-2 text-gray-600">
+                          <span className="text-primary-600">Browse</span>
                           <span> or drop your files here</span>
-                          <span>
-                            <p className="mt-1 text-xs">
-                              You can upload .png, .jpg and .jpeg file formats.
-                            </p>
-                          </span>
+                          <p className="mt-1 text-xs">
+                            You can upload .png, .jpg and .jpeg file formats.
+                          </p>
                         </span>
                       </Button>
                     )}
@@ -348,11 +314,7 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
               >
                 Cancel
               </Button>
-              <Button
-                color="primary"
-                onClick={handleSubmit(submitForm)}
-                type="submit"
-              >
+              <Button color="primary" onClick={handleSubmit(submitForm)}>
                 Submit
               </Button>
             </div>

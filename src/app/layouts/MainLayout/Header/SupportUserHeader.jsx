@@ -11,7 +11,7 @@ import { useNotificationContext } from 'app/contexts/notification/context';
 // ----------------------------------------------------------------------
 
 export default function SupportUserHeader({ onAddUserClick }) {
-  const { toggle } = useSidebarContext();
+  const { toggle,isExpanded } = useSidebarContext();
 
     const {callApi, setCallApi} = useNotificationContext()
 
@@ -20,10 +20,12 @@ export default function SupportUserHeader({ onAddUserClick }) {
       <div className="px-4 sm:px-6 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-3 sm:space-x-4">
-            <SidebarToggleBtn 
-              className="text-[#2A5A9D] hover:text-[#1A3A6C] p-1 lg:hidden"
-              onClick={toggle}
-            />
+            {!isExpanded && (
+              <SidebarToggleBtn
+                className="p-1  lg:hidden"
+                onClick={toggle}
+              />
+            )}
             <div className="min-w-0 flex-1">
               <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#2A5A9D] truncate">
                 Support Center
