@@ -102,6 +102,10 @@ const ChatTemplate = ({ refreshTickets }) => {
 
         if (normalizedTickets.length > 0) {
           setSelectedTicket(normalizedTickets[0]);
+          setSelectedTicket({
+            ...normalizedTickets[0],
+            assignee: normalizedTickets[0].assigneeName || "Unassigned",
+          });
         }
       } else if (response.status === 204) {
         setTickets([]); // clear tickets
@@ -538,14 +542,14 @@ const ChatTemplate = ({ refreshTickets }) => {
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="min-w-0 flex-1">
                     <h4 className="truncate text-sm font-semibold text-gray-900 sm:text-base md:text-lg">
-                      #{selectedTicket.id}-{selectedTicket.subject}
+                      #{selectedTicket.id} - {selectedTicket.subject}
                     </h4>
 
                     <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
                       <div className="flex w-full items-center sm:w-auto">
                         <Avatar
                           initialColor="info"
-                          className="mr-2 h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
+                          className="mr-3 h-9 w-9 rounded-full shadow sm:h-10 sm:w-10"
                           name={selectedTicket.name}
                         />
                         <div className="min-w-0">
@@ -592,28 +596,34 @@ const ChatTemplate = ({ refreshTickets }) => {
                     </div>
                     <div className="flex w-full items-center space-x-2 sm:w-auto">
                       <label className="shrink-0 text-xs font-medium text-gray-700 sm:text-sm">
-                        Assign to:
+                        {selectedTicket.assignee &&
+                        selectedTicket.assignee !== "Unassigned"
+                          ? "Assigned to:"
+                          : "Assign to:"}
                       </label>
-                      <Select
-                        value={selectedTicket.assignee || "Unassigned"}
-                        data={[
-                          "Unassigned",
-                          ...[
+
+                      {selectedTicket.assignee &&
+                      selectedTicket.assignee !== "Unassigned" ? (
+                        <span className="rounded-lg border-2 p-2 text-sm font-medium text-gray-900">
+                          {selectedTicket.assignee}
+                        </span>
+                      ) : (
+                        <Select
+                          value={selectedTicket.assignee || "Unassigned"}
+                          data={[
+                            "Unassigned",
                             ...assignees
                               .filter(
                                 (a) =>
                                   !a.is_assigned ||
-                                  a.name === selectedTicket.assignee,
+                                  a.name === selectedTicket.assignee, // show only free agents + current
                               )
                               .map((a) => a.name),
-                          ].filter(
-                            (value, index, self) =>
-                              self.indexOf(value) === index,
-                          ),
-                        ]}
-                        onChange={(e) => updateAssignee(e.target.value)}
-                        className="flex-1 text-xs sm:flex-none sm:text-sm"
-                      />
+                          ]}
+                          onChange={(e) => updateAssignee(e.target.value)}
+                          className="flex-1 text-xs sm:flex-none sm:text-sm"
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -642,7 +652,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                                 <span className="font-medium text-gray-900">
                                   You
                                 </span>
-                                <span> • just now</span>
+                                {/* <span> • just now</span> */}
                               </div>
 
                               <div className="ml-auto rounded-xl bg-teal-100 p-2 shadow-sm hover:bg-teal-200">
