@@ -1,24 +1,24 @@
 import { useState, useEffect } from "react";
 import FAQItem from "./FAQItem";
 import FAQModal from "./FAQModal";
-import { addFaq, getFaqs, updateFaq, deleteFaq } from "utils/ManageFaqService";
+import {
+  addFaq,
+  getFaqs,
+  updateFaq,
+  deleteFaq,
+  getCategories,
+} from "utils/ManageFaqService";
 import {
   Pagination,
   PaginationItems,
   PaginationNext,
   PaginationPrevious,
 } from "components/ui";
-
-const categoryNameMap = {
-  "82b5d872-744d-429a-ab2b-9a3694e10ea7": "Billing",
-  "5601d4a7-a534-4da1-aac3-95c10e2e212b": "Leads",
-  "52b9f447-6818-4de3-88b3-4f26f9b1f70b": "Technical",
-  "6e4aee31-3191-4510-8bcd-11a384098e61": "Feature",
-  "63da341a-ccb4-40df-bf9d-ab8b112ad3f2": "General",
-};
+import { toast } from "sonner";
 
 export default function FAQPage() {
   const [faqs, setFaqs] = useState([]);
+  const [categories, setCategories] = useState({}); // dynamic category map
   const [modalOpen, setModalOpen] = useState(false);
   const [editingFaq, setEditingFaq] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -29,38 +29,60 @@ export default function FAQPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
+  //  Fetch categories once on mount
+  useEffect(() => {
+    (async () => {
+      const res = await getCategories();
+      if (res.success && res.data.length > 0) {
+        // build map {id: name}
+        const map = res.data.reduce((acc, cat) => {
+          acc[cat.id] = cat.name;
+          return acc;
+        }, {});
+        setCategories(map);
+      } else {
+        toast.error(res.error || "Failed to load categories");
+      }
+    })();
+  }, []);
+
   // Fetch FAQs with backend pagination
   const fetchFaqs = async () => {
-  setLoading(true);
-  try {
-    const result = await getFaqs({ page, per_page: perPage });
-    if (result.success) {
-      const faqsWithOpen = result.data.map((faq) => ({
-        ...faq,
-        open: false,
-        category_name: categoryNameMap[faq.category_id] || "General",
-      }));
+    setLoading(true);
+    try {
+      const result = await getFaqs({ page, per_page: perPage });
+      if (result.success) {
+        const faqsWithOpen = result.data.map((faq) => ({
+          ...faq,
+          open: false,
+          category_name: categories[faq.category_id] || "Uncategorized",
+        }));
 
-      setFaqs(faqsWithOpen);
-      setTotalItems(result.pagination.total);
-      setTotalPages(Math.ceil(result.pagination.total / result.pagination.per_page));
-    } else {
-      console.error("Failed to fetch FAQs:", result.error);
+        setFaqs(faqsWithOpen);
+        setTotalItems(result.pagination.total);
+        setTotalPages(
+          Math.ceil(result.pagination.total / result.pagination.per_page),
+        );
+      } else {
+        console.error("Failed to fetch FAQs:", result.error);
+        toast.error("Failed to load FAQs");
+      }
+    } catch (err) {
+      console.error("Error fetching FAQs:", err);
+      toast.error("Something went wrong while fetching FAQs");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Error fetching FAQs:", err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-
-  // Refetch when page changes
+  // Refetch when page changes OR categories are loaded
   useEffect(() => {
-    fetchFaqs();
-  }, [page]);
+    if (Object.keys(categories).length > 0) {
+      fetchFaqs();
+    }
+  }, [page, categories]);
 
-  // 🔥 Listen for "openFaqModal" event from header
+  // Listen for "openFaqModal" event from header
   useEffect(() => {
     const handleOpen = () => handleOpenModal(null);
     window.addEventListener("openFaqModal", handleOpen);
@@ -69,7 +91,7 @@ export default function FAQPage() {
 
   const handleToggle = (id) => {
     setFaqs((prev) =>
-      prev.map((faq) => (faq.id === id ? { ...faq, open: !faq.open } : faq))
+      prev.map((faq) => (faq.id === id ? { ...faq, open: !faq.open } : faq)),
     );
   };
 
@@ -87,30 +109,45 @@ export default function FAQPage() {
     try {
       if (editingFaq) {
         const result = await updateFaq(editingFaq.id, formData);
-        if (result.success) {
+        if (
+          result.success &&
+          (result.status === 200 || result.status === 201)
+        ) {
           await fetchFaqs();
           handleCloseModal();
+          toast.success("FAQ updated");
         }
       } else {
         const result = await addFaq(formData);
-        if (result.success) {
+        if (
+          result.success &&
+          (result.status === 200 || result.status === 201)
+        ) {
           await fetchFaqs();
           handleCloseModal();
+          toast.success("FAQ added");
+        } else {
+          toast.error("Failed to add FAQ. Unexpected status code.");
         }
       }
     } catch (err) {
       console.error("Error saving FAQ:", err);
+      toast.error("Failed to save FAQ");
     }
   };
 
   const handleDelete = async (faqId) => {
     try {
       const result = await deleteFaq(faqId);
-      if (result.success) {
+      if (result.success && result.status === 200) {
+        toast.success("FAQ deleted successfully");
         await fetchFaqs();
+      } else {
+        toast.error(result.error || "Failed to delete FAQ");
       }
     } catch (err) {
       console.error("Failed to delete FAQ:", err);
+      toast.error("Failed to delete FAQ");
     }
   };
 

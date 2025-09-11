@@ -9,7 +9,7 @@ import { checkAuthHeaders } from "./authDebug";
 /**
  * Add a new FAQ
  * @param {Object} faqData - { question, answer, category_id }
- * @returns {Object} { success, data, error }
+ * @returns {Object} { success, data, error, status }
  */
 export const addFaq = async (faqData) => {
   try {
@@ -21,40 +21,61 @@ export const addFaq = async (faqData) => {
 
     console.log("ManageFaqService → Response:", response.status, response.data);
 
-    // ✅ Handle backend-level error even if HTTP status is 200
+    // Backend-level error handling
     if (response.data.status && response.data.status >= 400) {
-      console.error("ManageFaqService → Backend error:", response.data.message);
-      return { success: false, data: null, error: response.data.message };
+      return {
+        success: false,
+        status: response.status, // ✅ include status
+        data: [],
+        error: response.data.message,
+      };
     }
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status, //  include status
+      data: response.data.data || [],
+      error: null,
+    };
   } catch (error) {
     console.error("ManageFaqService → Failed to add FAQ:", error);
 
     if (error.response) {
       return {
         success: false,
-        data: null,
+        status: error.response.status, //  include status
+        data: [],
         error:
           error.response.data?.message || `HTTP ${error.response.status} error`,
       };
     } else if (error.request) {
       return {
         success: false,
-        data: null,
+        status: null, //  make status explicit
+        data: [],
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
-        data: null,
+        status: null, //  make status explicit
+        data: [],
         error: error.message || "Something went wrong",
       };
     }
   }
 };
 
-export const getFaqs = async ({ page = 1, per_page = 10, category_id = "" } = {}) => {
+/**
+ * Fetch FAQs with pagination
+ * @param {Object} options - { page, per_page, category_id }
+ * @returns {Object} { success, status, data, pagination, error }
+ */
+export const getFaqs = async ({
+  page = 1,
+  per_page = 10,
+  category_id = "",
+} = {}) => {
   try {
     checkAuthHeaders();
 
@@ -65,11 +86,17 @@ export const getFaqs = async ({ page = 1, per_page = 10, category_id = "" } = {}
     const resData = response.data;
 
     if (resData.status && resData.status >= 400) {
-      return { success: false, data: null, error: resData.message };
+      return {
+        success: false,
+        status: response.status,
+        data: null,
+        error: resData.message,
+      };
     }
 
     return {
       success: true,
+      status: response.status,
       data: resData.data || [],
       pagination: resData.pagination || {
         current_page: page,
@@ -83,18 +110,22 @@ export const getFaqs = async ({ page = 1, per_page = 10, category_id = "" } = {}
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
-        error: error.response.data?.message || `HTTP ${error.response.status} error`,
+        error:
+          error.response.data?.message || `HTTP ${error.response.status} error`,
       };
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
+        status: null,
         data: null,
         error: error.message || "Something went wrong",
       };
@@ -102,13 +133,11 @@ export const getFaqs = async ({ page = 1, per_page = 10, category_id = "" } = {}
   }
 };
 
-
-
 /**
  * Update an existing FAQ
  * @param {string} faqId - ID of the FAQ to update
  * @param {Object} updateData - { question, answer, category_id (optional) }
- * @returns {Object} { success, data, error }
+ * @returns {Object} { success, status, data, error }
  */
 export const updateFaq = async (faqId, updateData) => {
   try {
@@ -118,25 +147,32 @@ export const updateFaq = async (faqId, updateData) => {
 
     const response = await axios.put(`/faq/${faqId}`, updateData);
 
-    console.log(
-      "ManageFaqService → Response:",
-      response.status,
-      response.data
-    );
+    console.log("ManageFaqService → Response:", response.status, response.data);
 
     // Handle backend-level errors even if HTTP status is 200
     if (response.data.status && response.data.status >= 400) {
       console.error("ManageFaqService → Backend error:", response.data.message);
-      return { success: false, data: null, error: response.data.message };
+      return {
+        success: false,
+        status: response.status,
+        data: null,
+        error: response.data.message,
+      };
     }
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
   } catch (error) {
     console.error("ManageFaqService → Failed to update FAQ:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error:
           error.response.data?.message || `HTTP ${error.response.status} error`,
@@ -144,20 +180,25 @@ export const updateFaq = async (faqId, updateData) => {
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
-      return { success: false, data: null, error: error.message || "Something went wrong" };
+      return {
+        success: false,
+        status: null,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
     }
   }
 };
 
-
 /**
  * Delete an existing FAQ
  * @param {string} faqId - ID of the FAQ to delete
- * @returns {Object} { success, data, error }
+ * @returns {Object} { success, status, data, error }
  */
 export const deleteFaq = async (faqId) => {
   try {
@@ -167,25 +208,32 @@ export const deleteFaq = async (faqId) => {
 
     const response = await axios.delete(`/faq/${faqId}`);
 
-    console.log(
-      "ManageFaqService → Response:",
-      response.status,
-      response.data
-    );
+    console.log("ManageFaqService → Response:", response.status, response.data);
 
     // Handle backend-level errors even if HTTP status is 200
     if (response.data.status && response.data.status >= 400) {
       console.error("ManageFaqService → Backend error:", response.data.message);
-      return { success: false, data: null, error: response.data.message };
+      return {
+        success: false,
+        status: response.status,
+        data: null,
+        error: response.data.message,
+      };
     }
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
   } catch (error) {
     console.error("ManageFaqService → Failed to delete FAQ:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error:
           error.response.data?.message || `HTTP ${error.response.status} error`,
@@ -193,11 +241,17 @@ export const deleteFaq = async (faqId) => {
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
-      return { success: false, data: null, error: error.message || "Something went wrong" };
+      return {
+        success: false,
+        status: null,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
     }
   }
 };
@@ -215,18 +269,11 @@ export const getViewCount = async (faqId) => {
 
     const response = await axios.get(`/faq/view/${faqId}`);
 
-    console.log(
-      "ManageFaqService → Response:",
-      response.status,
-      response.data
-    );
+    console.log("ManageFaqService → Response:", response.status, response.data);
 
     // Handle backend-level errors even if HTTP status is 200
     if (response.data.status && response.data.status >= 400) {
-      console.error(
-        "ManageFaqService → Backend error:",
-        response.data.message
-      );
+      console.error("ManageFaqService → Backend error:", response.data.message);
       return { success: false, data: null, error: response.data.message };
     }
 
@@ -248,7 +295,72 @@ export const getViewCount = async (faqId) => {
         error: "Network error. Please check your connection.",
       };
     } else {
-      return { success: false, data: null, error: error.message || "Something went wrong" };
+      return {
+        success: false,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
+    }
+  }
+};
+
+/**
+ * Fetch all FAQ categories
+ * @returns {Object} { success, status, data, error }
+ */
+export const getCategories = async () => {
+  try {
+    checkAuthHeaders(); // Ensure auth headers are attached
+
+    const response = await axios.get("/category/list");
+
+    console.log(
+      "ManageFaqService → Categories Response:",
+      response.status,
+      response.data,
+    );
+
+    // Backend-level error handling
+    if (response.data.status && response.data.status >= 400) {
+      return {
+        success: false,
+        status: response.status, //  include status
+        data: [],
+        error: response.data.message,
+      };
+    }
+
+    return {
+      success: true,
+      status: response.status, //  include status
+      data: response.data.data || [],
+      error: null,
+    };
+  } catch (error) {
+    console.error("ManageFaqService → Failed to fetch categories:", error);
+
+    if (error.response) {
+      return {
+        success: false,
+        status: error.response.status, //  include status
+        data: [],
+        error:
+          error.response.data?.message || `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        status: null, //  make status explicit
+        data: [],
+        error: "Network error. Please check your connection.",
+      };
+    } else {
+      return {
+        success: false,
+        status: null, //  make status explicit
+        data: [],
+        error: error.message || "Something went wrong",
+      };
     }
   }
 };
