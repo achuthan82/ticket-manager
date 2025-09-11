@@ -5,9 +5,6 @@ import { checkAuthHeaders } from './authDebug';
  * Support Tickets API Service
  * Handles fetching support tickets with pagination, filtering and search
  */
-
-
-
 /**
  * Get tickets list
  * @param {Object} params - Query parameters
@@ -260,27 +257,39 @@ export const getCategories = async () => {
     checkAuthHeaders();
 
     const response = await axios.get(`/category/list`);
-
     console.log("Categories API response:", response.status, response.data);
 
-    if (response.data?.status === 200) {
-      return { success: true, data: response.data.data, error: null };
+    const apiStatus = response.data?.status ?? response.status;
+
+    if (apiStatus === 200) {
+      return { success: true, status: 200, data: response.data.data, error: null };
     }
 
-    return { success: false, data: null, error: response.data?.message || "Failed to fetch categories" };
+    if (apiStatus === 204) {
+      return { success: true, status: 204, data: [], error: null };
+    }
+
+    return {
+      success: false,
+      status: apiStatus,
+      data: null,
+      error: response.data?.message || "Failed to fetch categories",
+    };
   } catch (error) {
     console.error("Error fetching categories:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error: error.response.data?.message || `HTTP ${error.response.status} error`,
       };
     } else if (error.request) {
-      return { success: false, data: null, error: "Network error. Please check your connection." };
+      return { success: false, status: null, data: null, error: "Network error. Please check your connection." };
     } else {
-      return { success: false, data: null, error: error.message || "Something went wrong" };
+      return { success: false, status: null, data: null, error: error.message || "Something went wrong" };
     }
   }
 };
+

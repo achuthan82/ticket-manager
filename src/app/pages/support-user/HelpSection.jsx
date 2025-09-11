@@ -6,7 +6,7 @@ import {
   QuestionMarkCircleIcon,
   SparklesIcon,
 } from "@heroicons/react/24/solid";
-import { getCategories } from "utils/supportUserService"; // ✅ use your API
+import { getCategories } from "utils/supportUserService"; 
 
 function CategoryCard({ icon: Icon, title, subtitle, colorClasses, onClick }) {
   return (
@@ -70,15 +70,22 @@ export default function HelpSection() {
   useEffect(() => {
     const fetchData = async () => {
       const result = await getCategories();
-      if (result.success) {
+
+      if (result.success && result.status === 200) {
         setCategories(result.data);
+      } else if (result.success && result.status === 204) {
+        setCategories([]); 
       } else {
         console.error("Failed to load categories:", result.error);
+        setCategories(null); 
       }
+
       setLoading(false);
     };
     fetchData();
   }, []);
+
+
 
   const handleCategoryClick = (cat) => {
     window.dispatchEvent(
