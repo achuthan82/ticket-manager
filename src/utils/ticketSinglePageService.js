@@ -178,3 +178,60 @@ export const uploadSupportDocument = async (supportId, file) => {
     }
   }
 };
+
+
+/**
+ * Get list of documents for a support ticket
+ * @param {number} supportId - ID of the support ticket
+ * @returns {Promise<Object>} { success, status, data, error }
+ */
+export const getSupportDocuments = async (supportId) => {
+  try {
+    checkAuthHeaders();
+
+    const finalUrl = `/support/list/documents/${supportId}`;
+
+    console.log("SupportTicketsService → Fetching documents:", finalUrl);
+
+    const response = await axios.get(finalUrl);
+
+    console.log(
+      "SupportTicketsService → Documents Response:",
+      response.status,
+      response.data,
+    );
+
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
+  } catch (error) {
+    console.error("SupportTicketsService → Error fetching documents:", error);
+
+    if (error.response) {
+      return {
+        success: false,
+        status: error.response.status,
+        data: null,
+        error:
+          error.response.data?.message || `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        status: null,
+        data: null,
+        error: "Network error. Please check your connection.",
+      };
+    } else {
+      return {
+        success: false,
+        status: null,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
+    }
+  }
+};

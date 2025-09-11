@@ -2,10 +2,12 @@ import { useNavigate, useParams } from "react-router";
 import TicketChatHeader from "./TicketChatHeader";
 import { useDisclosure } from "hooks";
 
+
 import TicketInfo from "./TicketInfo";
 import { Basic } from "./CloseTicketModal";
 import { getTicketInfo } from "utils/ticketSinglePageService";
 import { useEffect, useState } from "react";
+// import { getSupportDocuments } from "utils/SupportTicketService";
 export default function TicketChat() {
   const navigate = useNavigate();
   const [headerDetails, setHeaderDetails] = useState(null);

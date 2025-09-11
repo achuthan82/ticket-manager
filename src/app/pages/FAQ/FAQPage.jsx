@@ -21,7 +21,7 @@ export default function FAQPage() {
   const [categories, setCategories] = useState({}); // dynamic category map
   const [modalOpen, setModalOpen] = useState(false);
   const [editingFaq, setEditingFaq] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // pagination state (from backend)
   const [page, setPage] = useState(1);
@@ -168,7 +168,7 @@ export default function FAQPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {loading ? (
-        <div className="text-center text-gray-500">Loading FAQs...</div>
+        <div className="rounded-lg bg-gray-100 p-4 text-center text-gray-600">Loading FAQs...</div>
       ) : totalItems === 0 ? (
         <div className="rounded-lg bg-gray-100 p-6 text-center text-gray-600">
           No FAQs available.
