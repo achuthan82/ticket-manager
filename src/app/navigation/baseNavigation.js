@@ -2,6 +2,7 @@ import { NAV_TYPE_ITEM } from "constants/app.constant";
 import DashboardsIcon from "assets/dualicons/dashboards.svg?react";
 import TicketIcon from "assets/dualicons/ticket.svg?react";
 import UserIcon from "assets/dualicons/user.svg?react";
+import { REDIRECT_URL } from "configs/auth.config";
 import {
   ArrowLeftCircleIcon,
   QuestionMarkCircleIcon,
@@ -66,7 +67,7 @@ export const baseNavigation = [
   {
     id: "back-to-shieldnest",
     type: NAV_TYPE_ITEM,
-    path: "https://hub.shieldnestleads.com",
+    path: REDIRECT_URL,
     title: "Back to ShieldNest",
     transKey: "nav.support-user.support-user",
     Icon: ArrowLeftCircleIcon,
