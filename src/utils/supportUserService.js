@@ -80,21 +80,12 @@ export const createTicket = async (payload) => {
       high: 3,
     };
 
-    // Map categories to backend UUIDs
-    const categoryMap = {
-      billing: '82b5d872-744d-429a-ab2b-9a3694e10ea7',
-      leads: '5601d4a7-a534-4da1-aac3-95c10e2e212b',
-      technical: '52b9f447-6818-4de3-88b3-4f26f9b1f70b',
-      feature: '6e4aee31-3191-4510-8bcd-11a384098e61',
-      general: '63da341a-ccb4-40df-bf9d-ab8b112ad3f2',
-    };
 
     const ticketData = {
       subject: payload.subject,
       description: payload.description,
       priority: priorityMap[payload.priority] || 2, // default medium
-      // status: 1,
-      ticket_category: categoryMap[payload.category],
+      ticket_category: payload.category, 
     };
 
     console.log('Creating ticket with payload:', ticketData);
@@ -104,7 +95,7 @@ export const createTicket = async (payload) => {
 
     console.log('Ticket create response:', response.status, response.data);
 
-    const supportId = response.data?.data?.id || response.data?.id; // adapt based on backend response
+    const supportId = response.data?.data?.id || response.data?.id; 
 
     // Step 2: If attachment exists, upload it
     if (payload.attachment && supportId) {
@@ -120,7 +111,7 @@ export const createTicket = async (payload) => {
       });
 
       console.log(
-        `📎 Attachment confirmed by backend (status: ${uploadResponse.status}):`,
+        `Attachment confirmed by backend (status: ${uploadResponse.status}):`,
         uploadResponse.data
       );
     } else {
@@ -157,27 +148,17 @@ export const getFaqs = async (params) => {
   try {
     checkAuthHeaders();
 
-    // Category mapping
-    const categoryMap = {
-      billing: "82b5d872-744d-429a-ab2b-9a3694e10ea7",
-      leads: "5601d4a7-a534-4da1-aac3-95c10e2e212b",
-      technical: "52b9f447-6818-4de3-88b3-4f26f9b1f70b",
-      feature: "6e4aee31-3191-4510-8bcd-11a384098e61",
-      general: "63da341a-ccb4-40df-bf9d-ab8b112ad3f2",
-    };
-
     const queryParams = new URLSearchParams();
     queryParams.append("page", params.page || 1);
     queryParams.append("per_page", params.per_page || 10);
 
-    const categoryId = categoryMap[params.category] || categoryMap.general; // default billing
-    queryParams.append("category_id", categoryId);
+    if (params.categoryId) {
+      queryParams.append("category_id", params.categoryId);
+    }
 
     console.log("Making API call to /faq/paginated with params:", Object.fromEntries(queryParams));
 
     const response = await axios.get(`/faq/paginated?${queryParams.toString()}`);
-
-    console.log("FAQs API response:", response.status, response.data);
 
     return { success: true, data: response.data, error: null };
   } catch (error) {
@@ -192,7 +173,6 @@ export const getFaqs = async (params) => {
     }
   }
 };
-
 
 
 /**
@@ -265,5 +245,40 @@ export const incrementFaqViewCount = async (faqId) => {
   } catch (error) {
     console.error("Error incrementing FAQ view count:", error?.response || error);
     return false;
+  }
+};
+
+
+/**
+ * Get support categories
+ * @returns {Promise<Object>}
+ */
+export const getCategories = async () => {
+  try {
+    checkAuthHeaders();
+
+    const response = await axios.get(`/category/list`);
+
+    console.log("Categories API response:", response.status, response.data);
+
+    if (response.data?.status === 200) {
+      return { success: true, data: response.data.data, error: null };
+    }
+
+    return { success: false, data: null, error: response.data?.message || "Failed to fetch categories" };
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+
+    if (error.response) {
+      return {
+        success: false,
+        data: null,
+        error: error.response.data?.message || `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return { success: false, data: null, error: "Network error. Please check your connection." };
+    } else {
+      return { success: false, data: null, error: error.message || "Something went wrong" };
+    }
   }
 };
