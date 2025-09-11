@@ -208,41 +208,44 @@ const TicketInfo = ({ details, ticketId }) => {
                 onChange={(e) => setFile(e.target.files[0])}
               />
               <div className="mt-3 flex items-center justify-end space-x-3">
-  {/* Attach file button */}
-  <button
-    className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
-    onClick={() => fileInputRef.current.click()}
-    disabled={uploading}
-  >
-    <PaperClipIcon className="h-5 w-5" />
-    <span className="text-sm">{file ? file.name : "Attach file"}</span>
-  </button>
+                {/* Attach file button */}
+                <button
+                  className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={uploading}
+                >
+                  <PaperClipIcon className="h-5 w-5" />
+                  <span className="text-sm">
+                    {file ? file.name : "Attach file"}
+                  </span>
+                </button>
 
-  {/* Upload file button */}
-  {file && (
-    <Button
-      disabled={uploading}
-      onClick={handleFileUpload}
-      variant="default"
-      className="bg-green-600 text-white hover:bg-green-800"
-    >
-      {uploading && <GhostSpinner className="mr-3 size-4 border-2" />}
-      Upload
-    </Button>
-  )}
+                {/* Upload file button */}
+                {file && (
+                  <Button
+                    disabled={uploading}
+                    onClick={handleFileUpload}
+                    variant="default"
+                    className="bg-green-600 text-white hover:bg-green-800"
+                  >
+                    {uploading && (
+                      <GhostSpinner className="mr-3 size-4 border-2" />
+                    )}
+                    Upload
+                  </Button>
+                )}
 
-  {/* Send reply button */}
-  <Button
-    disabled={message === "" || loading}
-    onClick={sendReply}
-    variant="default"
-    className="bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
-  >
-    {loading && <GhostSpinner className="mr-3 size-4 border-2" />}
-    Send Reply
-  </Button>
-</div>
-
+                {/* Send reply button */}
+                <Button
+                  disabled={message === "" || loading}
+                  onClick={sendReply}
+                  variant="default"
+                  className="bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
+                >
+                  {loading && <GhostSpinner className="mr-3 size-4 border-2" />}
+                  Send Reply
+                </Button>
+              </div>
             </div>
           </div>
         </div>

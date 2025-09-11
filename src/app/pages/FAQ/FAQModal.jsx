@@ -1,34 +1,46 @@
 import { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Transition, Dialog } from "@headlessui/react";
-
-const categoryMap = {
-  billing: "82b5d872-744d-429a-ab2b-9a3694e10ea7",
-  leads: "5601d4a7-a534-4da1-aac3-95c10e2e212b",
-  technical: "52b9f447-6818-4de3-88b3-4f26f9b1f70b",
-  feature: "6e4aee31-3191-4510-8bcd-11a384098e61",
-  general: "63da341a-ccb4-40df-bf9d-ab8b112ad3f2",
-};
+import { getCategories } from "utils/ManageFaqService"; //  new API
+import { toast } from "sonner";
 
 export default function FAQModal({ faq, open, onClose, onSave }) {
-  const [form, setForm] = useState({ question: "", answer: "", category: "general" });
+  const [form, setForm] = useState({ question: "", answer: "", category: "" });
+  const [categories, setCategories] = useState([]); // categories from API
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(""); // 🔥 UI error state
+  const [error, setError] = useState("");
 
+  //  Fetch categories when modal opens
+  useEffect(() => {
+    if (open) {
+      (async () => {
+        const res = await getCategories();
+
+        if (res.status === 200) {
+          console.log("Categories loaded:", res.data);
+          setCategories(res.data);
+        } else if (res.status === 204) {
+          toast.info("No categories found.");
+          setCategories([]);
+        } else {
+          setError(res.error || "Failed to load categories");
+        }
+      })();
+    }
+  }, [open]);
+
+  //  Populate form when editing
   useEffect(() => {
     if (faq) {
-      const categoryKey =
-        Object.keys(categoryMap).find((key) => categoryMap[key] === faq.category_id) ||
-        "general";
       setForm({
         question: faq.question || "",
         answer: faq.answer || "",
-        category: categoryKey,
+        category: faq.category_id || "", // use category_id directly
       });
     } else {
-      setForm({ question: "", answer: "", category: "general" });
+      setForm({ question: "", answer: "", category: "" });
     }
-    setError(""); // reset error on open
+    setError("");
   }, [faq?.id]);
 
   const handleSubmit = async (e) => {
@@ -39,7 +51,7 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
       await onSave({
         question: form.question,
         answer: form.answer,
-        category_id: categoryMap[form.category],
+        category_id: form.category, //  no map, send actual id
       });
     } catch (err) {
       setError(err.message || "Failed to save FAQ");
@@ -73,6 +85,7 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-full max-w-3xl transform overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
+                {/* Header */}
                 <div className="flex items-center justify-between">
                   <Dialog.Title className="text-xl font-semibold text-gray-800">
                     {faq ? "Edit FAQ" : "Add FAQ"}
@@ -82,8 +95,9 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
                   </button>
                 </div>
 
+                {/* Form */}
                 <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                  {/* Error Message */}
+                  {/* Error */}
                   {error && (
                     <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
                       {error}
@@ -92,11 +106,15 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
 
                   {/* Question */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Question</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Question
+                    </label>
                     <input
                       type="text"
                       value={form.question}
-                      onChange={(e) => setForm({ ...form, question: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, question: e.target.value })
+                      }
                       required
                       disabled={saving}
                       className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-100"
@@ -105,27 +123,36 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
 
                   {/* Answer */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Answer</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Answer
+                    </label>
                     <textarea
                       value={form.answer}
-                      onChange={(e) => setForm({ ...form, answer: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, answer: e.target.value })
+                      }
                       disabled={saving}
                       className="mt-1 min-h-[150px] w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-100"
                     />
                   </div>
 
-                  {/* Category */}
+                  {/* Category (dynamic from API) */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Category</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Category
+                    </label>
                     <select
                       value={form.category}
-                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, category: e.target.value })
+                      }
                       disabled={saving}
-                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-100"
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
                     >
-                      {Object.keys(categoryMap).map((key) => (
-                        <option key={key} value={key}>
-                          {key.charAt(0).toUpperCase() + key.slice(1)}
+                      <option value="">-- Select Category --</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
                         </option>
                       ))}
                     </select>

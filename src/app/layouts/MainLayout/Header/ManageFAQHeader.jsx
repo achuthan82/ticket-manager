@@ -5,7 +5,7 @@ import { Button } from "components/ui";
 import { Notifications } from "components/template/Notifications";
 import { useNotificationContext } from "app/contexts/notification/context";
 export default function FAQHeader({ onAddClick }) {
-  const { toggle } = useSidebarContext();
+const { toggle, isExpanded } = useSidebarContext();
   const {callApi, setCallApi} = useNotificationContext()
   return (
     <header className="border-b border-neutral-300 bg-white shadow-sm">
@@ -13,11 +13,13 @@ export default function FAQHeader({ onAddClick }) {
         <div className="flex items-center justify-between">
           {/* Left Section */}
           <div className="flex items-center space-x-3 sm:space-x-4">
-            {/* Sidebar Toggle (mobile only) */}
-            <SidebarToggleBtn
-              className="p-1 text-[#2A5A9D] hover:text-[#1A3A6C] lg:hidden"
-              onClick={toggle}
-            />
+            {/* Show hamburger only when sidebar is collapsed */}
+            {!isExpanded && (
+              <SidebarToggleBtn
+                className="p-1  lg:hidden"
+                onClick={toggle}
+              />
+            )}
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg font-bold text-[#2A5A9D] sm:text-xl lg:text-2xl">
                 FAQ Management

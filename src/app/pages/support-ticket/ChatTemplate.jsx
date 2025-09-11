@@ -143,14 +143,18 @@ const ChatTemplate = ({ refreshTickets }) => {
 
       // Fetch documents (assuming same ticketId)
       const docsRes = await getSupportDocuments(ticketId);
-      console.log("Documents Response:", docsRes);
+      // console.log("Documents Response:", docsRes);
+console.log(docsRes);
+
 
       if (docsRes.success) {
-        setDocuments(docsRes.data?.data || docsRes.data || []);
+        setDocuments(docsRes.data?.data || []);
       } else {
+        setDocuments([])
         toast.error(`❌ Failed to load documents: ${docsRes.error}`);
       }
     } catch (err) {
+      setDocuments([])
       console.error(err);
       toast.error("Error fetching comments");
     }
@@ -699,7 +703,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                                   <img
                                     src={doc.url}
                                     alt={doc.name}
-                                    className="max-h-[150px] max-w-[150px] rounded object-cover"
+                                    className="max-h-[250px] max-w-[250px] rounded object-cover"
                                   />
                                 ) : (
                                   <a
@@ -827,14 +831,14 @@ const ChatTemplate = ({ refreshTickets }) => {
                               {canEdit && editingCommentId !== comment.id && (
                                 <div className="mt-1 ml-auto flex justify-end gap-2 text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                                   <button
-                                    className="hover:text-gray-700"
+                                    className="hover:text-gray-700 cursor-pointer"
                                     onClick={() => handleEditComment(comment)}
                                     title="Edit"
                                   >
-                                    <PencilIcon className="h-4 w-4" />
+                                    <PencilIcon className="h-4 w-4 " />
                                   </button>
                                   <button
-                                    className="hover:text-red-600"
+                                    className="hover:text-red-600 cursor-pointer"
                                     onClick={() =>
                                       handleDeleteComment(comment.id)
                                     }

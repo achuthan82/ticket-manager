@@ -2,7 +2,6 @@
 import axios from "./axios";
 import { checkAuthHeaders } from "./authDebug";
 
-
 /**
  * Support Tickets API Service
  * Handles fetching and updating support tickets
@@ -39,7 +38,12 @@ export const getSupportTickets = async (params = {}) => {
       response.data,
     );
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
   } catch (error) {
     console.error(
       "SupportTicketsService → Error fetching support tickets:",
@@ -49,6 +53,7 @@ export const getSupportTickets = async (params = {}) => {
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error:
           error.response.data?.message || `HTTP ${error.response.status} error`,
@@ -56,12 +61,14 @@ export const getSupportTickets = async (params = {}) => {
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
+        status: null,
         data: null,
         error: error.message || "Something went wrong",
       };
@@ -76,8 +83,8 @@ export const getSupportTickets = async (params = {}) => {
  *   2 = Open
  *   3 = Pending
  *   4 = Resolved
- *    5 = Closed
- * @returns {Promise<Object>} - Success or error response
+ *   5 = Closed
+ * @returns {Promise<Object>} - { success, status, data, error }
  */
 export const editSupportTicketStatus = async (supportId, status) => {
   try {
@@ -103,13 +110,19 @@ export const editSupportTicketStatus = async (supportId, status) => {
       response.data,
     );
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
   } catch (error) {
     console.error("SupportTicketsService → Error editing ticket:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error:
           error.response.data?.message || `HTTP ${error.response.status} error`,
@@ -117,24 +130,25 @@ export const editSupportTicketStatus = async (supportId, status) => {
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
+        status: null,
         data: null,
         error: error.message || "Something went wrong",
       };
     }
   }
 };
-
 /**
  * Assign support ticket
  * @param {number} supportId - ID of the support ticket
  * @param {string} ticketOwner - User ID to assign the ticket to
- * @returns {Promise<Object>} - Success or error response
+ * @returns {Promise<Object>} { success, status, data, error }
  */
 export const assignSupportTicket = async (supportId, ticketOwner) => {
   try {
@@ -158,13 +172,19 @@ export const assignSupportTicket = async (supportId, ticketOwner) => {
       response.data,
     );
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
   } catch (error) {
     console.error("SupportTicketsService → Error assigning ticket:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error:
           error.response.data?.message || `HTTP ${error.response.status} error`,
@@ -172,12 +192,14 @@ export const assignSupportTicket = async (supportId, ticketOwner) => {
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
+        status: null,
         data: null,
         error: error.message || "Something went wrong",
       };
@@ -185,13 +207,11 @@ export const assignSupportTicket = async (supportId, ticketOwner) => {
   }
 };
 
-
-
 /**
  * Add a comment to a support ticket
  * @param {number} supportId - ID of the support ticket
  * @param {string} message - Comment message
- * @returns {Promise<Object>} - Success or error response
+ * @returns {Promise<Object>} { success, status, data, error }
  */
 export const addSupportComment = async (supportId, message) => {
   try {
@@ -216,13 +236,19 @@ export const addSupportComment = async (supportId, message) => {
       response.data,
     );
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
   } catch (error) {
     console.error("SupportTicketsService → Error adding comment:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error:
           error.response.data?.message || `HTTP ${error.response.status} error`,
@@ -230,12 +256,14 @@ export const addSupportComment = async (supportId, message) => {
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
+        status: null,
         data: null,
         error: error.message || "Something went wrong",
       };
@@ -243,12 +271,11 @@ export const addSupportComment = async (supportId, message) => {
   }
 };
 
-
 /**
  * Get comments for a support ticket LISTING TICKET.
  * @param {number} supportId - ID of the support ticket
  * @param {string} timeZone - Optional timezone (default: Asia/Kolkata)
- * @returns {Promise<Object>} - Success or error response
+ * @returns {Promise<Object>} { success, status, data, error }
  */
 export const getComments = async (supportId, timeZone = "Asia/Kolkata") => {
   try {
@@ -260,15 +287,25 @@ export const getComments = async (supportId, timeZone = "Asia/Kolkata") => {
 
     const response = await axios.get(finalUrl);
 
-    console.log("SupportTicketsService → Comments Response:", response.data);
+    console.log(
+      "SupportTicketsService → Comments Response:",
+      response.status,
+      response.data,
+    );
 
-    return { success: true, data: response.data.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data?.data || [],
+      error: null,
+    };
   } catch (error) {
     console.error("SupportTicketsService → Error fetching comments:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error:
           error.response.data?.message || `HTTP ${error.response.status} error`,
@@ -276,23 +313,23 @@ export const getComments = async (supportId, timeZone = "Asia/Kolkata") => {
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
+        status: null,
         data: null,
         error: error.message || "Something went wrong",
       };
     }
   }
 };
-
-
 /**
  * Get list of support ticket assignees
- * @returns {Promise<Object>} - Success or error response
+ * @returns {Promise<Object>} { success, status, data, error }
  */
 export const getSupportTicketAssignees = async () => {
   try {
@@ -307,30 +344,37 @@ export const getSupportTicketAssignees = async () => {
     console.log(
       "SupportTicketsService → Assignees Response:",
       response.status,
-      response.data
+      response.data,
     );
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
   } catch (error) {
     console.error("SupportTicketsService → Error fetching assignees:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error:
-          error.response.data?.message ||
-          `HTTP ${error.response.status} error`,
+          error.response.data?.message || `HTTP ${error.response.status} error`,
       };
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
+        status: null,
         data: null,
         error: error.message || "Something went wrong",
       };
@@ -338,10 +382,11 @@ export const getSupportTicketAssignees = async () => {
   }
 };
 
+
 /**
  * Delete a comment by ID
  * @param {number|string} commentId - ID of the comment to delete
- * @returns {Promise<Object>} - Success or error response
+ * @returns {Promise<Object>} { success, status, data, error }
  */
 export const deleteComment = async (commentId) => {
   try {
@@ -356,16 +401,22 @@ export const deleteComment = async (commentId) => {
     console.log(
       "SupportTicketsService → Delete Comment Response:",
       response.status,
-      response.data
+      response.data,
     );
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
   } catch (error) {
     console.error("SupportTicketsService → Error deleting comment:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error:
           error.response.data?.message || `HTTP ${error.response.status} error`,
@@ -373,12 +424,14 @@ export const deleteComment = async (commentId) => {
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
+        status: null,
         data: null,
         error: error.message || "Something went wrong",
       };
@@ -386,12 +439,11 @@ export const deleteComment = async (commentId) => {
   }
 };
 
-
 /**
  * Edit a comment
  * @param {string|number} commentId - ID of the comment to edit
  * @param {string} message - Updated comment message
- * @returns {Promise<Object>} - Success or error response
+ * @returns {Promise<Object>} { success, status, data, error }
  */
 export const editComment = async (commentId, message) => {
   try {
@@ -404,40 +456,51 @@ export const editComment = async (commentId, message) => {
 
     const response = await axios.patch(finalUrl, body);
 
-    console.log("SupportTicketsService → Edit Comment Response:", response.status, response.data);
+    console.log(
+      "SupportTicketsService → Edit Comment Response:",
+      response.status,
+      response.data,
+    );
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
   } catch (error) {
     console.error("SupportTicketsService → Error editing comment:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
-        error: error.response.data?.message || `HTTP ${error.response.status} error`,
+        error:
+          error.response.data?.message || `HTTP ${error.response.status} error`,
       };
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
+        status: null,
         data: null,
         error: error.message || "Something went wrong",
       };
     }
   }
 };
-
-
 /**
  * Upload a document to a support ticket
  * @param {number} supportId - ID of the support ticket
  * @param {File} file - File object to upload
- * @returns {Promise<Object>} - Success or error response
+ * @returns {Promise<Object>} { success, status, data, error }
  */
 export const uploadSupportDocument = async (supportId, file) => {
   try {
@@ -461,27 +524,34 @@ export const uploadSupportDocument = async (supportId, file) => {
       response.data,
     );
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
   } catch (error) {
     console.error("SupportTicketsService → Error uploading document:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error:
-          error.response.data?.message ||
-          `HTTP ${error.response.status} error`,
+          error.response.data?.message || `HTTP ${error.response.status} error`,
       };
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
+        status: null,
         data: null,
         error: error.message || "Something went wrong",
       };
@@ -489,11 +559,10 @@ export const uploadSupportDocument = async (supportId, file) => {
   }
 };
 
-
 /**
  * Get list of documents for a support ticket
  * @param {number} supportId - ID of the support ticket
- * @returns {Promise<Object>} - Success or error response
+ * @returns {Promise<Object>} { success, status, data, error }
  */
 export const getSupportDocuments = async (supportId) => {
   try {
@@ -508,19 +577,22 @@ export const getSupportDocuments = async (supportId) => {
     console.log(
       "SupportTicketsService → Documents Response:",
       response.status,
-      response.data
+      response.data,
     );
 
-    return { success: true, data: response.data, error: null };
+    return {
+      success: true,
+      status: response.status,
+      data: response.data,
+      error: null,
+    };
   } catch (error) {
-    console.error(
-      "SupportTicketsService → Error fetching documents:",
-      error
-    );
+    console.error("SupportTicketsService → Error fetching documents:", error);
 
     if (error.response) {
       return {
         success: false,
+        status: error.response.status,
         data: null,
         error:
           error.response.data?.message || `HTTP ${error.response.status} error`,
@@ -528,12 +600,14 @@ export const getSupportDocuments = async (supportId) => {
     } else if (error.request) {
       return {
         success: false,
+        status: null,
         data: null,
         error: "Network error. Please check your connection.",
       };
     } else {
       return {
         success: false,
+        status: null,
         data: null,
         error: error.message || "Something went wrong",
       };
