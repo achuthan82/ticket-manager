@@ -175,9 +175,9 @@ const TicketInfo = ({ details, ticketId }) => {
                         />
                         <div className="flex-1">
                           <div className="mb-1 flex items-center space-x-2">
-                            <span className="font-medium text-gray-900">
+                            {/* <span className="font-medium text-gray-900">
                               {isloggedInUser ? "You" : "Admin"}
-                            </span>
+                            </span> */}
                             <span className="text-xs text-gray-500">
                               {moment(
                                 item.created_at,
