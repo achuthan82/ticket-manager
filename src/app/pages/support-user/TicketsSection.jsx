@@ -96,21 +96,23 @@ export default function TicketsSection({ filter, setFilter }) {
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    async function fetchTickets() {
-      setLoading(true);
-      setError("");
+  async function fetchTickets() {
+    setLoading(true);
+    setError("");
 
-      const params = {
-        page,
-        per_page: perPage,
-        time_zone: "Asia/Kolkata",
-      };
-      if (filter !== "all") params.status = filter;
+    const params = {
+      page,
+      per_page: perPage,
+      time_zone: "Asia/Kolkata",
+    };
+    if (filter !== "all") params.status = filter;
 
-      const { success, data, error } = await getTickets(params);
+    const { success, data, error } = await getTickets(params);
 
-      console.log("API full response:", data);
-      if (success && data?.data?.length) {
+    console.log("API full response:", data);
+
+    if (success) {
+      if (data?.status === 200 && Array.isArray(data.data[0]) && data.data[0].length) {
         const ticketsArray = data.data[0] || [];
         const paginationInfo = data.data[1] || {};
 
@@ -128,32 +130,38 @@ export default function TicketsSection({ filter, setFilter }) {
           }))
         );
 
-        // Calculate total pages based on API response
         if (paginationInfo.total && paginationInfo.per_page) {
           setTotalPages(Math.ceil(paginationInfo.total / paginationInfo.per_page));
         } else {
-          setTotalPages(1); // fallback
+          setTotalPages(1);
         }
+      } else if (data?.status === 204) {
+        setTickets([]);
+        setTotalPages(1);
+        setError(""); 
       } else {
         setTickets([]);
         setTotalPages(1);
-        setError(error || "No tickets found");
+        setError(data?.message || "Something went wrong");
       }
-
-      setLoading(false);
-
+    } else {
+      setTickets([]);
+      setTotalPages(1);
+      setError(error || "Something went wrong");
     }
 
-    fetchTickets();
+    setLoading(false);
+  }
 
+  fetchTickets();
 
-    const handleTicketCreated = () => fetchTickets();
-    window.addEventListener("ticketCreated", handleTicketCreated);
+  const handleTicketCreated = () => fetchTickets();
+  window.addEventListener("ticketCreated", handleTicketCreated);
 
-    return () => {
-      window.removeEventListener("ticketCreated", handleTicketCreated);
-    };
-  }, [filter, page, perPage]);
+  return () => {
+    window.removeEventListener("ticketCreated", handleTicketCreated);
+  };
+}, [filter, page, perPage]);
 
   return (
     <div>

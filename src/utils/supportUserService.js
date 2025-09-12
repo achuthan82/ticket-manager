@@ -151,8 +151,8 @@ export const getFaqs = async (params) => {
     queryParams.append("page", params.page || 1);
     queryParams.append("per_page", params.per_page || 10);
 
-    if (params.categoryId) {
-      queryParams.append("category_id", params.categoryId);
+    if (params.category) {
+      queryParams.append("category_id", params.category);
     }
 
     console.log("Making API call to /faq/paginated with params:", Object.fromEntries(queryParams));
@@ -207,8 +207,9 @@ export const toggleFaqHelpful = async (faqId, isHelpful) => {
   }
 };
 
+
 /**
- * Get FAQ details (API 2)
+ * Get FAQ details 
  * @param {string} faqId
  * @returns {Promise<Object>}
  */
@@ -230,7 +231,7 @@ export const getFaqDetails = async (faqId) => {
 };
 
 /**
- * Increment FAQ view count (API 3)
+ * Increment FAQ view count 
  * @param {string} faqId
  * @returns {Promise<boolean>}
  */

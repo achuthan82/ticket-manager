@@ -7,7 +7,7 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 import { ArrowUpTrayIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import { Button, Input, Select, Textarea, Upload } from "components/ui";
+import { Button, GhostSpinner, Input, Select, Textarea, Upload } from "components/ui";
 import { useListState } from "hooks";
 import clsx from "clsx";
 import { FileItem } from "components/shared/form/FileItem";
@@ -22,6 +22,8 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
   const [attachment, setAttachment] = useState(null);
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+
+  const [submitting, setSubmitting] = useState(false);
 
   const { callApi, setCallApi } = useNotificationContext();
 
@@ -80,7 +82,9 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
     }
   };
 
-  const submitForm = async (data) => {
+const submitForm = async (data) => {
+  setSubmitting(true);
+  try {
     const payload = {
       ...data,
       attachment,
@@ -102,7 +106,11 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
         `Failed to create ticket: ${result?.error || "Unknown error"}`
       );
     }
-  };
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   const handleClose = () => {
     reset();
@@ -116,8 +124,8 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
       type="button"
       onClick={() => setValue("priority", value, { shouldValidate: true })}
       className={`rounded-lg p-3 cursor-pointer text-center border-l-4 ${selected === value
-          ? `${colorClasses.activeBorder} ${colorClasses.activeBg}`
-          : "border-neutral-300 hover:border-neutral-400 bg-white"
+        ? `${colorClasses.activeBorder} ${colorClasses.activeBg}`
+        : "border-neutral-300 hover:border-neutral-400 bg-white"
         }`}
     >
       <div className={`text-base font-semibold ${colorClasses.text}`}>
@@ -244,6 +252,11 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
                       />
                     )}
                   />
+                  {errors.subject && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.subject.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -261,6 +274,11 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
                       />
                     )}
                   />
+                  {errors.description && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.description.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Upload */}
@@ -315,6 +333,7 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
                 Cancel
               </Button>
               <Button color="primary" onClick={handleSubmit(submitForm)}>
+                {submitting && <GhostSpinner className="mr-2 size-4 border-2" />}
                 Submit
               </Button>
             </div>

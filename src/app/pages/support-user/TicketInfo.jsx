@@ -16,6 +16,7 @@ const TicketInfo = ({ details, ticketId }) => {
   const fileInputRef = useRef(null);
   const { user } = useAuthContext();
   const scrollRef = useRef(null);
+  
   const priorityStyle = {
     1: { color: "text-red-500", text: "High" },
     2: { color: "text-orange-500", text: "Medium" },

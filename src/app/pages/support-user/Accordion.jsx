@@ -26,11 +26,12 @@ const Multiple = ({ categoryOptions }) => {
   const [faqs, setFaqs] = useState([]);
   const [category, setCategory] = useState(""); // default billing
   const [page, setPage] = useState(1);
-  const [perPage] = useState(10);
+  const [perPage] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [loadingAnswers, setLoadingAnswers] = useState([]);
+
 
   const [openFaqs, setOpenFaqs] = useState([]);
 
@@ -62,89 +63,126 @@ const Multiple = ({ categoryOptions }) => {
   // };
 
   const handleAccordionToggle = async (faqId) => {
-    try {
-      if (openFaqs.includes(faqId)) {
-        // closing → remove from openFaqs
-        setOpenFaqs((prev) => prev.filter((id) => id !== faqId));
+  try {
+    if (openFaqs.includes(faqId)) {
+      // closing → remove from openFaqs
+      setOpenFaqs((prev) => prev.filter((id) => id !== faqId));
+    } else {
+      // opening → add to openFaqs
+      setOpenFaqs((prev) => [...prev, faqId]);
+      setLoadingAnswers((prev) => [...prev, faqId]);
+
+      // increment view count
+      await incrementFaqViewCount(faqId);
+
+      // fetch details
+      const { success, data, error } = await getFaqDetails(faqId);
+
+      // ✅ Handle success (200 and 204)
+      if (success) {
+        setFaqs((prev) =>
+          prev.map((f) =>
+            f.id === faqId
+              ? {
+                  ...f,
+                  answer: data?.answer || "No answer available.",
+                  is_helpful: data?.is_helpful ?? null,
+                }
+              : f
+          )
+        );
       } else {
-        // opening → add to openFaqs
-        setOpenFaqs((prev) => [...prev, faqId]);
-
-        // Mark as loading for this FAQ
-        setLoadingAnswers((prev) => [...prev, faqId]);
-
-        // increment view count
-        await incrementFaqViewCount(faqId);
-
-        // fetch details
-        const { success, data } = await getFaqDetails(faqId);
-        if (success && data) {
-          setFaqs((prev) =>
-            prev.map((f) =>
-              f.id === faqId
-                ? { ...f, answer: data.answer, is_helpful: data.is_helpful }
-                : f
-            )
-          );
-        }
-
-        // ✅ Remove loading flag
-        setLoadingAnswers((prev) => prev.filter((id) => id !== faqId));
+        // ❌ Handle errors (non-200/204)
+        console.error("Failed to fetch FAQ details:", error);
+        setFaqs((prev) =>
+          prev.map((f) =>
+            f.id === faqId
+              ? {
+                  ...f,
+                  answer: "Something went wrong. Please try again later.",
+                  is_helpful: null,
+                }
+              : f
+          )
+        );
       }
-    } catch (err) {
-      console.error("Error toggling accordion:", err);
+
       setLoadingAnswers((prev) => prev.filter((id) => id !== faqId));
     }
-  };
+  } catch (err) {
+    console.error("Error toggling accordion:", err);
+    setLoadingAnswers((prev) => prev.filter((id) => id !== faqId));
+    // Optional UI feedback
+    setFaqs((prev) =>
+      prev.map((f) =>
+        f.id === faqId
+          ? {
+              ...f,
+              answer: "Something went wrong. Please try again later.",
+              is_helpful: null,
+            }
+          : f
+      )
+    );
+  }
+};
 
 
 
-  useEffect(() => {
-    async function fetchFaqs() {
-      setLoading(true);
-      setError("");
+useEffect(() => {
+  async function fetchFaqs() {
+    setLoading(true);
+    setError("");
 
-      try {
-        const { success, data, error: fetchError } = await getFaqs({
-          page,
-          per_page: perPage,
-          category,
-        });
+    try {
+      const { success, data, error: fetchError } = await getFaqs({
+        page,
+        per_page: perPage,
+        category,
+      });
 
-        if (success && data?.data?.length) {
+      if (success) {
+        if (data?.status === 204 || !data?.data?.length) {
+          setFaqs([]);
+          setError("No FAQs found");
+          setTotalPages(1);
+        } else {
           setFaqs(
             data.data.map((f) => ({
               id: f.id,
               question: f.question,
-              answer: f.answer,
-              is_helpful: f.is_helpful || false,
+              answer: f.answer || "", // fallback if answer missing
+              is_helpful: f.is_helpful ?? false,
             }))
           );
 
-          // Use backend's pagination
           if (data.pagination) {
-            setTotalPages(Math.ceil(data.pagination.total / data.pagination.per_page));
+            setTotalPages(
+              Math.ceil(data.pagination.total / data.pagination.per_page)
+            );
           } else {
             setTotalPages(1);
           }
-        } else {
-          setError(fetchError || "No FAQs found");
-          setFaqs([]);
-          setTotalPages(1);
         }
-      } catch (err) {
-        console.error("Error fetching FAQs:", err);
-        setError("Something went wrong while fetching FAQs.");
+      } else {
+        // ❌ Error returned from API wrapper
+        setError(fetchError || "Failed to load FAQs");
         setFaqs([]);
         setTotalPages(1);
       }
-
-      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching FAQs:", err);
+      setError("Something went wrong while fetching FAQs.");
+      setFaqs([]);
+      setTotalPages(1);
     }
 
+    setLoading(false);
+  }
 
-    fetchFaqs();
-  }, [category, page, perPage]);
+  fetchFaqs();
+}, [category, page, perPage]);
+
 
   // Updated toggle function for like/dislike
   const handleToggleHelpful = async (faqId, value) => {
@@ -170,7 +208,7 @@ const Multiple = ({ categoryOptions }) => {
         <h2 className="text-xl font-semibold text-gray-900">
           Frequently Asked Questions
         </h2>
-        <div className="w-45">
+        <div className="w-40">
           <Select
             className="text-sm border border-black rounded-md px-3 py-2"
             value={category}
