@@ -1,10 +1,11 @@
 import { PaperClipIcon } from "@heroicons/react/24/outline";
 import { Avatar, Button, GhostSpinner } from "components/ui";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import {
   getComments,
   addComment,
   uploadSupportDocument,
+  getSupportDocuments,
 } from "utils/ticketSinglePageService";
 import { useAuthContext } from "app/contexts/auth/context";
 import { toast } from "sonner";
@@ -18,15 +19,32 @@ const TicketInfo = ({ details, ticketId }) => {
   const scrollRef = useRef(null);
   
   const priorityStyle = {
-    1: { color: "text-red-500", text: "High" },
+    1: { color: "text-red-500", text: "Low" },
     2: { color: "text-orange-500", text: "Medium" },
-    3: { color: "text-green-500", text: "Low" },
+    3: { color: "text-green-500", text: "High" },
   };
+  
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [documents, setDocuments] = useState([]);
+  const currentUser = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("userData");
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return {
+        id: parsed?.id,
+        name: parsed?.name,
+        role: parsed?.role_id,
+      };
+    } catch (err) {
+      console.error("Failed to parse userData:", err);
+      return {};
+    }
+  }, []);
 
-  const fetchMessages = () => {
+  const fetchMessages = async () => {
     getComments(ticketId).then((response) => {
       if (response.success) {
         console.log("Messages:", response.data);
@@ -38,6 +56,20 @@ const TicketInfo = ({ details, ticketId }) => {
         console.error("Error:", response.error);
       }
     });
+
+    const docsRes = await getSupportDocuments(ticketId);
+    console.log(docsRes);
+
+    if (docsRes.success &&  docsRes.data.status === 200) {
+      
+      
+      setDocuments(docsRes.data?.data || []);
+    } else if (docsRes.status === 204) {
+      setDocuments([]);
+      toast.info("No documents found");
+    } else {
+      toast.error(`Failed to load documents: ${docsRes.error}`);
+    }
   };
   const sendReply = () => {
     setLoading(true);
@@ -67,10 +99,15 @@ const TicketInfo = ({ details, ticketId }) => {
 
     setUploading(true);
     const result = await uploadSupportDocument(ticketId, file);
-
-    if (result.success) {
+     console.log(result.data);
+    if (result.success  && result.data.status === 201) {
+     
+      
       toast.success("Document uploaded successfully!");
+      // getSupportDocuments(ticketId);
+      fetchMessages()
       setFile(null);
+      
     } else {
       toast.error(`Upload failed: ${result.error}`);
     }
@@ -83,7 +120,8 @@ const TicketInfo = ({ details, ticketId }) => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+    // fetchMessages()
+  }, [messages, documents]);
   return (
     <>
       <div className="flex-1 overflow-y-auto p-6">
@@ -94,23 +132,23 @@ const TicketInfo = ({ details, ticketId }) => {
               <div>
                 <p className="text-gray-500">Category</p>
                 <p className="font-medium text-gray-900">
-                  {details?.category_name || "N/A"}
+                  {details?.category_name || "Category..."}
                 </p>
               </div>
               <div>
                 <p className="text-gray-500">Priority</p>
                 <p
-                  className={`font-medium ${priorityStyle[details?.priority] ? priorityStyle[details?.priority].color : priorityStyle[1].color}`}
+                  className={`font-medium ${priorityStyle[details?.priority] ? priorityStyle[details?.priority].color : 'text-gray-500'}`}
                 >
                   {priorityStyle[details?.priority]
                     ? priorityStyle[details?.priority].text
-                    : priorityStyle[1].text}
+                    : 'priority...'}
                 </p>
               </div>
               <div>
                 <p className="text-gray-500">Assigned to</p>
                 <p className="font-medium text-gray-900">
-                  {details?.assigned_to || "N/A"}
+                  {details?.assigned_to || "not assigned"}
                 </p>
               </div>
               <div>
@@ -191,6 +229,50 @@ const TicketInfo = ({ details, ticketId }) => {
                   </div>
                 </div> */}
               </div>
+              {documents.map((doc, index) => {
+                const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(
+                  doc.name,
+                );
+
+                return (
+                  <div
+                    key={`doc-${index}`}
+                    className="group relative flex items-start justify-end gap-3"
+                  >
+                    <div className="flex max-w-[70%] flex-col">
+                      <div className="mb-1 flex justify-end text-xs text-gray-400">
+                        <span className="font-medium text-gray-900">You</span>
+                        {/* <span> • just now</span> */}
+                      </div>
+
+                      <div className="ml-auto rounded-xl bg-teal-100 p-2 shadow-sm hover:bg-teal-200">
+                        {isImage ? (
+                          <img
+                            src={doc.url}
+                            alt={doc.name}
+                            className="max-h-[250px] max-w-[250px] rounded object-cover"
+                          />
+                        ) : (
+                          <a
+                            href={doc.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="truncate text-blue-600 underline hover:text-blue-800"
+                            title={doc.name}
+                          >
+                            {doc.name}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                    <Avatar
+                      initialColor="success"
+                      className="mt-4 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
+                      name={currentUser?.name || "You"}
+                    />
+                  </div>
+                );
+              })}
             </div>
             {/* Reply Box */}
             <div className="mt-6 border-t pt-6">

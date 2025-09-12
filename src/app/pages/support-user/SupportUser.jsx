@@ -13,15 +13,15 @@ export default function SupportUser() {
     const { success, data, error } = await getCategories();
     if (success && data?.length) {
       setCategoryOptions([
-        { label: "All FAQs", value: "" }, // 👈 default option
+        { label: "All FAQs", value: "" }, 
         ...data.map((cat) => ({
-          label: cat.name,      // depends on API response
+          label: cat.name,      
           value: cat.key || cat.id,
         })),
       ]);
     } else {
       console.error("Failed to fetch categories:", error);
-      setCategoryOptions([{ label: "All FAQs", value: "" }]); // 👈 fallback
+      setCategoryOptions([{ label: "All FAQs", value: "" }]); 
     }
   }
   fetchCategories();

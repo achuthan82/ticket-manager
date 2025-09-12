@@ -109,8 +109,6 @@ export default function TicketsSection({ filter, setFilter }) {
 
     const { success, data, error } = await getTickets(params);
 
-    console.log("API full response:", data);
-
     if (success) {
       if (data?.status === 200 && Array.isArray(data.data[0]) && data.data[0].length) {
         const ticketsArray = data.data[0] || [];

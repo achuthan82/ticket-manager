@@ -20,6 +20,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "components/ui";
+import { toast } from "sonner";
 
 
 const Multiple = ({ categoryOptions }) => {
@@ -31,174 +32,136 @@ const Multiple = ({ categoryOptions }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [loadingAnswers, setLoadingAnswers] = useState([]);
-
-
   const [openFaqs, setOpenFaqs] = useState([]);
 
-  //  const [viewedFaqs, setViewedFaqs] = useState([]);
-
-  // const handleAccordionOpen = async (faqId) => {
-  //   try {
-  //     // Fetch FAQ details
-  //     const { success, data } = await getFaqDetails(faqId);
-  //     if (success && data) {
-  //       setFaqs((prev) =>
-  //         prev.map((f) =>
-  //           f.id === faqId
-  //             ? { ...f, answer: data.answer, is_helpful: data.is_helpful }
-  //             : f
-  //         )
-  //       );
-  //     }
-
-  //     // ✅ Increment only once per session
-  //     if (!viewedFaqs.includes(faqId)) {
-  //       await incrementFaqViewCount(faqId);
-  //       setViewedFaqs((prev) => [...prev, faqId]); // mark as counted
-  //     }
-
-  //   } catch (err) {
-  //     console.error("Error on accordion open:", err);
-  //   }
-  // };
-
   const handleAccordionToggle = async (faqId) => {
-  try {
-    if (openFaqs.includes(faqId)) {
-      // closing → remove from openFaqs
-      setOpenFaqs((prev) => prev.filter((id) => id !== faqId));
-    } else {
-      // opening → add to openFaqs
-      setOpenFaqs((prev) => [...prev, faqId]);
-      setLoadingAnswers((prev) => [...prev, faqId]);
+    try {
+      if (openFaqs.includes(faqId)) {
+        setOpenFaqs((prev) => prev.filter((id) => id !== faqId));
+      } else {
+        setOpenFaqs((prev) => [...prev, faqId]);
+        setLoadingAnswers((prev) => [...prev, faqId]);
+        await incrementFaqViewCount(faqId);
 
-      // increment view count
-      await incrementFaqViewCount(faqId);
+        const { success, data, error } = await getFaqDetails(faqId);
 
-      // fetch details
-      const { success, data, error } = await getFaqDetails(faqId);
-
-      // ✅ Handle success (200 and 204)
-      if (success) {
-        setFaqs((prev) =>
-          prev.map((f) =>
-            f.id === faqId
-              ? {
+        if (success) {
+          setFaqs((prev) =>
+            prev.map((f) =>
+              f.id === faqId
+                ? {
                   ...f,
                   answer: data?.answer || "No answer available.",
                   is_helpful: data?.is_helpful ?? null,
                 }
-              : f
-          )
-        );
-      } else {
-        // ❌ Handle errors (non-200/204)
-        console.error("Failed to fetch FAQ details:", error);
-        setFaqs((prev) =>
-          prev.map((f) =>
-            f.id === faqId
-              ? {
+                : f
+            )
+          );
+        } else {
+          toast.error(error || "Failed to load FAQ details.")
+          setFaqs((prev) =>
+            prev.map((f) =>
+              f.id === faqId
+                ? {
                   ...f,
                   answer: "Something went wrong. Please try again later.",
                   is_helpful: null,
                 }
-              : f
-          )
-        );
-      }
+                : f
+            )
+          );
+        }
 
+        setLoadingAnswers((prev) => prev.filter((id) => id !== faqId));
+      }
+    } catch (err) {
+      toast.error(err?.message || "Error toggling accordion. Please try again.");
       setLoadingAnswers((prev) => prev.filter((id) => id !== faqId));
-    }
-  } catch (err) {
-    console.error("Error toggling accordion:", err);
-    setLoadingAnswers((prev) => prev.filter((id) => id !== faqId));
-    // Optional UI feedback
-    setFaqs((prev) =>
-      prev.map((f) =>
-        f.id === faqId
-          ? {
+      setFaqs((prev) =>
+        prev.map((f) =>
+          f.id === faqId
+            ? {
               ...f,
               answer: "Something went wrong. Please try again later.",
               is_helpful: null,
             }
-          : f
-      )
-    );
-  }
-};
+            : f
+        )
+      );
+    }
+  };
 
+  useEffect(() => {
+    async function fetchFaqs() {
+      setLoading(true);
+      setError("");
 
+      try {
+        const { success, data, error: fetchError } = await getFaqs({
+          page,
+          per_page: perPage,
+          category,
+        });
 
-useEffect(() => {
-  async function fetchFaqs() {
-    setLoading(true);
-    setError("");
-
-    try {
-      const { success, data, error: fetchError } = await getFaqs({
-        page,
-        per_page: perPage,
-        category,
-      });
-
-      if (success) {
-        if (data?.status === 204 || !data?.data?.length) {
-          setFaqs([]);
-          setError("No FAQs found");
-          setTotalPages(1);
-        } else {
-          setFaqs(
-            data.data.map((f) => ({
-              id: f.id,
-              question: f.question,
-              answer: f.answer || "", // fallback if answer missing
-              is_helpful: f.is_helpful ?? false,
-            }))
-          );
-
-          if (data.pagination) {
-            setTotalPages(
-              Math.ceil(data.pagination.total / data.pagination.per_page)
-            );
-          } else {
+        if (success) {
+          if (data?.status === 204 || !data?.data?.length) {
+            setFaqs([]);
+            setError("No FAQs found");
             setTotalPages(1);
+          } else {
+            setFaqs(
+              data.data.map((f) => ({
+                id: f.id,
+                question: f.question,
+                answer: f.answer || "", 
+                is_helpful: f.is_helpful ?? false,
+              }))
+            );
+
+            if (data.pagination) {
+              setTotalPages(
+                Math.ceil(data.pagination.total / data.pagination.per_page)
+              );
+            } else {
+              setTotalPages(1);
+            }
           }
+        } else {
+          setError(fetchError || "Failed to load FAQs");
+          setFaqs([]);
+          setTotalPages(1);
         }
-      } else {
-        // ❌ Error returned from API wrapper
-        setError(fetchError || "Failed to load FAQs");
+      } catch (err) {
+        toast.error(err?.message || "Something went wrong while fetching FAQs.");
+        setError("Something went wrong while fetching FAQs.");
         setFaqs([]);
         setTotalPages(1);
       }
-    } catch (err) {
-      console.error("Error fetching FAQs:", err);
-      setError("Something went wrong while fetching FAQs.");
-      setFaqs([]);
-      setTotalPages(1);
+      setLoading(false);
     }
 
-    setLoading(false);
-  }
-
-  fetchFaqs();
-}, [category, page, perPage]);
+    fetchFaqs();
+  }, [category, page, perPage]);
 
 
-  // Updated toggle function for like/dislike
   const handleToggleHelpful = async (faqId, value) => {
     try {
-      // value: true = like, false = dislike
-      await toggleFaqHelpful(faqId, value);
-
-      setFaqs((prev) =>
-        prev.map((f) =>
-          f.id === faqId ? { ...f, is_helpful: value } : f
-        )
-      );
+      const res = await toggleFaqHelpful(faqId, value);
+      if (res?.status === 201) {
+        setFaqs((prev) =>
+          prev.map((f) =>
+            f.id === faqId ? { ...f, is_helpful: value } : f
+          )
+        );
+         toast.success(res?.message || "Updated successfully!");
+      } else {
+        toast.error(res?.error || "Something went wrong while updating. Please try again.")
+      }
     } catch (err) {
-      console.error("Error toggling helpful:", err);
+      toast.error(err?.response?.data?.message || "Network or server error. Please try again later.")
     }
   };
+
 
 
   return (

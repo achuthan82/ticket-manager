@@ -105,10 +105,10 @@ export function AuthProvider({ children }) {
       dispatch({ type: "LOGOUT" });
     });
 
-    setRedirectCallback(() => {
+    setRedirectCallback((path) => {
       // This will be handled by the router
       if (typeof window !== "undefined") {
-        window.location.href = '/home';
+        window.location.href = path;
       }
     });
 
