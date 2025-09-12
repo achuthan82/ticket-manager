@@ -4,9 +4,13 @@ import { Navigate } from "react-router";
 // Local Imports
 import MainLayoutProvider from "app/layouts/MainLayout/MainLayoutProvider";
 import AuthGuard from "middleware/AuthGuard";
+import { useAuthContext } from "app/contexts/auth/context";
 
 // ----------------------------------------------------------------------
-
+const RoleRedirect = () => {
+  const { user } = useAuthContext();
+  return <Navigate to={user?.role_id === 1 ? "/support-ticket" : "/support-user"} replace />;
+};
 const protectedRoutes = {
   id: "protected",
   Component: AuthGuard,
@@ -17,7 +21,7 @@ const protectedRoutes = {
       children: [
         {
           index: true,
-          element: <Navigate to="/home" replace />,
+          element: <RoleRedirect/>,
         },
 
         {
@@ -69,7 +73,7 @@ const protectedRoutes = {
         },
         {
           path: "*",
-          element: <Navigate to="/home" replace />,
+          element: <RoleRedirect/>,
         },
       ],
     },

@@ -1,10 +1,8 @@
 import { NAV_TYPE_ITEM } from "constants/app.constant";
-import DashboardsIcon from "assets/dualicons/dashboards.svg?react";
+// import DashboardsIcon from "assets/dualicons/dashboards.svg?react";
 import TicketIcon from "assets/dualicons/ticket.svg?react";
 import UserIcon from "assets/dualicons/user.svg?react";
-import { REDIRECT_URL } from "configs/auth.config";
 import {
-  ArrowLeftCircleIcon,
   QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
 // import {
@@ -16,15 +14,15 @@ import {
 // } from '@heroicons/react/24/outline'
 
 export const baseNavigation = [
-  {
-    id: "dashboard",
-    type: NAV_TYPE_ITEM,
-    path: "/home",
-    title: "Home",
-    transKey: "nav.dashboard.dashboard",
-    Icon: DashboardsIcon,
-    visible: [1, 2],
-  },
+  // {
+  //   id: "dashboard",
+  //   type: NAV_TYPE_ITEM,
+  //   path: "/home",
+  //   title: "Home",
+  //   transKey: "nav.dashboard.dashboard",
+  //   Icon: DashboardsIcon,
+  //   visible: [1, 2],
+  // },
   // adding support-ticket to the navigation
   {
     id: "support-ticket",
@@ -64,15 +62,7 @@ export const baseNavigation = [
     Icon: QuestionMarkCircleIcon,
     visible: [1], // showing for admin page.
   },
-  {
-    id: "back-to-shieldnest",
-    type: NAV_TYPE_ITEM,
-    path: REDIRECT_URL,
-    title: "Back to ShieldNest",
-    transKey: "nav.support-user.support-user",
-    Icon: ArrowLeftCircleIcon,
-    visible: [1, 2],
-  },
+
   // {
   //     id: 'documents',
   //     type: NAV_TYPE_ITEM,

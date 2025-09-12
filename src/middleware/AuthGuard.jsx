@@ -3,7 +3,7 @@ import { Navigate, useLocation, useOutlet } from "react-router";
 
 // Local Imports
 import { useAuthContext } from "app/contexts/auth/context";
-import { GHOST_ENTRY_PATH, REDIRECT_URL_KEY } from "../constants/app.constant";
+import { GHOST_ENTRY_PATH} from "../constants/app.constant";
 
 // ----------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ export default function AuthGuard() {
     console.log("🔐 AuthGuard: Redirecting to login");
     return (
       <Navigate
-        to={`${GHOST_ENTRY_PATH}?${REDIRECT_URL_KEY}=${'/home'}`}
+        to={`${GHOST_ENTRY_PATH}`}
         replace
       />
     );

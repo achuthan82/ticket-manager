@@ -2,7 +2,10 @@
 import { useLocation, Link } from "react-router";
 import { useState } from "react";
 import clsx from "clsx";
-import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftCircleIcon,
+  ArrowRightOnRectangleIcon,
+} from "@heroicons/react/24/outline";
 
 // Local Imports
 import { useSidebarContext } from "app/contexts/sidebar/context";
@@ -11,7 +14,8 @@ import { navigation } from "app/navigation";
 import { isRouteActive } from "utils/isRouteActive";
 import { SidebarToggleBtn } from "components/shared/SidebarToggleBtn";
 import { ConfirmModal } from "components/shared/ConfirmModal";
-
+import { Button } from "components/ui";
+import { REDIRECT_URL } from "configs/auth.config";
 // ----------------------------------------------------------------------
 
 export default function DocuPromptSidebar() {
@@ -37,14 +41,17 @@ export default function DocuPromptSidebar() {
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
   };
-
+  const handleRedirect = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+    window.location.href = REDIRECT_URL
+  };
   const handleLogoutConfirm = async () => {
     setShowLogoutConfirm(false);
     await logout();
   };
   const menuItems = (item, isActive, Icon) => {
     if (item.visible.includes(user.role_id)) {
-      console.log('entered..')
       return (
         <Link
           key={item.id}
@@ -169,7 +176,18 @@ export default function DocuPromptSidebar() {
               return menuItems(item, isActive, Icon);
             })}
           </nav>
-
+          <div className="mb-3 px-3 py-2">
+            {isExpanded ? (
+              <Button color="primary" onClick={handleRedirect}>
+                <ArrowLeftCircleIcon className="size-5 stroke-2" />
+                <span>Back To ShieldNest</span>
+              </Button>
+            ) : (
+              <Button color="primary" isIcon className="size-9" onClick={handleRedirect}>
+                <ArrowLeftCircleIcon className="size-5" />
+              </Button>
+            )}
+          </div>
           {/* User Profile */}
           <div
             className={clsx(

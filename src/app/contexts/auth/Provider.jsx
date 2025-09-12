@@ -404,7 +404,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       // Call logout API to invalidate token on server
-      await axios.post("/auth/logout");
+      await axios.get("/auth/logout");
     } catch (err) {
       // Log error but don't prevent logout from completing
       console.warn("Logout API call failed:", err);
