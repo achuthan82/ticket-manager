@@ -327,20 +327,20 @@ function Empty() {
 
 function NotificationItem({ data }) {
   console.log('notification-item', data)
-  const Icon = types[data.event].Icon;
+  const Icon = types[data.event] ? types[data.event].Icon : types[1].Icon;
   return (
     <div className="group flex items-center justify-between gap-3">
       <div className="flex min-w-0 gap-3">
         <Avatar
           size={10}
-          initialColor={types[data.event].color}
+          initialColor={types[data.event] ? types[data.event].color : types[1].color}
           classNames={{ display: "rounded-lg" }}
         >
           <Icon className="size-4.5" />
         </Avatar>
         <div className="min-w-0">
           <p className="dark:text-dark-100 -mt-0.5 truncate font-medium text-gray-800">
-            {types[data.event].title}
+            {types[data.event] ? types[data.event].title : types[1].title}
           </p>
           <div className="mt-0.5 truncate text-xs">{data.message}</div>
           <div className="dark:text-dark-300 mt-1 truncate text-xs text-gray-400">
