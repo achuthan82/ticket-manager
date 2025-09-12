@@ -144,10 +144,11 @@ export const editSupportTicketStatus = async (supportId, status) => {
     }
   }
 };
+
 /**
  * Assign support ticket
  * @param {number} supportId - ID of the support ticket
- * @param {string} ticketOwner - User ID to assign the ticket to
+ * @param {{ id: string, name: string }} ticketOwner - User object to assign
  * @returns {Promise<Object>} { success, status, data, error }
  */
 export const assignSupportTicket = async (supportId, ticketOwner) => {
@@ -155,7 +156,12 @@ export const assignSupportTicket = async (supportId, ticketOwner) => {
     checkAuthHeaders();
 
     const finalUrl = `/support/assign/${supportId}`;
-    const body = { ticket_owner: ticketOwner };
+    const body = {
+      ticket_owner: {
+        id: ticketOwner.id,
+        name: ticketOwner.name,
+      },
+    };
 
     console.log(
       "SupportTicketsService → Assigning ticket:",
@@ -206,35 +212,34 @@ export const assignSupportTicket = async (supportId, ticketOwner) => {
     }
   }
 };
-
 /**
  * Add a comment to a support ticket
  * @param {number} supportId - ID of the support ticket
  * @param {string} message - Comment message
+ * @param {boolean} sendNotification - Should we send an email notification?
+ * @param {boolean} attachment - Is there an attachment?
  * @returns {Promise<Object>} { success, status, data, error }
  */
-export const addSupportComment = async (supportId, message) => {
+export const addSupportComment = async (
+  supportId,
+  message,
+  sendNotification = false,
+  attachment = false
+) => {
   try {
     checkAuthHeaders();
 
     const finalUrl = `/comment/add/${supportId}`;
 
-    //  Hardcoding attachment & send_notification
     const body = {
-      attachment: false,
       message,
-      send_notification: true,
+      send_notification: sendNotification,
+      attachment,
     };
 
     console.log("SupportTicketsService → Adding comment:", finalUrl, body);
 
     const response = await axios.post(finalUrl, body);
-
-    console.log(
-      "SupportTicketsService → Add Comment Response:",
-      response.status,
-      response.data,
-    );
 
     return {
       success: true,
@@ -270,6 +275,7 @@ export const addSupportComment = async (supportId, message) => {
     }
   }
 };
+
 
 /**
  * Get comments for a support ticket LISTING TICKET.
@@ -381,7 +387,6 @@ export const getSupportTicketAssignees = async () => {
     }
   }
 };
-
 
 /**
  * Delete a comment by ID

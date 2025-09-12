@@ -1,4 +1,8 @@
-import { PaperClipIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowsPointingOutIcon,
+  PaperClipIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import { Avatar, Button, GhostSpinner } from "components/ui";
 import { useRef, useState, useEffect, useMemo } from "react";
 import {
@@ -13,6 +17,8 @@ import moment from "moment";
 
 const TicketInfo = ({ details, ticketId }) => {
   const [file, setFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
   const { user } = useAuthContext();
@@ -58,15 +64,13 @@ const TicketInfo = ({ details, ticketId }) => {
     const docsRes = await getSupportDocuments(ticketId);
     console.log(docsRes);
 
-    if (docsRes.success &&  docsRes.data.status === 200) {
-      
-      
+    if (docsRes.success && docsRes.data.status === 200) {
       setDocuments(docsRes.data?.data || []);
     } else if (docsRes.status === 204) {
       setDocuments([]);
-      toast.info("No documents found");
-    } else {
       toast.error(`Failed to load documents: ${docsRes.error}`);
+    } else {
+      toast.info("No documents found");
     }
   };
   const sendReply = () => {
@@ -97,15 +101,12 @@ const TicketInfo = ({ details, ticketId }) => {
 
     setUploading(true);
     const result = await uploadSupportDocument(ticketId, file);
-     console.log(result.data);
-    if (result.success  && result.data.status === 201) {
-     
-      
+    console.log(result.data);
+    if (result.success && result.data.status === 201) {
       toast.success("Document uploaded successfully!");
       // getSupportDocuments(ticketId);
-      fetchMessages()
+      fetchMessages();
       setFile(null);
-      
     } else {
       toast.error(`Upload failed: ${result.error}`);
     }
@@ -245,11 +246,21 @@ const TicketInfo = ({ details, ticketId }) => {
 
                       <div className="ml-auto rounded-xl bg-teal-100 p-2 shadow-sm hover:bg-teal-200">
                         {isImage ? (
-                          <img
-                            src={doc.url}
-                            alt={doc.name}
-                            className="max-h-[250px] max-w-[250px] rounded object-cover"
-                          />
+                          <div className="group relative mt-2 inline-block">
+                            <img
+                              className="max-h-[250px] max-w-[300px] rounded object-cover"
+                              src={doc.url}
+                              alt={doc.name}
+                            />
+
+                            <div
+                              className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                              onClick={() => setPreviewImage(doc.url)}
+                            >
+                              <ArrowsPointingOutIcon
+                               className="h-10 w-10 text-white drop-shadow-lg" />
+                            </div>
+                          </div>
                         ) : (
                           <a
                             href={doc.url}
@@ -330,9 +341,23 @@ const TicketInfo = ({ details, ticketId }) => {
             </div>
           </div>
         </div>
+        {previewImage && (
+          <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black">
+            <div className="relative">
+              <img
+                src={previewImage}
+                alt="preview"
+                className="h-96 w-fit rounded-lg shadow-lg"
+              />
+              <XMarkIcon
+                className="absolute top-2 right-2 h-8 w-8 cursor-pointer text-black"
+                onClick={() => setPreviewImage(null)}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
 };
-
 export default TicketInfo;
