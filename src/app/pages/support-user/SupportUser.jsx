@@ -9,22 +9,24 @@ export default function SupportUser() {
   const [categoryOptions, setCategoryOptions] = useState([]);
 
   useEffect(() => {
-    async function fetchCategories() {
-      const { success, data, error } = await getCategories();
-      if (success && data?.length) {
-        setCategoryOptions(
-          data.map((cat) => ({
-            label: cat.name,      // depends on API response
-            value: cat.key || cat.id,
-          }))
-        );
-      } else {
-        console.error("Failed to fetch categories:", error);
-        setCategoryOptions([]);
-      }
+  async function fetchCategories() {
+    const { success, data, error } = await getCategories();
+    if (success && data?.length) {
+      setCategoryOptions([
+        { label: "All FAQs", value: "" }, 
+        ...data.map((cat) => ({
+          label: cat.name,      
+          value: cat.key || cat.id,
+        })),
+      ]);
+    } else {
+      console.error("Failed to fetch categories:", error);
+      setCategoryOptions([{ label: "All FAQs", value: "" }]); 
     }
-    fetchCategories();
-  }, []);
+  }
+  fetchCategories();
+}, []);
+
 
   return (
     <div className="space-y-8">

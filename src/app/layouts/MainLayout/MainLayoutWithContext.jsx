@@ -45,7 +45,7 @@ export default function MainLayoutWithContext() {
     } else if (pathname.startsWith("/faq")) {
       return {
         onAddFaqClick: () => {
-          // 🔥 Dispatch event instead of opening modal here
+          //  Dispatch event instead of opening modal here
           window.dispatchEvent(new CustomEvent("openFaqModal"));
         },
       };

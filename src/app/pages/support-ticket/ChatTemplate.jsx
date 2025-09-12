@@ -87,7 +87,6 @@ const ChatTemplate = ({ refreshTickets }) => {
     setError(null);
     let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (timeZone === "Asia/Calcutta") timeZone = "Asia/Kolkata";
-    console.log("fetchTickets called");
 
     try {
       const response = await getSupportTickets({
@@ -95,7 +94,6 @@ const ChatTemplate = ({ refreshTickets }) => {
         per_page: 500,
         time_zone: timeZone,
       });
-      // console.log("Raw ticket data:", response.data?.[0]);
 
       if (response.success && response.status === 200) {
         const ticketsArray = response.data?.data?.[0] || [];
@@ -215,7 +213,6 @@ const ChatTemplate = ({ refreshTickets }) => {
   };
 
   const handleSendResponse = async () => {
-    console.log("Send email notification:", sendEmailNotification);
     if (!selectedTicket || !replyMessage.trim()) return;
 
     const res = await addSupportComment(selectedTicket.id, replyMessage ,  sendEmailNotification);
@@ -368,7 +365,7 @@ setAssignees(assigneesData);
         id: assigneeObj.id,
         name: assigneeObj.name,
       });
-      console.log(res);
+
 
       if (res.success && (res.status === 200 || res.status === 201)) {
         toast.success(`Ticket assigned to ${assigneeObj.name}`);
@@ -989,8 +986,8 @@ setAssignees(assigneesData);
         </div>
       </div>
       {previewImage && (
-        <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black">
-          <div className="relative">
+        <div className="  bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black">
+          <div className="">
             <img
               src={previewImage}
               alt="preview"

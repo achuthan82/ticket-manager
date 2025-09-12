@@ -23,11 +23,13 @@ const TicketInfo = ({ details, ticketId }) => {
   const fileInputRef = useRef(null);
   const { user } = useAuthContext();
   const scrollRef = useRef(null);
+
   const priorityStyle = {
-    1: { color: "text-red-500", text: "High" },
+    1: { color: "text-red-500", text: "Low" },
     2: { color: "text-orange-500", text: "Medium" },
-    3: { color: "text-green-500", text: "Low" },
+    3: { color: "text-green-500", text: "High" },
   };
+
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -51,7 +53,6 @@ const TicketInfo = ({ details, ticketId }) => {
   const fetchMessages = async () => {
     getComments(ticketId).then((response) => {
       if (response.success) {
-        console.log("Messages:", response.data);
         if (response.data.data) {
           setMessages(response.data.data);
         }
@@ -62,7 +63,6 @@ const TicketInfo = ({ details, ticketId }) => {
     });
 
     const docsRes = await getSupportDocuments(ticketId);
-    console.log(docsRes);
 
     if (docsRes.success && docsRes.data.status === 200) {
       setDocuments(docsRes.data?.data || []);
@@ -101,7 +101,7 @@ const TicketInfo = ({ details, ticketId }) => {
 
     setUploading(true);
     const result = await uploadSupportDocument(ticketId, file);
-    console.log(result.data);
+
     if (result.success && result.data.status === 201) {
       toast.success("Document uploaded successfully!");
       // getSupportDocuments(ticketId);
@@ -131,23 +131,23 @@ const TicketInfo = ({ details, ticketId }) => {
               <div>
                 <p className="text-gray-500">Category</p>
                 <p className="font-medium text-gray-900">
-                  {details?.category_name || "N/A"}
+                  {details?.category_name || "Category..."}
                 </p>
               </div>
               <div>
                 <p className="text-gray-500">Priority</p>
                 <p
-                  className={`font-medium ${priorityStyle[details?.priority] ? priorityStyle[details?.priority].color : priorityStyle[1].color}`}
+                  className={`font-medium ${priorityStyle[details?.priority] ? priorityStyle[details?.priority].color : "text-gray-500"}`}
                 >
                   {priorityStyle[details?.priority]
                     ? priorityStyle[details?.priority].text
-                    : priorityStyle[1].text}
+                    : "priority..."}
                 </p>
               </div>
               <div>
                 <p className="text-gray-500">Assigned to</p>
                 <p className="font-medium text-gray-900">
-                  {details?.assigned_to || "N/A"}
+                  {details?.assigned_to || "not assigned"}
                 </p>
               </div>
               <div>
@@ -257,8 +257,7 @@ const TicketInfo = ({ details, ticketId }) => {
                               className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
                               onClick={() => setPreviewImage(doc.url)}
                             >
-                              <ArrowsPointingOutIcon
-                               className="h-10 w-10 text-white drop-shadow-lg" />
+                              <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
                             </div>
                           </div>
                         ) : (
@@ -343,14 +342,14 @@ const TicketInfo = ({ details, ticketId }) => {
         </div>
         {previewImage && (
           <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black">
-            <div className="relative">
+            <div className="">
               <img
                 src={previewImage}
                 alt="preview"
                 className="h-96 w-fit rounded-lg shadow-lg"
               />
               <XMarkIcon
-                className="absolute top-2 right-2 h-8 w-8 cursor-pointer text-black"
+                className="absolute top-2 right-2 h-8 w-8 cursor-pointer bg-white text-black"
                 onClick={() => setPreviewImage(null)}
               />
             </div>

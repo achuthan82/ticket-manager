@@ -39,11 +39,11 @@ export const getTickets = async (params) => {
     if (params.user_id) queryParams.append('user_id', params.user_id);
     if (params.search && params.search.trim()) queryParams.append('search', params.search.trim());
 
-    console.log('Making API call to /support/list with params:', Object.fromEntries(queryParams));
+    // console.log('Making API call to /support/list with params:', Object.fromEntries(queryParams));
 
     const response = await axios.get(`/support/list?${queryParams.toString()}`);
 
-    console.log('Tickets API response:', response.status, response.data);
+    // console.log('Tickets API response:', response.status, response.data);
 
     return { success: true, data: response.data, error: null };
   } catch (error) {
@@ -87,12 +87,12 @@ export const createTicket = async (payload) => {
       ticket_category: payload.category, 
     };
 
-    console.log('Creating ticket with payload:', ticketData);
+    // console.log('Creating ticket with payload:', ticketData);
 
     // Step 1: Create ticket
     const response = await axios.post('/support', ticketData);
 
-    console.log('Ticket create response:', response.status, response.data);
+    // console.log('Ticket create response:', response.status, response.data);
 
     const supportId = response.data?.data?.id || response.data?.id; 
 
@@ -101,7 +101,7 @@ export const createTicket = async (payload) => {
       const formData = new FormData();
       formData.append('file', payload.attachment);
 
-      console.log(`Uploading attachment for support_id: ${supportId}`);
+      // console.log(`Uploading attachment for support_id: ${supportId}`);
 
       const uploadResponse = await axios.post(`/support/upload/documents/${supportId}`, formData, {
         headers: {
@@ -151,11 +151,11 @@ export const getFaqs = async (params) => {
     queryParams.append("page", params.page || 1);
     queryParams.append("per_page", params.per_page || 10);
 
-    if (params.categoryId) {
-      queryParams.append("category_id", params.categoryId);
+    if (params.category) {
+      queryParams.append("category_id", params.category);
     }
 
-    console.log("Making API call to /faq/paginated with params:", Object.fromEntries(queryParams));
+    // console.log("Making API call to /faq/paginated with params:", Object.fromEntries(queryParams));
 
     const response = await axios.get(`/faq/paginated?${queryParams.toString()}`);
 
@@ -207,8 +207,9 @@ export const toggleFaqHelpful = async (faqId, isHelpful) => {
   }
 };
 
+
 /**
- * Get FAQ details (API 2)
+ * Get FAQ details 
  * @param {string} faqId
  * @returns {Promise<Object>}
  */
@@ -230,7 +231,7 @@ export const getFaqDetails = async (faqId) => {
 };
 
 /**
- * Increment FAQ view count (API 3)
+ * Increment FAQ view count 
  * @param {string} faqId
  * @returns {Promise<boolean>}
  */
@@ -257,7 +258,6 @@ export const getCategories = async () => {
     checkAuthHeaders();
 
     const response = await axios.get(`/category/list`);
-    console.log("Categories API response:", response.status, response.data);
 
     const apiStatus = response.data?.status ?? response.status;
 

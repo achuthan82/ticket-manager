@@ -22,7 +22,6 @@ export default function TicketChat() {
   const fetchTicket = () => {
     getTicketInfo(ticketId).then((response) => {
       if (response.success) {
-        console.log("Ticket data:", response.data);
         if (response.data.data) {
           setHeaderDetails(response.data.data);
         }

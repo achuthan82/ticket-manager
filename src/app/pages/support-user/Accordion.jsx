@@ -20,84 +20,76 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "components/ui";
+import { toast } from "sonner";
 
 
 const Multiple = ({ categoryOptions }) => {
   const [faqs, setFaqs] = useState([]);
   const [category, setCategory] = useState(""); // default billing
   const [page, setPage] = useState(1);
-  const [perPage] = useState(10);
+  const [perPage] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [loadingAnswers, setLoadingAnswers] = useState([]);
-
   const [openFaqs, setOpenFaqs] = useState([]);
-
-  //  const [viewedFaqs, setViewedFaqs] = useState([]);
-
-  // const handleAccordionOpen = async (faqId) => {
-  //   try {
-  //     // Fetch FAQ details
-  //     const { success, data } = await getFaqDetails(faqId);
-  //     if (success && data) {
-  //       setFaqs((prev) =>
-  //         prev.map((f) =>
-  //           f.id === faqId
-  //             ? { ...f, answer: data.answer, is_helpful: data.is_helpful }
-  //             : f
-  //         )
-  //       );
-  //     }
-
-  //     // ✅ Increment only once per session
-  //     if (!viewedFaqs.includes(faqId)) {
-  //       await incrementFaqViewCount(faqId);
-  //       setViewedFaqs((prev) => [...prev, faqId]); // mark as counted
-  //     }
-
-  //   } catch (err) {
-  //     console.error("Error on accordion open:", err);
-  //   }
-  // };
 
   const handleAccordionToggle = async (faqId) => {
     try {
       if (openFaqs.includes(faqId)) {
-        // closing → remove from openFaqs
         setOpenFaqs((prev) => prev.filter((id) => id !== faqId));
       } else {
-        // opening → add to openFaqs
         setOpenFaqs((prev) => [...prev, faqId]);
-
-        // Mark as loading for this FAQ
         setLoadingAnswers((prev) => [...prev, faqId]);
-
-        // increment view count
         await incrementFaqViewCount(faqId);
 
-        // fetch details
-        const { success, data } = await getFaqDetails(faqId);
-        if (success && data) {
+        const { success, data, error } = await getFaqDetails(faqId);
+
+        if (success) {
           setFaqs((prev) =>
             prev.map((f) =>
               f.id === faqId
-                ? { ...f, answer: data.answer, is_helpful: data.is_helpful }
+                ? {
+                  ...f,
+                  answer: data?.answer || "No answer available.",
+                  is_helpful: data?.is_helpful ?? null,
+                }
+                : f
+            )
+          );
+        } else {
+          toast.error(error || "Failed to load FAQ details.")
+          setFaqs((prev) =>
+            prev.map((f) =>
+              f.id === faqId
+                ? {
+                  ...f,
+                  answer: "Something went wrong. Please try again later.",
+                  is_helpful: null,
+                }
                 : f
             )
           );
         }
 
-        // ✅ Remove loading flag
         setLoadingAnswers((prev) => prev.filter((id) => id !== faqId));
       }
     } catch (err) {
-      console.error("Error toggling accordion:", err);
+      toast.error(err?.message || "Error toggling accordion. Please try again.");
       setLoadingAnswers((prev) => prev.filter((id) => id !== faqId));
+      setFaqs((prev) =>
+        prev.map((f) =>
+          f.id === faqId
+            ? {
+              ...f,
+              answer: "Something went wrong. Please try again later.",
+              is_helpful: null,
+            }
+            : f
+        )
+      );
     }
   };
-
-
 
   useEffect(() => {
     async function fetchFaqs() {
@@ -111,56 +103,65 @@ const Multiple = ({ categoryOptions }) => {
           category,
         });
 
-        if (success && data?.data?.length) {
-          setFaqs(
-            data.data.map((f) => ({
-              id: f.id,
-              question: f.question,
-              answer: f.answer,
-              is_helpful: f.is_helpful || false,
-            }))
-          );
-
-          // Use backend's pagination
-          if (data.pagination) {
-            setTotalPages(Math.ceil(data.pagination.total / data.pagination.per_page));
-          } else {
+        if (success) {
+          if (data?.status === 204 || !data?.data?.length) {
+            setFaqs([]);
+            setError("No FAQs found");
             setTotalPages(1);
+          } else {
+            setFaqs(
+              data.data.map((f) => ({
+                id: f.id,
+                question: f.question,
+                answer: f.answer || "", 
+                is_helpful: f.is_helpful ?? false,
+              }))
+            );
+
+            if (data.pagination) {
+              setTotalPages(
+                Math.ceil(data.pagination.total / data.pagination.per_page)
+              );
+            } else {
+              setTotalPages(1);
+            }
           }
         } else {
-          setError(fetchError || "No FAQs found");
+          setError(fetchError || "Failed to load FAQs");
           setFaqs([]);
           setTotalPages(1);
         }
       } catch (err) {
-        console.error("Error fetching FAQs:", err);
+        toast.error(err?.message || "Something went wrong while fetching FAQs.");
         setError("Something went wrong while fetching FAQs.");
         setFaqs([]);
         setTotalPages(1);
       }
-
       setLoading(false);
     }
-
 
     fetchFaqs();
   }, [category, page, perPage]);
 
-  // Updated toggle function for like/dislike
+
   const handleToggleHelpful = async (faqId, value) => {
     try {
-      // value: true = like, false = dislike
-      await toggleFaqHelpful(faqId, value);
-
-      setFaqs((prev) =>
-        prev.map((f) =>
-          f.id === faqId ? { ...f, is_helpful: value } : f
-        )
-      );
+      const res = await toggleFaqHelpful(faqId, value);
+      if (res?.status === 201) {
+        setFaqs((prev) =>
+          prev.map((f) =>
+            f.id === faqId ? { ...f, is_helpful: value } : f
+          )
+        );
+         toast.success(res?.message || "Updated successfully!");
+      } else {
+        toast.error(res?.error || "Something went wrong while updating. Please try again.")
+      }
     } catch (err) {
-      console.error("Error toggling helpful:", err);
+      toast.error(err?.response?.data?.message || "Network or server error. Please try again later.")
     }
   };
+
 
 
   return (
@@ -170,7 +171,7 @@ const Multiple = ({ categoryOptions }) => {
         <h2 className="text-xl font-semibold text-gray-900">
           Frequently Asked Questions
         </h2>
-        <div className="w-45">
+        <div className="w-40">
           <Select
             className="text-sm border border-black rounded-md px-3 py-2"
             value={category}
