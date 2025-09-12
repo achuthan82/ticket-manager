@@ -105,10 +105,8 @@ const ChatTemplate = ({ refreshTickets }) => {
 
           if (t.assigned_to) {
             if (typeof t.assigned_to === "string") {
-              // Backend gave a plain string name like "Sebastian AM"
               assigneeName = t.assigned_to;
             } else if (typeof t.assigned_to === "object") {
-              // Backend gave an object { id, name }
               assigneeId = t.assigned_to.id ?? null;
               assigneeName = t.assigned_to.name ?? "Unknown User";
             }
@@ -240,13 +238,13 @@ const ChatTemplate = ({ refreshTickets }) => {
       const res = await getSupportTicketAssignees();
 
       if (res.success && res.status === 200) {
-        const assigneesData =
-          res.data?.data?.map((user) => ({
-            id: user.id,
-            name: user.name,
-            is_assigned: user.is_assigned,
-          })) || [];
-        setAssignees(assigneesData);
+      const assigneesData =
+  res.data?.data?.map((user) => ({
+    id: user.id,
+    name: user.name,
+    is_assigned: user.is_assigned,
+  })) || [];
+setAssignees(assigneesData);
       } else if (res.status === 204) {
         toast.info("No assignees found");
       }
@@ -467,7 +465,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                 />
 
                 <Select
-                  className="max-w-[180px] min-w-[120px] flex-1 text-xs"
+                  className="max-w-[180px] min-w-[110px] flex-1 text-xs"
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
                   data={priorityOptions.map((p) => ({

@@ -4,7 +4,7 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "components/ui";
 import { Notifications } from "components/template/Notifications";
 import { useNotificationContext } from "app/contexts/notification/context";
-export default function FAQHeader({ onAddClick }) {
+export default function FAQHeader() {
 const { toggle, isExpanded } = useSidebarContext();
   const {callApi, setCallApi} = useNotificationContext()
   return (
@@ -33,7 +33,7 @@ const { toggle, isExpanded } = useSidebarContext();
           {/* Add FAQ Button */}
           <div className="flex space-x-2">
             <Button
-              onClick={() => {onAddClick();setCallApi(!callApi)}}
+              onClick={() => setCallApi(!callApi)}
               color="primary"
               className="flex items-center gap-2 rounded-lg px-4 py-2 text-white shadow"
             >

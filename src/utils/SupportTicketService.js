@@ -333,6 +333,8 @@ export const getComments = async (supportId, timeZone = "Asia/Kolkata") => {
     }
   }
 };
+
+
 /**
  * Get list of support ticket assignees
  * @returns {Promise<Object>} { success, status, data, error }
