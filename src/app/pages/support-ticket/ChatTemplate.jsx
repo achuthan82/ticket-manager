@@ -1,9 +1,11 @@
 import { Avatar, Button, Input, ScrollShadow, Select } from "components/ui";
 import {
+  ArrowsPointingOutIcon,
   ArrowUpTrayIcon,
   FunnelIcon,
   PencilIcon,
   TrashIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -39,6 +41,10 @@ const ChatTemplate = ({ refreshTickets }) => {
   const [editingMessage, setEditingMessage] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [documents, setDocuments] = useState([]);
+  const [sendEmailNotification, setSendEmailNotification] = useState(false);
+
+  // image popup
+  const [previewImage, setPreviewImage] = useState(null);
 
   const { callApi, setCallApi } = useNotificationContext();
 
@@ -81,6 +87,7 @@ const ChatTemplate = ({ refreshTickets }) => {
     setError(null);
     let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (timeZone === "Asia/Calcutta") timeZone = "Asia/Kolkata";
+    console.log("fetchTickets called");
 
     try {
       const response = await getSupportTickets({
@@ -88,15 +95,33 @@ const ChatTemplate = ({ refreshTickets }) => {
         per_page: 500,
         time_zone: timeZone,
       });
+      // console.log("Raw ticket data:", response.data?.[0]);
 
       if (response.success && response.status === 200) {
         const ticketsArray = response.data?.data?.[0] || [];
-        const normalizedTickets = ticketsArray.map((t) => ({
-          ...t,
-          statusLabel: statusMap[t.status] || "Unknown",
-          priorityLabel: priorityMap[t.priority] || "Normal",
-          assigneeName: t.assigned_to || "Unassigned",
-        }));
+        const normalizedTickets = ticketsArray.map((t) => {
+          let assigneeName = "Unassigned";
+          let assigneeId = null;
+
+          if (t.assigned_to) {
+            if (typeof t.assigned_to === "string") {
+              // Backend gave a plain string name like "Sebastian AM"
+              assigneeName = t.assigned_to;
+            } else if (typeof t.assigned_to === "object") {
+              // Backend gave an object { id, name }
+              assigneeId = t.assigned_to.id ?? null;
+              assigneeName = t.assigned_to.name ?? "Unknown User";
+            }
+          }
+
+          return {
+            ...t,
+            statusLabel: statusMap[t.status] || "Unknown",
+            priorityLabel: priorityMap[t.priority] || "Normal",
+            assigneeName,
+            assigneeId,
+          };
+        });
 
         setTickets(normalizedTickets);
 
@@ -192,9 +217,10 @@ const ChatTemplate = ({ refreshTickets }) => {
   };
 
   const handleSendResponse = async () => {
+    console.log("Send email notification:", sendEmailNotification);
     if (!selectedTicket || !replyMessage.trim()) return;
 
-    const res = await addSupportComment(selectedTicket.id, replyMessage);
+    const res = await addSupportComment(selectedTicket.id, replyMessage ,  sendEmailNotification);
 
     if (res.success && (res.status === 200 || res.status === 201)) {
       toast.success("Comment added successfully!");
@@ -202,6 +228,8 @@ const ChatTemplate = ({ refreshTickets }) => {
       fetchComments(selectedTicket.id);
       refreshTickets?.();
       setCallApi(!callApi);
+      setSendEmailNotification(false)
+      
     } else {
       toast.error(` Failed to add comment: ${res.error}`);
     }
@@ -271,14 +299,17 @@ const ChatTemplate = ({ refreshTickets }) => {
     fetchTickets();
     fetchAssignees();
   }, []);
-
   const filteredTickets = tickets.filter((t) => {
     const matchesFilter =
-      filter === "All Status" ? true : t.statusLabel === filter;
+      filter === "All Status"
+        ? true
+        : t.statusLabel === filter.replace(/\s*\(\d+\)$/, ""); // strip counts
+
     const matchesPriority =
       priorityFilter === "All Priority"
         ? true
-        : t.priorityLabel === priorityFilter;
+        : t.priorityLabel === priorityFilter.replace(/\s*\(\d+\)$/, "");
+
     const matchesSearch =
       t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.id.toString().includes(searchQuery);
@@ -288,7 +319,7 @@ const ChatTemplate = ({ refreshTickets }) => {
         ? true
         : agentFilter === "Unassigned"
           ? t.assigneeName === "Unassigned"
-          : t.assigneeName === agentFilter;
+          : t.assigneeName === agentFilter.replace(/\s*\(\d+\)$/, "");
 
     return matchesFilter && matchesPriority && matchesSearch && matchesAgent;
   });
@@ -296,28 +327,55 @@ const ChatTemplate = ({ refreshTickets }) => {
   const updateAssignee = async (newAssignee) => {
     if (!selectedTicket) return;
 
+    // Handle "Unassigned"
+    if (newAssignee === "Unassigned") {
+      setSelectedTicket((prev) => ({
+        ...prev,
+        assigneeName: "Unassigned",
+        assigneeId: null,
+      }));
+      setTickets((prev) =>
+        prev.map((t) =>
+          t.id === selectedTicket.id
+            ? { ...t, assigneeName: "Unassigned", assigneeId: null }
+            : t,
+        ),
+      );
+      return;
+    }
+
+    // ✅ Get the full object
+    const assigneeObj = assignees.find((a) => a.name === newAssignee);
+    if (!assigneeObj) {
+      toast.error("Invalid assignee selected");
+      return;
+    }
+
+    // Optimistic update
     setSelectedTicket((prev) => ({
       ...prev,
-      assignee: newAssignee,
+      assigneeName: assigneeObj.name,
+      assigneeId: assigneeObj.id,
     }));
-
-    setTickets((prevTickets) =>
-      prevTickets.map((t) =>
-        t.id === selectedTicket.id ? { ...t, assigneeName: newAssignee } : t,
+    setTickets((prev) =>
+      prev.map((t) =>
+        t.id === selectedTicket.id
+          ? { ...t, assigneeName: assigneeObj.name, assigneeId: assigneeObj.id }
+          : t,
       ),
     );
 
-    if (newAssignee === "Unassigned") return;
-
-    const assigneeObj = assignees.find((a) => a.name === newAssignee);
-    const ticketOwnerId = assigneeObj?.id || newAssignee;
-
     try {
-      const res = await assignSupportTicket(selectedTicket.id, ticketOwnerId);
+      const res = await assignSupportTicket(selectedTicket.id, {
+        id: assigneeObj.id,
+        name: assigneeObj.name,
+      });
+      console.log(res);
+
       if (res.success && (res.status === 200 || res.status === 201)) {
-        toast.success(`Ticket assigned to ${newAssignee}`);
+        toast.success(`Ticket assigned to ${assigneeObj.name}`);
         refreshTickets?.();
-        setCallApi(!callApi);
+        setCallApi((prev) => !prev);
       } else {
         toast.error(`Failed to assign ticket: ${res.error}`);
       }
@@ -596,27 +654,27 @@ const ChatTemplate = ({ refreshTickets }) => {
                     </div>
                     <div className="flex w-full items-center space-x-2 sm:w-auto">
                       <label className="shrink-0 text-xs font-medium text-gray-700 sm:text-sm">
-                        {selectedTicket.assignee &&
-                        selectedTicket.assignee !== "Unassigned"
+                        {selectedTicket.assigneeName &&
+                        selectedTicket.assigneeName !== "Unassigned"
                           ? "Assigned to:"
                           : "Assign to:"}
                       </label>
 
-                      {selectedTicket.assignee &&
-                      selectedTicket.assignee !== "Unassigned" ? (
+                      {selectedTicket.assigneeName &&
+                      selectedTicket.assigneeName !== "Unassigned" ? (
                         <span className="rounded-lg border-2 p-2 text-sm font-medium text-gray-900">
-                          {selectedTicket.assignee}
+                          {selectedTicket.assigneeName}
                         </span>
                       ) : (
                         <Select
-                          value={selectedTicket.assignee || "Unassigned"}
+                          value={selectedTicket.assigneeName || "Unassigned"}
                           data={[
                             "Unassigned",
                             ...assignees
                               .filter(
                                 (a) =>
                                   !a.is_assigned ||
-                                  a.name === selectedTicket.assignee, // show only free agents + current
+                                  a.name === selectedTicket.assigneeName, // show only free agents + current
                               )
                               .map((a) => a.name),
                           ]}
@@ -657,11 +715,20 @@ const ChatTemplate = ({ refreshTickets }) => {
 
                               <div className="ml-auto rounded-xl bg-teal-100 p-2 shadow-sm hover:bg-teal-200">
                                 {isImage ? (
-                                  <img
-                                    src={doc.url}
-                                    alt={doc.name}
-                                    className="max-h-[250px] max-w-[250px] rounded object-cover"
-                                  />
+                                  <div className="group relative mt-2 inline-block">
+                                    <img
+                                      className="max-h-[250px] max-w-[300px] rounded object-cover"
+                                      src={doc.url}
+                                      alt={doc.name}
+                                    />
+
+                                    <div
+                                      className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                      onClick={() => setPreviewImage(doc.url)}
+                                    >
+                                      <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                                    </div>
+                                  </div>
                                 ) : (
                                   <a
                                     href={doc.url}
@@ -696,10 +763,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                       )}
 
                       {comments.map((comment) => {
-                        const canEdit =
-                          currentUser?.role === 1 ||
-                          comment.created_by === currentUser?.id;
-
+                        const canEdit = comment.created_by === currentUser?.id;
                         return (
                           <div
                             key={comment.id}
@@ -897,12 +961,26 @@ const ChatTemplate = ({ refreshTickets }) => {
                       </div>
 
                       <div className="flex w-full justify-end sm:w-auto">
+                          <label className="flex cursor-pointer items-center me-3 space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={sendEmailNotification}
+                            onChange={(e) =>
+                              setSendEmailNotification(e.target.checked)
+                            }
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                          />
+                          <span className="text-sm text-gray-700">
+                            Send email notification
+                          </span>
+                        </label>
                         <button
                           className="bg-dark-800 w-full rounded-lg px-3 py-2 text-sm text-white sm:w-auto sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3"
                           onClick={handleSendResponse}
                         >
                           Send Response
                         </button>
+                       
                       </div>
                     </div>
                   </div>
@@ -912,6 +990,21 @@ const ChatTemplate = ({ refreshTickets }) => {
           )}
         </div>
       </div>
+      {previewImage && (
+        <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black">
+          <div className="relative">
+            <img
+              src={previewImage}
+              alt="preview"
+              className="h-96 w-fit rounded-lg shadow-lg"
+            />
+            <XMarkIcon
+              className="absolute top-2 right-2 h-8 w-8 cursor-pointer bg-white text-black"
+              onClick={() => setPreviewImage(null)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

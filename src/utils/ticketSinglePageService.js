@@ -103,7 +103,7 @@ export const addComment = (ticketId, message) => {
     .post(`/comment/add/${ticketId}`, {
       attachment: false,
       message: message,
-      send_notification: true,
+      send_notification: false,
     })
     .then((response) => {
       return { success: true, data: response.data, error: null };
