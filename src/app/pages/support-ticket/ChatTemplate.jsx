@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import moment from "moment";
 import { useNotificationContext } from "app/contexts/notification/context";
+import clsx from "clsx";
 
 const ChatTemplate = ({ refreshTickets }) => {
   const [tickets, setTickets] = useState([]);
@@ -87,7 +88,6 @@ const ChatTemplate = ({ refreshTickets }) => {
     setError(null);
     let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (timeZone === "Asia/Calcutta") timeZone = "Asia/Kolkata";
-    console.log("fetchTickets called");
 
     try {
       const response = await getSupportTickets({
@@ -95,7 +95,6 @@ const ChatTemplate = ({ refreshTickets }) => {
         per_page: 500,
         time_zone: timeZone,
       });
-      // console.log("Raw ticket data:", response.data?.[0]);
 
       if (response.success && response.status === 200) {
         const ticketsArray = response.data?.data?.[0] || [];
@@ -105,10 +104,8 @@ const ChatTemplate = ({ refreshTickets }) => {
 
           if (t.assigned_to) {
             if (typeof t.assigned_to === "string") {
-              // Backend gave a plain string name like "Sebastian AM"
               assigneeName = t.assigned_to;
             } else if (typeof t.assigned_to === "object") {
-              // Backend gave an object { id, name }
               assigneeId = t.assigned_to.id ?? null;
               assigneeName = t.assigned_to.name ?? "Unknown User";
             }
@@ -217,10 +214,13 @@ const ChatTemplate = ({ refreshTickets }) => {
   };
 
   const handleSendResponse = async () => {
-    console.log("Send email notification:", sendEmailNotification);
     if (!selectedTicket || !replyMessage.trim()) return;
 
-    const res = await addSupportComment(selectedTicket.id, replyMessage ,  sendEmailNotification);
+    const res = await addSupportComment(
+      selectedTicket.id,
+      replyMessage,
+      sendEmailNotification,
+    );
 
     if (res.success && (res.status === 200 || res.status === 201)) {
       toast.success("Comment added successfully!");
@@ -228,8 +228,7 @@ const ChatTemplate = ({ refreshTickets }) => {
       fetchComments(selectedTicket.id);
       refreshTickets?.();
       setCallApi(!callApi);
-      setSendEmailNotification(false)
-      
+      setSendEmailNotification(false);
     } else {
       toast.error(` Failed to add comment: ${res.error}`);
     }
@@ -370,7 +369,6 @@ const ChatTemplate = ({ refreshTickets }) => {
         id: assigneeObj.id,
         name: assigneeObj.name,
       });
-      console.log(res);
 
       if (res.success && (res.status === 200 || res.status === 201)) {
         toast.success(`Ticket assigned to ${assigneeObj.name}`);
@@ -467,7 +465,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                 />
 
                 <Select
-                  className="max-w-[180px] min-w-[120px] flex-1 text-xs"
+                  className="max-w-[180px] min-w-[110px] flex-1 text-xs"
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
                   data={priorityOptions.map((p) => ({
@@ -649,11 +647,19 @@ const ChatTemplate = ({ refreshTickets }) => {
                         value={selectedTicket.statusLabel}
                         data={["New", "Open", "Pending", "Resolved", "Closed"]}
                         onChange={(e) => handleStatusChange(e.target.value)}
-                        className="flex-1 text-xs sm:flex-none sm:text-sm"
+                        className="flex-1 cursor-pointer text-xs sm:flex-none sm:text-sm"
                       />
                     </div>
                     <div className="flex w-full items-center space-x-2 sm:w-auto">
-                      <label className="shrink-0 text-xs font-medium text-gray-700 sm:text-sm">
+                      <label
+                        className={clsx(
+                          "shrink-0 text-xs font-medium sm:text-sm",
+                          selectedTicket.assigneeName &&
+                            selectedTicket.assigneeName !== "Unassigned"
+                            ? "text-[#2A5A9D]" // when assigned
+                            : "text-gray-700", // default
+                        )}
+                      >
                         {selectedTicket.assigneeName &&
                         selectedTicket.assigneeName !== "Unassigned"
                           ? "Assigned to:"
@@ -662,7 +668,7 @@ const ChatTemplate = ({ refreshTickets }) => {
 
                       {selectedTicket.assigneeName &&
                       selectedTicket.assigneeName !== "Unassigned" ? (
-                        <span className="rounded-lg border-2 p-2 text-sm font-medium text-gray-900">
+                        <span className="rounded-lg bg-[#2A5A9D] p-2 text-sm font-medium text-white hover:bg-[#1A3A6C] cursor-pointer">
                           {selectedTicket.assigneeName}
                         </span>
                       ) : (
@@ -679,7 +685,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                               .map((a) => a.name),
                           ]}
                           onChange={(e) => updateAssignee(e.target.value)}
-                          className="flex-1 text-xs sm:flex-none sm:text-sm"
+                          className="flex-1 text-xs sm:flex-none sm:text-sm cursor-pointer"
                         />
                       )}
                     </div>
@@ -707,9 +713,9 @@ const ChatTemplate = ({ refreshTickets }) => {
                           >
                             <div className="flex max-w-[70%] flex-col">
                               <div className="mb-1 flex justify-end text-xs text-gray-400">
-                                <span className="font-medium text-gray-900">
+                                {/* <span className="font-medium text-gray-900">
                                   You
-                                </span>
+                                </span> */}
                                 {/* <span> • just now</span> */}
                               </div>
 
@@ -898,8 +904,8 @@ const ChatTemplate = ({ refreshTickets }) => {
 
                         <div className="flex items-center gap-2">
                           <Button
-                            variant="flat"
-                            className="flex items-center justify-center text-gray-400 hover:text-gray-600"
+                            variant="neutral"
+                            className="flex items-center justify-center bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
                             onClick={() =>
                               document.getElementById("fileUpload").click()
                             }
@@ -961,7 +967,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                       </div>
 
                       <div className="flex w-full justify-end sm:w-auto">
-                          <label className="flex cursor-pointer items-center me-3 space-x-2">
+                        <label className="me-3 flex cursor-pointer items-center space-x-2">
                           <input
                             type="checkbox"
                             checked={sendEmailNotification}
@@ -974,13 +980,13 @@ const ChatTemplate = ({ refreshTickets }) => {
                             Send email notification
                           </span>
                         </label>
-                        <button
-                          className="bg-dark-800 w-full rounded-lg px-3 py-2 text-sm text-white sm:w-auto sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3"
+                        <Button
+                          variant="default"
+                          className="bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
                           onClick={handleSendResponse}
                         >
                           Send Response
-                        </button>
-                       
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -992,7 +998,7 @@ const ChatTemplate = ({ refreshTickets }) => {
       </div>
       {previewImage && (
         <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black">
-          <div className="relative">
+          <div className="">
             <img
               src={previewImage}
               alt="preview"

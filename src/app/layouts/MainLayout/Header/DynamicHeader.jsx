@@ -40,6 +40,6 @@ export default function DynamicHeader({ onUploadClick, onInviteClick, onExportCl
     return <NotificationHeader/>
   }
    else if (pathname.startsWith('/faq')) {   //  Added FAQ route check
-    return <FAQHeader onAddClick={onAddFaqClick} />; //  pass prop to trigger modal
+    return <FAQHeader onAddClick={onAddFaqClick} />; //  pass prop to trigger modaldyanid
   }
 } 
