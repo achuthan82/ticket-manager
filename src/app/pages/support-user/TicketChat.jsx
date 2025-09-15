@@ -2,15 +2,15 @@ import { useNavigate, useParams } from "react-router";
 import TicketChatHeader from "./TicketChatHeader";
 import { useDisclosure } from "hooks";
 
-
 import TicketInfo from "./TicketInfo";
 import { Basic } from "./CloseTicketModal";
 import { getTicketInfo } from "utils/ticketSinglePageService";
 import { useEffect, useState } from "react";
-// import { getSupportDocuments } from "utils/SupportTicketService";
+
 export default function TicketChat() {
   const navigate = useNavigate();
   const [headerDetails, setHeaderDetails] = useState(null);
+  const [loading, setLoading] = useState(true);   
   const { ticketId } = useParams();
 
   const [isOpen, { open, close }] = useDisclosure(false);
@@ -19,7 +19,8 @@ export default function TicketChat() {
     navigate("/support-user");
   };
 
-  const fetchTicket = () => {
+  useEffect(() => {
+    setLoading(true);
     getTicketInfo(ticketId).then((response) => {
       if (response.success) {
         if (response.data.data) {
@@ -29,12 +30,11 @@ export default function TicketChat() {
         setHeaderDetails(null);
         console.error("Error:", response.error);
       }
+      setLoading(false);
     });
-  };
+  }, [ticketId]);
 
-  useEffect(() => {
-    fetchTicket();
-  }, []);
+
   return (
     <>
       <TicketChatHeader
@@ -42,6 +42,7 @@ export default function TicketChat() {
         backToTickets={backToTickets}
         closeTicket={open}
         headerDetails={headerDetails}
+        loading={loading}
       />
       <Basic
         ticketId={ticketId}

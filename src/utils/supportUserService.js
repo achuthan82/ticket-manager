@@ -20,7 +20,7 @@ import { checkAuthHeaders } from './authDebug';
  */
 export const getTickets = async (params) => {
   try {
-    checkAuthHeaders(); // Debugging call
+    checkAuthHeaders();
 
     const queryParams = new URLSearchParams();
     queryParams.append('page', params.page || 1);
@@ -84,19 +84,15 @@ export const createTicket = async (payload) => {
       subject: payload.subject,
       description: payload.description,
       priority: priorityMap[payload.priority] || 2, // default medium
-      ticket_category: payload.category, 
+      ticket_category: payload.category,
     };
 
     // console.log('Creating ticket with payload:', ticketData);
 
-    // Step 1: Create ticket
     const response = await axios.post('/support', ticketData);
-
     // console.log('Ticket create response:', response.status, response.data);
+    const supportId = response.data?.data?.id || response.data?.id;
 
-    const supportId = response.data?.data?.id || response.data?.id; 
-
-    // Step 2: If attachment exists, upload it
     if (payload.attachment && supportId) {
       const formData = new FormData();
       formData.append('file', payload.attachment);
