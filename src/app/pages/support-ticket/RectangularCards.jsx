@@ -34,7 +34,7 @@ const RectangularCards = () => {
     try {
       const response = await getSupportTickets({
         page: 1,
-        per_page: 200,
+        per_page: 300,
         time_zone: timeZone,
       });
 
