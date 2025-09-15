@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import moment from "moment";
 import { useNotificationContext } from "app/contexts/notification/context";
+import clsx from "clsx";
 
 const ChatTemplate = ({ refreshTickets }) => {
   const [tickets, setTickets] = useState([]);
@@ -646,11 +647,19 @@ const ChatTemplate = ({ refreshTickets }) => {
                         value={selectedTicket.statusLabel}
                         data={["New", "Open", "Pending", "Resolved", "Closed"]}
                         onChange={(e) => handleStatusChange(e.target.value)}
-                        className="flex-1 text-xs sm:flex-none sm:text-sm"
+                        className="flex-1 cursor-pointer text-xs sm:flex-none sm:text-sm"
                       />
                     </div>
                     <div className="flex w-full items-center space-x-2 sm:w-auto">
-                      <label className="shrink-0 text-xs font-medium text-gray-700 sm:text-sm">
+                      <label
+                        className={clsx(
+                          "shrink-0 text-xs font-medium sm:text-sm",
+                          selectedTicket.assigneeName &&
+                            selectedTicket.assigneeName !== "Unassigned"
+                            ? "text-[#2A5A9D]" // when assigned
+                            : "text-gray-700", // default
+                        )}
+                      >
                         {selectedTicket.assigneeName &&
                         selectedTicket.assigneeName !== "Unassigned"
                           ? "Assigned to:"
@@ -659,7 +668,7 @@ const ChatTemplate = ({ refreshTickets }) => {
 
                       {selectedTicket.assigneeName &&
                       selectedTicket.assigneeName !== "Unassigned" ? (
-                        <span className="rounded-lg border-2 p-2 text-sm font-medium text-gray-900">
+                        <span className="rounded-lg bg-[#2A5A9D] p-2 text-sm font-medium text-white hover:bg-[#1A3A6C] cursor-pointer">
                           {selectedTicket.assigneeName}
                         </span>
                       ) : (
@@ -676,7 +685,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                               .map((a) => a.name),
                           ]}
                           onChange={(e) => updateAssignee(e.target.value)}
-                          className="flex-1 text-xs sm:flex-none sm:text-sm"
+                          className="flex-1 text-xs sm:flex-none sm:text-sm cursor-pointer"
                         />
                       )}
                     </div>
@@ -895,8 +904,8 @@ const ChatTemplate = ({ refreshTickets }) => {
 
                         <div className="flex items-center gap-2">
                           <Button
-                            variant="flat"
-                            className="flex items-center justify-center text-gray-400 hover:text-gray-600"
+                            variant="neutral"
+                            className="flex items-center justify-center bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
                             onClick={() =>
                               document.getElementById("fileUpload").click()
                             }
