@@ -160,10 +160,11 @@ const TicketInfo = ({ details, ticketId }) => {
               className="mt-[30px] max-h-[25vh] min-h-[10vh] overflow-y-auto"
               ref={scrollRef}
             >
-                {documents.map((doc, index) => {
+              {documents.map((doc, index) => {
                 const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(
                   doc.name,
                 );
+                // const isloggedInUser = user.id === item.created_by;
 
                 return (
                   <div
@@ -176,7 +177,7 @@ const TicketInfo = ({ details, ticketId }) => {
                         {/* <span> • just now</span> */}
                       </div>
 
-                      <div className="ml-auto rounded-xl bg-teal-100 p-2 shadow-sm hover:bg-teal-200">
+                      <div className="ml-auto rounded-xl mt-3 bg-gray-200 p-2 shadow-sm hover:bg-gray-300">
                         {isImage ? (
                           <div className="group relative mt-2 inline-block">
                             <img
@@ -205,9 +206,9 @@ const TicketInfo = ({ details, ticketId }) => {
                         )}
                       </div>
                     </div>
+
                     <Avatar
-                      initialColor="success"
-                      className="mt-4 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
+                      initialColor={currentUser ? "secondary" : "primary"}
                       name={currentUser?.name || "You"}
                     />
                   </div>
@@ -281,7 +282,6 @@ const TicketInfo = ({ details, ticketId }) => {
                   </div>
                 </div> */}
               </div>
-            
             </div>
             {/* Reply Box */}
             <div className="mt-6 border-t pt-6">
