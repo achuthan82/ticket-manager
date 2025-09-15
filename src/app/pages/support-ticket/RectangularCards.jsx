@@ -6,7 +6,10 @@ import {
   CheckIcon,
 } from "@heroicons/react/24/outline";
 import ChatTemplate from "./ChatTemplate";
-import { getSupportTickets } from "../../../utils/SupportTicketService";
+import {
+  getSupportTickets,
+  getTicketCounts,
+} from "../../../utils/SupportTicketService";
 
 const RectangularCards = () => {
   const [tickets, setTickets] = useState([]);
@@ -20,9 +23,7 @@ const RectangularCards = () => {
     Resolved: 0,
   });
 
-  // Map numeric status to labels
-  const statusMap = { 1: "New", 2: "Open", 3: "Pending", 4: "Resolved" };
-
+  // ✅ Fetch ticket list (for ChatTemplate)
   const fetchTickets = async () => {
     setLoading(true);
     setError(null);
@@ -39,17 +40,6 @@ const RectangularCards = () => {
 
       if (response.success && response.data?.data?.[0]) {
         const ticketsArray = response.data.data[0];
-
-        // Count tickets by status
-        const counts = { New: 0, Open: 0, Pending: 0, Resolved: 0 };
-        ticketsArray.forEach((ticket) => {
-          const statusLabel = statusMap[ticket.status];
-          if (statusLabel && counts[statusLabel] !== undefined) {
-            counts[statusLabel]++;
-          }
-        });
-
-        setTicketCounts(counts);
         setTickets(ticketsArray);
       } else {
         setError(response.error || "Failed to fetch tickets");
@@ -61,8 +51,30 @@ const RectangularCards = () => {
     setLoading(false);
   };
 
+  // ✅ Fetch ticket counts (from /dashboard)
+  const fetchTicketCounts = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await getTicketCounts();
+      if (response.success && response.data) {
+        setTicketCounts(response.data);
+      } else {
+        setError(response.error || "Failed to fetch ticket counts");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Error fetching ticket counts");
+    }
+
+    setLoading(false);
+  };
+
+  // ✅ Run both APIs on mount
   useEffect(() => {
     fetchTickets();
+    fetchTicketCounts();
   }, []);
 
   const cardsData = [
@@ -138,7 +150,10 @@ const RectangularCards = () => {
           ticketCounts={ticketCounts}
           loading={loading}
           error={error}
-          refreshTickets={fetchTickets}
+          refreshTickets={() => {
+            fetchTickets();
+            fetchTicketCounts();
+          }}
         />
       </div>
     </div>
