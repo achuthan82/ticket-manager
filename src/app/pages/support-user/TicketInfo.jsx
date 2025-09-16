@@ -15,7 +15,7 @@ import { useAuthContext } from "app/contexts/auth/context";
 import { toast } from "sonner";
 import moment from "moment";
 
-const TicketInfo = ({ details, ticketId , infoLoading }) => {
+const TicketInfo = ({ details, ticketId, infoLoading }) => {
   const [file, setFile] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -34,6 +34,7 @@ const TicketInfo = ({ details, ticketId , infoLoading }) => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [documents, setDocuments] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(20);
   const currentUser = useMemo(() => {
     try {
       const raw = localStorage.getItem("userData");
@@ -54,8 +55,8 @@ const TicketInfo = ({ details, ticketId , infoLoading }) => {
     getComments(ticketId).then((response) => {
       if (response.success) {
         if (response.data.data) {
-         // Reverse so newest is at the bottom
-        setMessages(response.data.data.reverse());
+          // Reverse so newest is at the bottom
+          setMessages(response.data.data.reverse());
         }
       } else {
         setMessages([]);
@@ -130,7 +131,7 @@ const TicketInfo = ({ details, ticketId , infoLoading }) => {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-4xl">
           {/* Ticket info */}
-         {/* Ticket info */}
+          {/* Ticket info */}
           <div className="mb-6 rounded-lg bg-gray-50 p-4">
             <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
               {/* Category */}
@@ -152,10 +153,11 @@ const TicketInfo = ({ details, ticketId , infoLoading }) => {
                   <Skeleton className="h-4 w-16 rounded" />
                 ) : (
                   <p
-                    className={`font-medium ${priorityStyle[details?.priority]
-                      ? priorityStyle[details?.priority].color
-                      : "text-gray-500"
-                      }`}
+                    className={`font-medium ${
+                      priorityStyle[details?.priority]
+                        ? priorityStyle[details?.priority].color
+                        : "text-gray-500"
+                    }`}
                   >
                     {priorityStyle[details?.priority]
                       ? priorityStyle[details?.priority].text
@@ -185,7 +187,6 @@ const TicketInfo = ({ details, ticketId , infoLoading }) => {
                   <p className="font-medium text-gray-900">2 hours</p>
                 )}
               </div>
-
             </div>
             {/* Messages */}
             <div
@@ -287,9 +288,21 @@ const TicketInfo = ({ details, ticketId , infoLoading }) => {
               })}
               <div className="bordered mt-10 space-y-6 border-gray-200">
                 {/* User Message */}
+
+                {messages.length > visibleCount && (
+                  <div className="my-3 text-center">
+                    <button
+                      onClick={() => setVisibleCount((prev) => prev + 20)}
+                      className="rounded bg-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-300"
+                    >
+                      Load More
+                    </button>
+                  </div>
+                )}
                 {messages && messages.length > 0 ? (
-                  messages.map((item, index) => {
+                  messages.slice(-visibleCount).map((item, index) => {
                     const isloggedInUser = user.id === item.created_by;
+
                     return (
                       <div className="flex items-start space-x-3" key={index}>
                         <Avatar
