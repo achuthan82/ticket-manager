@@ -41,7 +41,10 @@ export default function MainLayoutWithContext() {
     } else if (pathname.startsWith("/prompts")) {
       return { onOpenModal: promptsContext?.openModal };
     } else if (pathname.startsWith("/support-user")) {
-      return { onAddUserClick: () => setIsNewTicketOpen(true) };
+      return { onAddUserClick: () => {
+      setPrefillCategory(""); 
+      setIsNewTicketOpen(true);
+    } };
     } else if (pathname.startsWith("/faq")) {
       return {
         onAddFaqClick: () => {

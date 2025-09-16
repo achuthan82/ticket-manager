@@ -42,7 +42,6 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
     },
   });
 
-  // 🔹 Fetch categories from backend
   useEffect(() => {
     const fetchCategories = async () => {
       setLoadingCategories(true);
@@ -50,7 +49,7 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
       if (result.success) {
         const formatted = result.data.map((c) => ({
           label: c.name,
-          value: c.id, // ✅ backend category ID
+          value: c.id,
         }));
         setCategories([{ label: "Select a category", value: "" }, ...formatted]);
       } else {
@@ -61,19 +60,34 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
     fetchCategories();
   }, []);
 
-  // 🔹 Pre-fill category when HelpSection clicks
   useEffect(() => {
-    if (prefillCategory) {
-      setValue("category", prefillCategory, { shouldValidate: true });
+    if (open) {
+      reset({
+        category: prefillCategory || "",
+        priority: "low",
+        subject: "",
+        description: "",
+      });
     }
-  }, [prefillCategory, setValue]);
+  }, [open, prefillCategory, reset]);
+
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (files) => {
       append(...files);
       setAttachment(files[0]);
     },
-    accept: { "image/png": [".png", ".jpeg", ".jpg"] },
+    accept: {
+      "image/jpeg": [".jpeg", ".jpg"],
+      "image/png": [".png"],
+      "image/gif": [".gif"],
+      "image/svg+xml": [".svg"],
+      "application/pdf": [".pdf"],
+      "application/msword": [".doc"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+        ".docx",
+      ],
+    },
   });
 
   const clearFiles = () => {
@@ -82,34 +96,34 @@ export default function NewTicketModal({ open, onClose, prefillCategory }) {
     }
   };
 
-const submitForm = async (data) => {
-  setSubmitting(true);
-  try {
-    const payload = {
-      ...data,
-      attachment,
-    };
+  const submitForm = async (data) => {
+    setSubmitting(true);
+    try {
+      const payload = {
+        ...data,
+        attachment,
+      };
 
-    const result = await createTicket(payload);
+      const result = await createTicket(payload);
 
-    if (result?.data?.status === 201) {
-      toast.success("Ticket created successfully!");
-      window.dispatchEvent(new Event("ticketCreated"));
+      if (result?.data?.status === 201) {
+        toast.success("Ticket created successfully!");
+        window.dispatchEvent(new Event("ticketCreated"));
 
-      reset();
-      setAttachment(null);
-      clearFiles();
-      setCallApi(!callApi);
-      onClose?.();
-    } else {
-      toast.error(
-        `Failed to create ticket: ${result?.error || "Unknown error"}`
-      );
+        reset();
+        setAttachment(null);
+        clearFiles();
+        setCallApi(!callApi);
+        onClose?.();
+      } else {
+        toast.error(
+          `Failed to create ticket: ${result?.error || "Unknown error"}`
+        );
+      }
+    } finally {
+      setSubmitting(false);
     }
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
 
 
   const handleClose = () => {
@@ -303,7 +317,7 @@ const submitForm = async (data) => {
                           <span className="text-primary-600">Browse</span>
                           <span> or drop your files here</span>
                           <p className="mt-1 text-xs">
-                            You can upload .png, .jpg and .jpeg file formats.
+                            You can upload JPG, PNG, GIF, JPEG, SVG, PDF, DOC, and DOCX file formats.
                           </p>
                         </span>
                       </Button>

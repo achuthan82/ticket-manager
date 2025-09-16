@@ -79,11 +79,10 @@ export const createTicket = async (payload) => {
       high: 3,
     };
 
-
     const ticketData = {
       subject: payload.subject,
       description: payload.description,
-      priority: priorityMap[payload.priority] || 2, // default medium
+      priority: priorityMap[payload.priority] || 1, 
       ticket_category: payload.category,
     };
 

@@ -131,7 +131,7 @@ const TicketInfo = ({ details, ticketId }) => {
               <div>
                 <p className="text-gray-500">Category</p>
                 <p className="font-medium text-gray-900">
-                  {details?.category_name || "Category..."}
+                  {details?.category_name || "N/A"}
                 </p>
               </div>
               <div>
@@ -141,13 +141,13 @@ const TicketInfo = ({ details, ticketId }) => {
                 >
                   {priorityStyle[details?.priority]
                     ? priorityStyle[details?.priority].text
-                    : "priority..."}
+                    : "N/A"}
                 </p>
               </div>
               <div>
                 <p className="text-gray-500">Assigned to</p>
                 <p className="font-medium text-gray-900">
-                  {details?.assigned_to || "not assigned"}
+                  {details?.assigned_to || "N/A"}
                 </p>
               </div>
               <div>
