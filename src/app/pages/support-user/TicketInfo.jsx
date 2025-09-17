@@ -4,12 +4,12 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Avatar, Button, GhostSpinner, Skeleton } from "components/ui";
-import { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   getComments,
   addComment,
   uploadSupportDocument,
-  getSupportDocuments,
+  // getSupportDocuments,
 } from "utils/ticketSinglePageService";
 import { useAuthContext } from "app/contexts/auth/context";
 import { toast } from "sonner";
@@ -19,7 +19,7 @@ const TicketInfo = ({ details, ticketId, infoLoading }) => {
   const [file, setFile] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
 
-  const [uploading, setUploading] = useState(false);
+  // const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
   const { user } = useAuthContext();
   const scrollRef = useRef(null);
@@ -33,23 +33,10 @@ const TicketInfo = ({ details, ticketId, infoLoading }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [documents, setDocuments] = useState([]);
+  // const [documents, setDocuments] = useState([]);
   const [visibleCount, setVisibleCount] = useState(20);
-  const currentUser = useMemo(() => {
-    try {
-      const raw = localStorage.getItem("userData");
-      if (!raw) return {};
-      const parsed = JSON.parse(raw);
-      return {
-        id: parsed?.id,
-        name: parsed?.name,
-        role: parsed?.role_id,
-      };
-    } catch (err) {
-      console.error("Failed to parse userData:", err);
-      return {};
-    }
-  }, []);
+   const messagesContainerRef = useRef(null);
+   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const fetchMessages = async () => {
     getComments(ticketId).then((response) => {
@@ -64,74 +51,121 @@ const TicketInfo = ({ details, ticketId, infoLoading }) => {
       }
     });
 
-    const docsRes = await getSupportDocuments(ticketId);
+    // const docsRes = await getSupportDocuments(ticketId);
 
-    if (docsRes.success && docsRes.data.status === 200) {
-      setDocuments(docsRes.data?.data || []);
-    } else {
-      // Always set empty array if API fails or no docs
-      setDocuments([]);
-      // Optionally log error, but don't show toast
-      console.error(
-        "Failed to load documents",
-        docsRes.error || "No documents",
-      );
-    }
+    // if (docsRes.success && docsRes.data.status === 200) {
+    //   setDocuments(docsRes.data?.data || []);
+    // } else {
+    //   // Always set empty array if API fails or no docs
+    //   setDocuments([]);
+    //   // Optionally log error, but don't show toast
+    //   console.error(
+    //     "Failed to load documents",
+    //     docsRes.error || "No documents",
+    //   );
+    // }
   };
-  const sendReply = () => {
-    setLoading(true);
-    addComment(ticketId, message)
-      .then((response) => {
-        if (response.success) {
-          toast.success("Comment Added!");
-          setMessage(" ");
-          fetchMessages();
-        } else {
-          toast.error("Please try again later");
-        }
-      })
-      .catch(() => {
-        toast.error("Please try again later");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
+  // const sendReply = () => {
+  //   setLoading(true);
+  //   addComment(ticketId, message)
+  //     .then((response) => {
+  //       if (response.success) {
+  //         toast.success("Comment Added!");
+  //         setMessage(" ");
+  //         fetchMessages();
+  //       } else {
+  //         toast.error("Please try again later");
+  //       }
+  //     })
+  //     .catch(() => {
+  //       toast.error("Please try again later");
+  //     })
+  //     .finally(() => {
+  //       setLoading(false);
+  //     });
+  // };
 
-  const handleFileUpload = async () => {
-    if (!file) {
-      toast.error("Please select a file to upload");
+  const sendReply = async () => {
+    if (!ticketId) return;
+    if (!message.trim() && !file) {
+      toast.error("Please enter a message or attach a file");
       return;
     }
 
-    setUploading(true);
-    const result = await uploadSupportDocument(ticketId, file);
+    setLoading(true);
 
-    if (result.success && result.data.status === 201) {
-      toast.success("Document uploaded successfully!");
-      // getSupportDocuments(ticketId);
+    try {
+      // 1. Handle text
+      if (message.trim()) {
+        const res = await addComment(ticketId, message);
+        if (
+          !(res.success && (res.data.status === 200 || res.data.status === 201))
+        ) {
+          toast.error(`Failed to add comment: ${res.error}`);
+          return;
+        }
+      }
+
+      // 2. Handle file
+      if (file) {
+        const uploadResult = await uploadSupportDocument(ticketId, file);
+        if (
+          uploadResult.success &&
+          (uploadResult.data.status === 200 || uploadResult.data.status === 201)
+        ) {
+          toast.success("File uploaded successfully!");
+          setFile(null);
+        } else {
+          toast.error(`Upload failed: ${uploadResult.error}`);
+          return;
+        }
+      }
+
+      // 3. Reset + refresh
+      setMessage("");
       fetchMessages();
-      setFile(null);
-    } else {
-      toast.error(`Upload failed: ${result.error}`);
+    } catch (err) {
+      toast.error(`Something went wrong. Please try again later. ${err}`);
+    } finally {
+      setLoading(false);
     }
-    setUploading(false);
   };
+
+   const handleLoadMore = () => {
+    if (!messagesContainerRef.current) return;
+
+    const container = messagesContainerRef.current;
+    const prevScrollHeight = container.scrollHeight;
+    const prevScrollTop = container.scrollTop;
+
+    setIsLoadingMore(true); // flag that we're loading older messages
+    setVisibleCount((prev) => prev + 20);
+
+    setTimeout(() => {
+      const newScrollHeight = container.scrollHeight;
+      container.scrollTop =
+        prevScrollTop + (newScrollHeight - prevScrollHeight);
+      setIsLoadingMore(false); // reset after adjusting scroll
+    }, 0);
+  };
+
   useEffect(() => {
     fetchMessages();
   }, []);
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-    // fetchMessages()
-  }, [messages, documents]);
+ const prevCommentsLength = useRef(messages.length);
+
+useEffect(() => {
+  if (!isLoadingMore && messages.length > prevCommentsLength.current) {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }
+  prevCommentsLength.current = messages.length;
+}, [messages, isLoadingMore]);
   return (
     <>
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-4xl">
           {/* Ticket info */}
-          {/* Ticket info */}
+
           <div className="mb-6 rounded-lg bg-gray-50 p-4">
             <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
               {/* Category */}
@@ -190,109 +224,17 @@ const TicketInfo = ({ details, ticketId, infoLoading }) => {
             </div>
             {/* Messages */}
             <div
+            ref={messagesContainerRef}
               className="mt-[30px] max-h-[25vh] min-h-[10vh] overflow-y-auto"
-              ref={scrollRef}
+             
             >
-              {documents.map((doc, index) => {
-                const isImage = /\.(jpg|jpeg|png|gif|svg)$/i.test(doc.name);
-                const isPdf = /\.pdf$/i.test(doc.name);
-                const isDoc = /\.(doc|docx)$/i.test(doc.name);
-
-                {
-                  documents.length === 0 && (
-                    <div className="mt-4 flex items-center justify-center text-gray-500">
-                      No documents found
-                    </div>
-                  );
-                }
-
-                return (
-                  <div
-                    key={`doc-${index}`}
-                    className="group relative flex items-start justify-end gap-3"
-                  >
-                    <div className="flex max-w-[70%] flex-col">
-                      <div className="mt-3 ml-auto rounded-xl bg-gray-200 p-2 shadow-sm hover:bg-gray-300">
-                        {isImage ? (
-                          //  Image Preview
-                          <div className="group relative mt-2 inline-block">
-                            <img
-                              className="max-h-[250px] max-w-[300px] rounded object-cover"
-                              src={doc.url}
-                              alt={doc.name}
-                            />
-                            <div
-                              className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-                              onClick={() => setPreviewImage(doc.url)}
-                            >
-                              <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
-                            </div>
-                          </div>
-                        ) : isPdf ? (
-                          //  Inline PDF Preview
-                          <div className="group relative mt-2 inline-block">
-                            <iframe
-                              src={doc.url}
-                              title={doc.name}
-                              className="max-h-[250px] max-w-[300px] rounded border shadow"
-                            />
-                            <div
-                              className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-                              onClick={() => window.open(doc.url, "_blank")}
-                            >
-                              <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
-                            </div>
-                            <div className="mt-1 truncate text-xs text-gray-700">
-                              {doc.name.replace(/^[a-z0-9-]+_/, "")}
-                            </div>
-                          </div>
-                        ) : isDoc ? (
-                          <div className="group relative mt-2 inline-block">
-                            <iframe
-                              src={`https://docs.google.com/gview?url=${encodeURIComponent(doc.url)}&embedded=true`}
-                              title={doc.name}
-                              className="max-h-[250px] max-w-[300px] rounded border shadow"
-                            />
-                            <div
-                              className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-                              onClick={() => window.open(doc.url, "_blank")}
-                            >
-                              <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
-                            </div>
-                            <div className="mt-1 truncate text-xs text-gray-700">
-                              {doc.name.replace(/^[a-z0-9-]+_/, "")}
-                            </div>
-                          </div>
-                        ) : (
-                          //  Other files
-                          <a
-                            href={doc.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="truncate text-blue-600 underline hover:text-blue-800"
-                            title={doc.name}
-                          >
-                            {doc.name}
-                          </a>
-                        )}
-                      </div>
-                    </div>
-
-                    <Avatar
-                      initialColor={currentUser ? "secondary" : "primary"}
-                      className="mt-4 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
-                      name={currentUser?.name || "You"}
-                    />
-                  </div>
-                );
-              })}
               <div className="bordered mt-10 space-y-6 border-gray-200">
                 {/* User Message */}
 
                 {messages.length > visibleCount && (
                   <div className="my-3 text-center">
                     <button
-                      onClick={() => setVisibleCount((prev) => prev + 20)}
+                      onClick={handleLoadMore}
                       className="rounded bg-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-300"
                     >
                       Load More
@@ -302,9 +244,21 @@ const TicketInfo = ({ details, ticketId, infoLoading }) => {
                 {messages && messages.length > 0 ? (
                   messages.slice(-visibleCount).map((item, index) => {
                     const isloggedInUser = user.id === item.created_by;
+                    const isImage = /\.(jpg|jpeg|png|gif|svg)$/i.test(
+                      item.attachment,
+                    );
+                    const isPdf = /\.pdf$/i.test(item.attachment);
+                    const isDoc = /\.(doc|docx)$/i.test(item.attachment);
+                    const isDocx = /\.(doc|docx)$/i.test(item.attachment_url);
+                    const bubbleClass = `
+                   ${isloggedInUser ? "ml-auto bg-gray-100" : "mr-auto bg-[#c9e0e5]"} 
+                             max-w-[70%] rounded-lg p-4 break-words
+                                   `;
 
                     return (
-                      <div className="flex items-start space-x-3" key={index}>
+                      <div
+                         ref={scrollRef}
+                      className="flex items-start space-x-3" key={index}>
                         <Avatar
                           initialColor={
                             isloggedInUser ? "secondary" : "primary"
@@ -323,10 +277,121 @@ const TicketInfo = ({ details, ticketId, infoLoading }) => {
                               ).fromNow()}
                             </span>
                           </div>
-                          <div
-                            className={`${isloggedInUser ? "ml-auto" : "mr-auto"} max-w-[70%] rounded-lg ${isloggedInUser ? "bg-gray-100" : "bg-[#c9e0e5]"} p-4 break-words`}
-                          >
+                          <div className={bubbleClass}>
                             <p className="text-gray-700">{item.message}</p>
+
+                            {/* Attachment (if available) */}
+                            {item.attachment && item.attachment !== "false" && (
+                              <div>
+                                <div>
+                                  {isImage ? (
+                                    //  Image Preview
+                                    <div className="group relative mt-2 inline-block">
+                                      <img
+                                        className="max-h-[250px] max-w-[300px] rounded object-cover"
+                                        src={item.attachment_url}
+                                        alt={item.attachment}
+                                      />
+                                      <div
+                                        className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                        onClick={() =>
+                                          setPreviewImage(item.attachment_url)
+                                        }
+                                      >
+                                        <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                                      </div>
+                                    </div>
+                                  ) : isPdf ? (
+                                    //  Inline PDF Preview
+                                    <div className="group relative mt-2 inline-block">
+                                      <iframe
+                                        src={item.attachment_url}
+                                        title={item.attachment}
+                                        className="max-h-[250px] max-w-[300px] rounded border shadow"
+                                      />
+                                      <div
+                                        className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                        onClick={() =>
+                                          window.open(
+                                            item.attachment_url,
+                                            "_blank",
+                                          )
+                                        }
+                                      >
+                                        <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                                      </div>
+                                      <div className="mt-1 truncate text-xs text-gray-700">
+                                        {item.attachment.replace(
+                                          /^[a-z0-9-]+_/,
+                                          "",
+                                        )}
+                                      </div>
+                                    </div>
+                                  ) : isDoc ? (
+                                    <div className="group relative mt-2 inline-block">
+                                      <iframe
+                                        src={`https://docs.google.com/gview?url=${encodeURIComponent(item.attachment_url)}&embedded=true`}
+                                        title={item.attachment}
+                                        className="max-h-[250px] max-w-[300px] rounded border shadow"
+                                      />
+                                      <div
+                                        className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                        onClick={() =>
+                                          window.open(
+                                            item.attachment_url,
+                                            "_blank",
+                                          )
+                                        }
+                                      >
+                                        <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                                      </div>
+                                      <div className="mt-1 truncate text-xs text-gray-700">
+                                        {item.attachment.replace(
+                                          /^[a-z0-9-]+_/,
+                                          "",
+                                        )}
+                                      </div>
+                                    </div>
+                                  ) : isDocx ? (
+                                    <div className="group relative mt-2 inline-block">
+                                      <iframe
+                                        src={`https://docs.google.com/gview?url=${encodeURIComponent(item.attachment_url)}&embedded=true`}
+                                        title={item.attachment}
+                                        className="max-h-[250px] max-w-[300px] rounded border shadow"
+                                      />
+                                      <div
+                                        className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                        onClick={() =>
+                                          window.open(
+                                            item.attachment_url,
+                                            "_blank",
+                                          )
+                                        }
+                                      >
+                                        <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                                      </div>
+                                      <div className="mt-1 truncate text-xs text-gray-700">
+                                        {item.attachment.replace(
+                                          /^[a-z0-9-]+_/,
+                                          "",
+                                        )}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    //  Other files
+                                    <a
+                                      href={item.attachment_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="truncate text-blue-600 underline hover:text-blue-800"
+                                      title={item.attachment}
+                                    >
+                                      {item.attachment}
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -337,9 +402,9 @@ const TicketInfo = ({ details, ticketId, infoLoading }) => {
                     <p className="text-gray-500">No Comments to show!</p>
                   </div>
                 )}
-
-                {/* Admin Response */}
-                {/* <div className="flex items-start space-x-3">
+              </div>
+              {/* Admin Response */}
+              {/* <div className="flex items-start space-x-3">
                   <Avatar initialColor="success" name="Admin Support" />
                   <div className="flex-1">
                     <div className="mb-1 flex items-center space-x-2">
@@ -365,7 +430,6 @@ const TicketInfo = ({ details, ticketId, infoLoading }) => {
                     </div>
                   </div>
                 </div> */}
-              </div>
             </div>
             {/* Reply Box */}
             <div className="mt-6 border-t pt-6">
@@ -388,7 +452,7 @@ const TicketInfo = ({ details, ticketId, infoLoading }) => {
                 <button
                   className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
                   onClick={() => fileInputRef.current.click()}
-                  disabled={uploading}
+                  disabled={loading}
                 >
                   <PaperClipIcon className="h-5 w-5" />
                   <span className="text-sm">
@@ -396,24 +460,17 @@ const TicketInfo = ({ details, ticketId, infoLoading }) => {
                   </span>
                 </button>
 
-                {/* Upload file button */}
+                {/* Cancel attached file */}
                 {file && (
-                  <Button
-                    disabled={uploading}
-                    onClick={handleFileUpload}
-                    variant="default"
-                    className="bg-green-600 text-white hover:bg-green-800"
-                  >
-                    {uploading && (
-                      <GhostSpinner className="mr-3 size-4 border-2" />
-                    )}
-                    Upload
-                  </Button>
+                  <XMarkIcon
+                    className="h-5 w-5 cursor-pointer text-red-500 hover:text-red-700"
+                    onClick={() => setFile(null)}
+                  />
                 )}
 
                 {/* Send reply button */}
                 <Button
-                  disabled={message === "" || loading}
+                  disabled={(message.trim() === "" && !file) || loading}
                   onClick={sendReply}
                   variant="default"
                   className="bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"

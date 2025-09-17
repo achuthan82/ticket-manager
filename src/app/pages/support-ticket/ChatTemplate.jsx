@@ -18,7 +18,7 @@ import {
   editComment,
   assignSupportTicket,
   uploadSupportDocument,
-  getSupportDocuments,
+  // getSupportDocuments,
 } from "../../../utils/SupportTicketService";
 import { toast } from "sonner";
 import moment from "moment";
@@ -41,11 +41,11 @@ const ChatTemplate = ({ refreshTickets }) => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingMessage, setEditingMessage] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
-  const [documents, setDocuments] = useState([]);
+  // const [documents, setDocuments] = useState([]);
   const [sendEmailNotification, setSendEmailNotification] = useState(false);
   const [timeNow, setTimeNow] = useState(Date.now());
-  const [visibleCount, setVisibleCount] = useState(20);
-
+ 
+ const [visibleCount, setVisibleCount] = useState(20);
   // image popup
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -164,18 +164,6 @@ const ChatTemplate = ({ refreshTickets }) => {
         toast.error(`Failed to load comments: ${res.error}`);
       }
 
-      const docsRes = await getSupportDocuments(ticketId);
-      if (
-        docsRes.success &&
-        (docsRes.status === 200 || docsRes.status === 201)
-      ) {
-        setDocuments(docsRes.data?.data || []);
-      } else if (docsRes.status === 204) {
-        setDocuments([]);
-        toast.info("No documents found");
-      } else {
-        toast.error(`Failed to load documents: ${docsRes.error}`);
-      }
     } catch (err) {
       console.error("Error fetching comments/documents:", err);
       toast.error("Error fetching comments/documents");
@@ -219,23 +207,49 @@ const ChatTemplate = ({ refreshTickets }) => {
   };
 
   const handleSendResponse = async () => {
-    if (!selectedTicket || !replyMessage.trim()) return;
+    if (!selectedTicket) return;
+    if (!replyMessage.trim() && !selectedFile) return;
 
-    const res = await addSupportComment(
-      selectedTicket.id,
-      replyMessage,
-      sendEmailNotification,
-    );
+    try {
+      // 1. If text exists, add comment
+      if (replyMessage.trim()) {
+        const res = await addSupportComment(
+          selectedTicket.id,
+          replyMessage,
+          sendEmailNotification,
+        );
 
-    if (res.success && (res.status === 200 || res.status === 201)) {
-      toast.success("Comment added successfully!");
+        if (!(res.success && (res.status === 200 || res.status === 201))) {
+          toast.error(`Failed to add comment: ${res.error}`);
+          return;
+        }
+      }
+
+      // 2. If a file is selected, upload it
+      if (selectedFile) {
+        const res = await uploadSupportDocument(
+          selectedTicket.id,
+          selectedFile,
+        );
+        if (res.success && (res.status === 200 || res.status === 201)) {
+          toast.success("File uploaded successfully!");
+          setSelectedFile(null);
+        } else {
+          toast.error(`Upload failed: ${res.error}`);
+          return;
+        }
+      }
+
+      // 3. Refresh UI
+      // toast.success("Response sent successfully!");
       setReplyMessage("");
       fetchComments(selectedTicket.id);
       refreshTickets?.();
-      setCallApi(!callApi);
+      setCallApi((prev) => !prev);
       setSendEmailNotification(false);
-    } else {
-      toast.error(` Failed to add comment: ${res.error}`);
+    } catch (err) {
+      console.error("Send response error:", err);
+      toast.error("Something went wrong while sending response.");
     }
   };
 
@@ -379,6 +393,13 @@ const ChatTemplate = ({ refreshTickets }) => {
         toast.success(`Ticket assigned to ${assigneeObj.name}`);
         refreshTickets?.();
         setCallApi((prev) => !prev);
+
+        //  Update local assignees so dropdown removes them immediately
+        setAssignees((prev) =>
+          prev.map((a) =>
+            a.id === assigneeObj.id ? { ...a, is_assigned: true } : a,
+          ),
+        );
       } else {
         toast.error(`Failed to assign ticket: ${res.error}`);
       }
@@ -434,13 +455,42 @@ const ChatTemplate = ({ refreshTickets }) => {
   }, {});
 
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const handleLoadMore = () => {
+    if (!messagesContainerRef.current) return;
+
+    const container = messagesContainerRef.current;
+    const prevScrollHeight = container.scrollHeight;
+    const prevScrollTop = container.scrollTop;
+
+    setIsLoadingMore(true); // flag that we're loading older messages
+    setVisibleCount((prev) => prev + 20);
+
+    setTimeout(() => {
+      const newScrollHeight = container.scrollHeight;
+      container.scrollTop =
+        prevScrollTop + (newScrollHeight - prevScrollHeight);
+      setIsLoadingMore(false); // reset after adjusting scroll
+    }, 0);
+  };
 
   // Auto scroll when comments change
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [comments]);
+  // useEffect(() => {
+  //   if (messagesEndRef.current) {
+  //     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  //   }
+  // }, [comments]);
+const prevCommentsLength = useRef(comments.length);
+
+useEffect(() => {
+  if (!isLoadingMore && comments.length > prevCommentsLength.current) {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }
+  prevCommentsLength.current = comments.length;
+}, [comments, isLoadingMore]);
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -698,11 +748,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                           data={[
                             "Unassigned",
                             ...assignees
-                              .filter(
-                                (a) =>
-                                  !a.is_assigned ||
-                                  a.name === selectedTicket.assigneeName, // show only free agents + current
-                              )
+                              .filter((a) => !a.is_assigned) // ✅ only free agents
                               .map((a) => a.name),
                           ]}
                           onChange={(e) => updateAssignee(e.target.value)}
@@ -718,102 +764,11 @@ const ChatTemplate = ({ refreshTickets }) => {
               <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
                 <div className="relative max-h-screen flex-1 overflow-y-auto">
                   <div
+                    ref={messagesContainerRef}
                     orientation="vertical"
                     className="h-full w-full overflow-y-auto"
                   >
                     <div className="space-y-2 p-2 sm:space-y-3 sm:p-3 md:p-4 lg:p-6">
-                      {documents.map((doc, index) => {
-                        const isImage = /\.(jpg|jpeg|png|gif|svg)$/i.test(
-                          doc.name,
-                        );
-                        const isPdf = /\.pdf$/i.test(doc.name);
-                        const isDoc = /\.(doc|docx)$/i.test(doc.name);
-
-                        return (
-                          <div
-                            key={`doc-${index}`}
-                            className="group relative flex items-start justify-end gap-3"
-                          >
-                            <div className="flex max-w-[70%] flex-col">
-                              <div className="mt-3 ml-auto rounded-xl bg-teal-100 p-2 shadow-sm hover:bg-teal-200">
-                                {isImage ? (
-                                  //  Image Preview
-                                  <div className="group relative mt-2 inline-block">
-                                    <img
-                                      className="max-h-[250px] max-w-[300px] rounded object-cover"
-                                      src={doc.url}
-                                      alt={doc.name}
-                                    />
-                                    <div
-                                      className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-                                      onClick={() => setPreviewImage(doc.url)}
-                                    >
-                                      <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
-                                    </div>
-                                  </div>
-                                ) : isPdf ? (
-                                  //  Inline PDF Preview
-                                  <div className="group relative mt-2 inline-block">
-                                    <iframe
-                                      src={doc.url}
-                                      title={doc.name}
-                                      className="max-h-[250px] max-w-[300px] rounded border shadow"
-                                    />
-                                    <div
-                                      className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-                                      onClick={() =>
-                                        window.open(doc.url, "_blank")
-                                      }
-                                    >
-                                      <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
-                                    </div>
-                                    <div className="mt-1 truncate text-xs text-gray-700">
-                                      {doc.name.replace(/^[a-z0-9-]+_/, "")}
-                                    </div>
-                                  </div>
-                                ) : isDoc ? (
-                                  <div className="group relative mt-2 inline-block">
-                                    <iframe
-                                      src={`https://docs.google.com/gview?url=${encodeURIComponent(doc.url)}&embedded=true`}
-                                      title={doc.name}
-                                      className="max-h-[250px] max-w-[300px] rounded border shadow"
-                                    />
-                                    <div
-                                      className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-                                      onClick={() =>
-                                        window.open(doc.url, "_blank")
-                                      }
-                                    >
-                                      <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
-                                    </div>
-                                    <div className="mt-1 truncate text-xs text-gray-700">
-                                      {doc.name.replace(/^[a-z0-9-]+_/, "")}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  //  Other files
-                                  <a
-                                    href={doc.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="truncate text-blue-600 underline hover:text-blue-800"
-                                    title={doc.name}
-                                  >
-                                    {doc.name}
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-
-                            <Avatar
-                              initialColor="success"
-                              className="mt-4 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
-                              name={currentUser?.name || "You"}
-                            />
-                          </div>
-                        );
-                      })}
-
                       {commentsLoading && (
                         <p className="text-center text-gray-500">
                           Loading comments...
@@ -828,7 +783,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                       {comments.length > visibleCount && (
                         <div className="my-3 text-center">
                           <button
-                            onClick={() => setVisibleCount((prev) => prev + 20)}
+                            onClick={handleLoadMore}
                             className="rounded bg-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-300"
                           >
                             Load More
@@ -852,6 +807,15 @@ const ChatTemplate = ({ refreshTickets }) => {
                               "minutes",
                             ) < 1;
                           const canEdit = isOwner && isWithinOneMinute;
+                          const isImage = /\.(jpg|jpeg|png|gif|svg)$/i.test(
+                            comment.attachment,
+                          );
+                          const isPdf = /\.pdf$/i.test(comment.attachment);
+                          const isDoc = /\.(doc|docx)$/i.test(
+                            comment.attachment,
+                          );
+                          const isDocx = /\.(doc|docx)$/i.test(comment.attachment_url);
+
 
                           return (
                             <div
@@ -914,32 +878,150 @@ const ChatTemplate = ({ refreshTickets }) => {
                                       {comment.message}
                                     </p>
                                   )}
+
+                                  {/* Attachment (if available) */}
+                                  {comment.attachment &&
+                                    comment.attachment !== "false" && (
+                                      <div className="flex max-w-[70%] flex-col">
+                                        <div>
+                                          {isImage ? (
+                                            //  Image Preview
+                                            <div className="group relative mt-2 inline-block">
+                                              <img
+                                                className="max-h-[250px] max-w-[300px] rounded object-cover"
+                                                src={comment.attachment_url}
+                                                alt={comment.attachment}
+                                              />
+                                              <div
+                                                className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                                onClick={() =>
+                                                  setPreviewImage(
+                                                    comment.attachment_url,
+                                                  )
+                                                }
+                                              >
+                                                <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                                              </div>
+                                            </div>
+                                          ) : isPdf ? (
+                                            //  Inline PDF Preview
+                                            <div className="group relative mt-2 inline-block">
+                                              <iframe
+                                                src={comment.attachment_url}
+                                                title={comment.attachment}
+                                                className="max-h-[250px] max-w-[300px] rounded border shadow"
+                                              />
+                                              <div
+                                                className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                                onClick={() =>
+                                                  window.open(
+                                                    comment.attachment_url,
+                                                    "_blank",
+                                                  )
+                                                }
+                                              >
+                                                <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                                              </div>
+                                              <div className="mt-1 truncate text-xs text-gray-700">
+                                                {comment.attachment.replace(
+                                                  /^[a-z0-9-]+_/,
+                                                  "",
+                                                )}
+                                              </div>
+                                            </div>
+                                          ) : isDoc ? (
+                                            <div className="group relative mt-2 inline-block">
+                                              <iframe
+                                                src={`https://docs.google.com/gview?url=${encodeURIComponent(comment.attachment_url)}&embedded=true`}
+                                                title={comment.attachment}
+                                                className="max-h-[250px] max-w-[300px] rounded border shadow"
+                                              />
+                                              <div
+                                                className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                                onClick={() =>
+                                                  window.open(
+                                                    comment.attachment_url,
+                                                    "_blank",
+                                                  )
+                                                }
+                                              >
+                                                <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                                              </div>
+                                              <div className="mt-1 truncate text-xs text-gray-700">
+                                                {comment.attachment.replace(
+                                                  /^[a-z0-9-]+_/,
+                                                  "",
+                                                )}
+                                              </div>
+                                            </div>
+                                          ) : isDocx ? (
+                                            <div className="group relative mt-2 inline-block">
+                                              <iframe
+                                                src={`https://docs.google.com/gview?url=${encodeURIComponent(comment.attachment_url)}&embedded=true`}
+                                                title={comment.attachment}
+                                                className="max-h-[250px] max-w-[300px] rounded border shadow"
+                                              />
+                                              <div
+                                                className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                                onClick={() =>
+                                                  window.open(
+                                                    comment.attachment_url,
+                                                    "_blank",
+                                                  )
+                                                }
+                                              >
+                                                <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                                              </div>
+                                              <div className="mt-1 truncate text-xs text-gray-700">
+                                                {comment.attachment.replace(
+                                                  /^[a-z0-9-]+_/,
+                                                  "",
+                                                )}
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            //  Other files
+                                            <a
+                                              href={comment.attachment_url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="truncate text-blue-600 underline hover:text-blue-800"
+                                              title={comment.attachment}
+                                            >
+                                              {comment.attachment}
+                                            </a>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
                                 </div>
 
-                                {isOwner && editingCommentId !== comment.id && (
-                                  <div className="mt-1 ml-auto flex justify-end gap-2 text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                                    {canEdit && (
+                                {isOwner &&
+                                  editingCommentId !== comment.id &&
+                                  !isImage && (
+                                    <div className="mt-1 ml-auto flex justify-end gap-2 text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                                      {canEdit && (
+                                        <button
+                                          className="cursor-pointer hover:text-gray-700"
+                                          onClick={() =>
+                                            handleEditComment(comment)
+                                          }
+                                          title="Edit"
+                                        >
+                                          <PencilIcon className="h-4 w-4" />
+                                        </button>
+                                      )}
                                       <button
-                                        className="cursor-pointer hover:text-gray-700"
+                                        className="cursor-pointer hover:text-red-600"
                                         onClick={() =>
-                                          handleEditComment(comment)
+                                          handleDeleteComment(comment.id)
                                         }
-                                        title="Edit"
+                                        title="Delete"
                                       >
-                                        <PencilIcon className="h-4 w-4" />
+                                        <TrashIcon className="h-4 w-4" />
                                       </button>
-                                    )}
-                                    <button
-                                      className="cursor-pointer hover:text-red-600"
-                                      onClick={() =>
-                                        handleDeleteComment(comment.id)
-                                      }
-                                      title="Delete"
-                                    >
-                                      <TrashIcon className="h-4 w-4" />
-                                    </button>
-                                  </div>
-                                )}
+                                    </div>
+                                  )}
                               </div>
 
                               {isOwner && (
@@ -958,7 +1040,8 @@ const ChatTemplate = ({ refreshTickets }) => {
               </div>
 
               {/* Reply Section */}
-              <div className="flex-1 border-t border-gray-300 bg-white p-2 sm:p-3 md:p-4">
+              {/* commented flex-1 in the below div */}
+              <div className=" border-t border-gray-300 bg-white p-2 sm:p-3 md:p-4">
                 <div className="flex w-full flex-col sm:flex-row sm:items-start sm:space-x-3">
                   <div className="mb-2 flex flex-shrink-0 justify-center sm:mb-0 sm:justify-start">
                     <Avatar
@@ -1013,43 +1096,6 @@ const ChatTemplate = ({ refreshTickets }) => {
                               >
                                 ✕
                               </button>
-                              <Button
-                                size="sm"
-                                variant="filled"
-                                color="primary"
-                                className="px-2 py-1 text-xs text-white"
-                                onClick={async () => {
-                                  if (!selectedFile || !selectedTicket) return;
-                                  try {
-                                    toast.info("Uploading file...");
-                                    const res = await uploadSupportDocument(
-                                      selectedTicket.id,
-                                      selectedFile,
-                                    );
-                                    if (
-                                      res.success &&
-                                      (res.status === 200 || res.status === 201)
-                                    ) {
-                                      toast.success(
-                                        " File uploaded successfully!",
-                                      );
-                                      setSelectedFile(null);
-                                      fetchComments(selectedTicket.id);
-                                    } else {
-                                      toast.error(
-                                        ` Upload failed: ${res.error}`,
-                                      );
-                                    }
-                                  } catch (err) {
-                                    console.error("Upload error:", err);
-                                    toast.error(
-                                      "Something went wrong while uploading.",
-                                    );
-                                  }
-                                }}
-                              >
-                                Upload
-                              </Button>
                             </div>
                           )}
                         </div>
@@ -1073,6 +1119,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                           variant="default"
                           className="bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
                           onClick={handleSendResponse}
+                          disabled={!replyMessage.trim() && !selectedFile}
                         >
                           Send Response
                         </Button>
