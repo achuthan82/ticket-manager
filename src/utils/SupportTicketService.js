@@ -621,3 +621,68 @@ export const getSupportDocuments = async (supportId) => {
     }
   }
 };
+
+/**
+ * Get dashboard ticket counts
+ * @returns {Promise<Object>} { success, status, data, error }
+ */
+export const getTicketCounts = async () => {
+  try {
+    checkAuthHeaders();
+
+    const finalUrl = `/dashboard`;
+
+    console.log("SupportTicketsService → Fetching ticket counts:", finalUrl);
+
+    const response = await axios.get(finalUrl);
+
+    console.log(
+      "SupportTicketsService → Ticket Counts Response:",
+      response.status,
+      response.data,
+    );
+
+    // Pick only the required counts
+    const { new: newCount, open, pending, resolved } = response.data?.data || {};
+
+    return {
+      success: true,
+      status: response.status,
+      data: {
+        New: newCount || 0,
+        Open: open || 0,
+        Pending: pending || 0,
+        Resolved: resolved || 0,
+      },
+      error: null,
+    };
+  } catch (error) {
+    console.error("SupportTicketsService → Error fetching ticket counts:", error);
+
+    if (error.response) {
+      return {
+        success: false,
+        status: error.response.status,
+        data: null,
+        error:
+          error.response.data?.message || `HTTP ${error.response.status} error`,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        status: null,
+        data: null,
+        error: "Network error. Please check your connection.",
+      };
+    } else {
+      return {
+        success: false,
+        status: null,
+        data: null,
+        error: error.message || "Something went wrong",
+      };
+    }
+  }
+};
+
+

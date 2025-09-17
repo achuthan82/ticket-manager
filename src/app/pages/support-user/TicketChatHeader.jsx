@@ -1,8 +1,9 @@
 import { Button } from '@headlessui/react'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import moment from 'moment'
-const TicketChatHeader = ({ticketId,backToTickets,closeTicket, headerDetails}) => {
-  
+import { Skeleton } from "components/ui"
+
+const TicketChatHeader = ({ ticketId, backToTickets, closeTicket, headerDetails, loading }) => {
   const badgeStyles = {
     1: "bg-blue-100 text-blue-800", // New
     2: "bg-amber-100 text-amber-800", // Open
@@ -18,56 +19,84 @@ const TicketChatHeader = ({ticketId,backToTickets,closeTicket, headerDetails}) =
     4: "Resolved",
     5: "Closed",
   };
+
   return (
-    <>
     <header className="bg-white shadow-sm border-b border-neutral-300">
-          <div className="px-4 sm:px-6 py-4">
-            <div className="flex justify-between items-center">
-              
-              {/* Left section */}
-              <div className="flex items-center space-x-3 sm:space-x-4">
-                {/* Back arrow */}
-                <Button className="text-neutral-500 hover:text-neutral-700" onClick={backToTickets}>
-                  <ArrowLeftIcon className="w-5 h-5"/>
-                </Button>
-    
-                {/* Ticket info */}
-                <div className="sm:flex-row sm:items-center sm:space-x-3">
-                  
-                  {/* Ticket title */}
-                  <h1 className="text-sm sm:text-base md:text-lg font-bold text-neutral-900 mb-1">
-                    #{ticketId} - {headerDetails?.subject || 'N/A'}
-                  </h1>
-    
-                  {/* Status & timestamps */}
-                  <div className="flex gap-4">
-                    
-                    {/* Status badge */}
-                    {
-                      headerDetails?.status && <span className={`${badgeStyles[headerDetails.status] || badgeStyles[1]} text-xs font-medium px-2 py-1 rounded-full`}>
+      <div className="px-4 sm:px-6 py-4">
+        <div className="flex justify-between items-center">
+
+          {/* Left section */}
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            {/* Back arrow */}
+            <Button className="text-neutral-500 hover:text-neutral-700 cursor-pointer" onClick={backToTickets}>
+              <ArrowLeftIcon className="w-5 h-5" />
+            </Button>
+
+            {/* Ticket info */}
+            <div className="sm:flex-row sm:items-center sm:space-x-3">
+
+              {/* Ticket title */}
+              {loading ? (
+                <Skeleton className="h-5 w-40 rounded mb-1" />
+              ) : (
+                <h1 className="text-sm sm:text-base md:text-lg font-bold text-neutral-900 mb-1">
+                  #{ticketId} - {headerDetails?.subject || 'N/A'}
+                </h1>
+              )}
+
+              {/* Status & timestamps */}
+              {loading ? (
+                <div className="flex gap-4 items-center">
+                  <Skeleton className="h-5 w-16 rounded-full" /> {/* badge */}
+                  <Skeleton className="h-4 w-32 rounded" />      {/* created */}
+                  <Skeleton className="h-4 w-32 rounded" />      {/* updated */}
+                </div>
+              ) : (
+                <div className="flex gap-4">
+                  {/* Status badge */}
+                  {headerDetails?.status && (
+                    <span
+                      className={`${badgeStyles[headerDetails.status] || badgeStyles[1]} text-xs font-medium px-2 py-1 rounded-full`}
+                    >
                       {statusLabels[headerDetails.status]}
                     </span>
-                    }
-                    
-    
-                    {/* Created & updated times */}
-                    <div className="flex gap-3 items-center text-xs sm:text-sm text-neutral-500">
-                      <span>Created {headerDetails?.created_at ? moment(headerDetails.created_at, "MM-DD-YYYY HH:mm:ss").fromNow():'N/A'} </span>
-                      <span>•</span>
-                      <span>Last updated {headerDetails?.created_at ? moment(headerDetails.created_at, "MM-DD-YYYY HH:mm:ss").fromNow():'N/A'}</span>
-                    </div>
+                  )}
+
+                  {/* Created & updated times */}
+                  <div className="flex gap-3 items-center text-xs sm:text-sm text-neutral-500">
+                    <span>
+                      Created{" "}
+                      {headerDetails?.created_at
+                        ? moment(headerDetails.created_at, "MM-DD-YYYY HH:mm:ss").fromNow()
+                        : "N/A"}
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Last updated{" "}
+                      {headerDetails?.created_at
+                        ? moment(headerDetails.created_at, "MM-DD-YYYY HH:mm:ss").fromNow()
+                        : "N/A"}
+                    </span>
                   </div>
                 </div>
-              </div>
-    
-              {/* Right section */}
-              <button className="text-red-600 hover:text-red-800 text-sm font-medium" onClick={closeTicket}>
-                Close Ticket
-              </button>
+              )}
             </div>
           </div>
-        </header>
-    </>
+
+          {/* Right section */}
+          {loading ? (
+            <Skeleton className="h-5 w-20 rounded" /> 
+          ) : (
+            <button
+              className="text-red-600 hover:text-red-800 text-sm font-medium cursor-pointer"
+              onClick={closeTicket}
+            >
+              Close Ticket
+            </button>
+          )}
+        </div>
+      </div>
+    </header>
   )
 }
 

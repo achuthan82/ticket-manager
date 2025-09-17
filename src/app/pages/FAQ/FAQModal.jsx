@@ -3,6 +3,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Transition, Dialog } from "@headlessui/react";
 import { getCategories } from "utils/ManageFaqService"; //  new API
 import { toast } from "sonner";
+import { Button } from "components/ui";
 
 export default function FAQModal({ faq, open, onClose, onSave }) {
   const [form, setForm] = useState({ question: "", answer: "", category: "" });
@@ -160,24 +161,21 @@ export default function FAQModal({ faq, open, onClose, onSave }) {
 
                   {/* Buttons */}
                   <div className="flex justify-end gap-3">
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      disabled={saving}
-                      className="rounded-lg border border-gray-300 px-4 py-2 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
+                    <Button type="button" onClick={onClose} disabled={saving}>
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="neutral"
+                      className="bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
                       type="submit"
                       disabled={saving}
-                      className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      // className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {saving && (
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                       )}
                       {saving ? "Saving..." : faq ? "Update" : "Add"}
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </Dialog.Panel>

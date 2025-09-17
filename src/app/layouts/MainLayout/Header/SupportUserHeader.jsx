@@ -66,11 +66,11 @@ export default function SupportUserHeader({ onAddUserClick }) {
             </Button>
             
             {/* Notifications */}
-            <button 
+            <div 
             onClick={() => setCallApi(!callApi)}
              className="relative p-2 text-neutral-500 hover:text-[#2A5A9D] transition-colors">
               <Notifications className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
+            </div>
           </div>
         </div>
       </div>

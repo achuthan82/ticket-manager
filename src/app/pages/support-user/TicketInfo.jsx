@@ -160,6 +160,60 @@ const TicketInfo = ({ details, ticketId }) => {
               className="mt-[30px] max-h-[25vh] min-h-[10vh] overflow-y-auto"
               ref={scrollRef}
             >
+              {documents.map((doc, index) => {
+                const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(
+                  doc.name,
+                );
+                // const isloggedInUser = user.id === item.created_by;
+
+                return (
+                  <div
+                    key={`doc-${index}`}
+                    className="group relative flex items-start justify-end gap-3"
+                  >
+                    <div className="flex max-w-[70%] flex-col">
+                      <div className="mb-1 flex justify-end text-xs text-gray-400">
+                        {/* <span className="font-medium text-gray-900">You</span> */}
+                        {/* <span> • just now</span> */}
+                      </div>
+
+                      <div className="ml-auto rounded-xl mt-3 bg-gray-200 p-2 shadow-sm hover:bg-gray-300">
+                        {isImage ? (
+                          <div className="group relative mt-2 inline-block">
+                            <img
+                              className="max-h-[250px] max-w-[300px] rounded object-cover"
+                              src={doc.url}
+                              alt={doc.name}
+                            />
+
+                            <div
+                              className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                              onClick={() => setPreviewImage(doc.url)}
+                            >
+                              <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                            </div>
+                          </div>
+                        ) : (
+                          <a
+                            href={doc.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="truncate text-blue-600 underline hover:text-blue-800"
+                            title={doc.name}
+                          >
+                            {doc.name}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    <Avatar
+                      initialColor={currentUser ? "secondary" : "primary"}
+                      name={currentUser?.name || "You"}
+                    />
+                  </div>
+                );
+              })}
               <div className="bordered mt-10 space-y-6 border-gray-200">
                 {/* User Message */}
                 {messages && messages.length > 0 ? (
@@ -175,9 +229,9 @@ const TicketInfo = ({ details, ticketId }) => {
                         />
                         <div className="flex-1">
                           <div className="mb-1 flex items-center space-x-2">
-                            <span className="font-medium text-gray-900">
+                            {/* <span className="font-medium text-gray-900">
                               {isloggedInUser ? "You" : "Admin"}
-                            </span>
+                            </span> */}
                             <span className="text-xs text-gray-500">
                               {moment(
                                 item.created_at,
@@ -228,59 +282,6 @@ const TicketInfo = ({ details, ticketId }) => {
                   </div>
                 </div> */}
               </div>
-              {documents.map((doc, index) => {
-                const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(
-                  doc.name,
-                );
-
-                return (
-                  <div
-                    key={`doc-${index}`}
-                    className="group relative flex items-start justify-end gap-3"
-                  >
-                    <div className="flex max-w-[70%] flex-col">
-                      <div className="mb-1 flex justify-end text-xs text-gray-400">
-                        <span className="font-medium text-gray-900">You</span>
-                        {/* <span> • just now</span> */}
-                      </div>
-
-                      <div className="ml-auto rounded-xl bg-teal-100 p-2 shadow-sm hover:bg-teal-200">
-                        {isImage ? (
-                          <div className="group relative mt-2 inline-block">
-                            <img
-                              className="max-h-[250px] max-w-[300px] rounded object-cover"
-                              src={doc.url}
-                              alt={doc.name}
-                            />
-
-                            <div
-                              className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-                              onClick={() => setPreviewImage(doc.url)}
-                            >
-                              <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
-                            </div>
-                          </div>
-                        ) : (
-                          <a
-                            href={doc.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="truncate text-blue-600 underline hover:text-blue-800"
-                            title={doc.name}
-                          >
-                            {doc.name}
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                    <Avatar
-                      initialColor="success"
-                      className="mt-4 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
-                      name={currentUser?.name || "You"}
-                    />
-                  </div>
-                );
-              })}
             </div>
             {/* Reply Box */}
             <div className="mt-6 border-t pt-6">

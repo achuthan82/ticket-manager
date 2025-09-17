@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import moment from "moment";
 import { useNotificationContext } from "app/contexts/notification/context";
+import clsx from "clsx";
 
 const ChatTemplate = ({ refreshTickets }) => {
   const [tickets, setTickets] = useState([]);
@@ -215,7 +216,11 @@ const ChatTemplate = ({ refreshTickets }) => {
   const handleSendResponse = async () => {
     if (!selectedTicket || !replyMessage.trim()) return;
 
-    const res = await addSupportComment(selectedTicket.id, replyMessage ,  sendEmailNotification);
+    const res = await addSupportComment(
+      selectedTicket.id,
+      replyMessage,
+      sendEmailNotification,
+    );
 
     if (res.success && (res.status === 200 || res.status === 201)) {
       toast.success("Comment added successfully!");
@@ -223,8 +228,7 @@ const ChatTemplate = ({ refreshTickets }) => {
       fetchComments(selectedTicket.id);
       refreshTickets?.();
       setCallApi(!callApi);
-      setSendEmailNotification(false)
-      
+      setSendEmailNotification(false);
     } else {
       toast.error(` Failed to add comment: ${res.error}`);
     }
@@ -235,13 +239,13 @@ const ChatTemplate = ({ refreshTickets }) => {
       const res = await getSupportTicketAssignees();
 
       if (res.success && res.status === 200) {
-      const assigneesData =
-  res.data?.data?.map((user) => ({
-    id: user.id,
-    name: user.name,
-    is_assigned: user.is_assigned,
-  })) || [];
-setAssignees(assigneesData);
+        const assigneesData =
+          res.data?.data?.map((user) => ({
+            id: user.id,
+            name: user.name,
+            is_assigned: user.is_assigned,
+          })) || [];
+        setAssignees(assigneesData);
       } else if (res.status === 204) {
         toast.info("No assignees found");
       }
@@ -365,7 +369,6 @@ setAssignees(assigneesData);
         id: assigneeObj.id,
         name: assigneeObj.name,
       });
-
 
       if (res.success && (res.status === 200 || res.status === 201)) {
         toast.success(`Ticket assigned to ${assigneeObj.name}`);
@@ -644,11 +647,19 @@ setAssignees(assigneesData);
                         value={selectedTicket.statusLabel}
                         data={["New", "Open", "Pending", "Resolved", "Closed"]}
                         onChange={(e) => handleStatusChange(e.target.value)}
-                        className="flex-1 text-xs sm:flex-none sm:text-sm"
+                        className="flex-1 cursor-pointer text-xs sm:flex-none sm:text-sm"
                       />
                     </div>
                     <div className="flex w-full items-center space-x-2 sm:w-auto">
-                      <label className="shrink-0 text-xs font-medium text-gray-700 sm:text-sm">
+                      <label
+                        className={clsx(
+                          "shrink-0 text-xs font-medium sm:text-sm",
+                          selectedTicket.assigneeName &&
+                            selectedTicket.assigneeName !== "Unassigned"
+                            ? "text-[#2A5A9D]" // when assigned
+                            : "text-gray-700", // default
+                        )}
+                      >
                         {selectedTicket.assigneeName &&
                         selectedTicket.assigneeName !== "Unassigned"
                           ? "Assigned to:"
@@ -657,7 +668,7 @@ setAssignees(assigneesData);
 
                       {selectedTicket.assigneeName &&
                       selectedTicket.assigneeName !== "Unassigned" ? (
-                        <span className="rounded-lg border-2 p-2 text-sm font-medium text-gray-900">
+                        <span className="rounded-lg bg-[#2A5A9D] p-2 text-sm font-medium text-white hover:bg-[#1A3A6C] cursor-pointer">
                           {selectedTicket.assigneeName}
                         </span>
                       ) : (
@@ -674,7 +685,7 @@ setAssignees(assigneesData);
                               .map((a) => a.name),
                           ]}
                           onChange={(e) => updateAssignee(e.target.value)}
-                          className="flex-1 text-xs sm:flex-none sm:text-sm"
+                          className="flex-1 text-xs sm:flex-none sm:text-sm cursor-pointer"
                         />
                       )}
                     </div>
@@ -702,9 +713,9 @@ setAssignees(assigneesData);
                           >
                             <div className="flex max-w-[70%] flex-col">
                               <div className="mb-1 flex justify-end text-xs text-gray-400">
-                                <span className="font-medium text-gray-900">
+                                {/* <span className="font-medium text-gray-900">
                                   You
-                                </span>
+                                </span> */}
                                 {/* <span> • just now</span> */}
                               </div>
 
@@ -893,8 +904,8 @@ setAssignees(assigneesData);
 
                         <div className="flex items-center gap-2">
                           <Button
-                            variant="flat"
-                            className="flex items-center justify-center text-gray-400 hover:text-gray-600"
+                            variant="neutral"
+                            className="flex items-center justify-center bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
                             onClick={() =>
                               document.getElementById("fileUpload").click()
                             }
@@ -956,7 +967,7 @@ setAssignees(assigneesData);
                       </div>
 
                       <div className="flex w-full justify-end sm:w-auto">
-                          <label className="flex cursor-pointer items-center me-3 space-x-2">
+                        <label className="me-3 flex cursor-pointer items-center space-x-2">
                           <input
                             type="checkbox"
                             checked={sendEmailNotification}
@@ -969,13 +980,13 @@ setAssignees(assigneesData);
                             Send email notification
                           </span>
                         </label>
-                        <button
-                          className="bg-dark-800 w-full rounded-lg px-3 py-2 text-sm text-white sm:w-auto sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3"
+                        <Button
+                          variant="default"
+                          className="bg-[#2A5A9D] text-white hover:bg-[#1A3A6C]"
                           onClick={handleSendResponse}
                         >
                           Send Response
-                        </button>
-                       
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -986,7 +997,7 @@ setAssignees(assigneesData);
         </div>
       </div>
       {previewImage && (
-        <div className="  bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black">
+        <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black">
           <div className="">
             <img
               src={previewImage}
