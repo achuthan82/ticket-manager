@@ -7,7 +7,7 @@ import {
   TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   editSupportTicketStatus,
   getSupportTickets,
@@ -43,6 +43,8 @@ const ChatTemplate = ({ refreshTickets }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [sendEmailNotification, setSendEmailNotification] = useState(false);
+  const [timeNow, setTimeNow] = useState(Date.now());
+  const [visibleCount, setVisibleCount] = useState(20);
 
   // image popup
   const [previewImage, setPreviewImage] = useState(null);
@@ -123,15 +125,18 @@ const ChatTemplate = ({ refreshTickets }) => {
         setTickets(normalizedTickets);
 
         if (normalizedTickets.length > 0) {
-          setSelectedTicket(normalizedTickets[0]);
-          setSelectedTicket({
+          const firstTicket = {
             ...normalizedTickets[0],
             assignee: normalizedTickets[0].assigneeName || "Unassigned",
-          });
+          };
+          setSelectedTicket(firstTicket);
+
+          // ✅ Fetch comments & documents immediately for the first ticket
+          fetchComments(firstTicket.id);
         }
       } else if (response.status === 204) {
-        setTickets([]); // clear tickets
-        setSelectedTicket(null); // clear selection
+        setTickets([]);
+        setSelectedTicket(null);
         toast.info("No tickets found");
       } else {
         setError(response.error || "Failed to fetch tickets");
@@ -428,6 +433,22 @@ const ChatTemplate = ({ refreshTickets }) => {
     return acc;
   }, {});
 
+  const messagesEndRef = useRef(null);
+
+  // Auto scroll when comments change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [comments]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeNow(Date.now()); // update every 30s
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="mx-auto flex h-screen max-h-[calc(100vh-240px)] w-full max-w-screen-2xl flex-col overflow-hidden">
       <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
@@ -668,7 +689,7 @@ const ChatTemplate = ({ refreshTickets }) => {
 
                       {selectedTicket.assigneeName &&
                       selectedTicket.assigneeName !== "Unassigned" ? (
-                        <span className="rounded-lg bg-[#2A5A9D] p-2 text-sm font-medium text-white hover:bg-[#1A3A6C] cursor-pointer">
+                        <span className="cursor-pointer rounded-lg bg-[#2A5A9D] p-2 text-sm font-medium text-white hover:bg-[#1A3A6C]">
                           {selectedTicket.assigneeName}
                         </span>
                       ) : (
@@ -685,7 +706,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                               .map((a) => a.name),
                           ]}
                           onChange={(e) => updateAssignee(e.target.value)}
-                          className="flex-1 text-xs sm:flex-none sm:text-sm cursor-pointer"
+                          className="flex-1 cursor-pointer text-xs sm:flex-none sm:text-sm"
                         />
                       )}
                     </div>
@@ -702,9 +723,11 @@ const ChatTemplate = ({ refreshTickets }) => {
                   >
                     <div className="space-y-2 p-2 sm:space-y-3 sm:p-3 md:p-4 lg:p-6">
                       {documents.map((doc, index) => {
-                        const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(
+                        const isImage = /\.(jpg|jpeg|png|gif|svg)$/i.test(
                           doc.name,
                         );
+                        const isPdf = /\.pdf$/i.test(doc.name);
+                        const isDoc = /\.(doc|docx)$/i.test(doc.name);
 
                         return (
                           <div
@@ -712,22 +735,15 @@ const ChatTemplate = ({ refreshTickets }) => {
                             className="group relative flex items-start justify-end gap-3"
                           >
                             <div className="flex max-w-[70%] flex-col">
-                              <div className="mb-1 flex justify-end text-xs text-gray-400">
-                                {/* <span className="font-medium text-gray-900">
-                                  You
-                                </span> */}
-                                {/* <span> • just now</span> */}
-                              </div>
-
-                              <div className="ml-auto rounded-xl bg-teal-100 p-2 shadow-sm hover:bg-teal-200">
+                              <div className="mt-3 ml-auto rounded-xl bg-teal-100 p-2 shadow-sm hover:bg-teal-200">
                                 {isImage ? (
+                                  //  Image Preview
                                   <div className="group relative mt-2 inline-block">
                                     <img
                                       className="max-h-[250px] max-w-[300px] rounded object-cover"
                                       src={doc.url}
                                       alt={doc.name}
                                     />
-
                                     <div
                                       className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
                                       onClick={() => setPreviewImage(doc.url)}
@@ -735,7 +751,47 @@ const ChatTemplate = ({ refreshTickets }) => {
                                       <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
                                     </div>
                                   </div>
+                                ) : isPdf ? (
+                                  //  Inline PDF Preview
+                                  <div className="group relative mt-2 inline-block">
+                                    <iframe
+                                      src={doc.url}
+                                      title={doc.name}
+                                      className="max-h-[250px] max-w-[300px] rounded border shadow"
+                                    />
+                                    <div
+                                      className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                      onClick={() =>
+                                        window.open(doc.url, "_blank")
+                                      }
+                                    >
+                                      <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                                    </div>
+                                    <div className="mt-1 truncate text-xs text-gray-700">
+                                      {doc.name.replace(/^[a-z0-9-]+_/, "")}
+                                    </div>
+                                  </div>
+                                ) : isDoc ? (
+                                  <div className="group relative mt-2 inline-block">
+                                    <iframe
+                                      src={`https://docs.google.com/gview?url=${encodeURIComponent(doc.url)}&embedded=true`}
+                                      title={doc.name}
+                                      className="max-h-[250px] max-w-[300px] rounded border shadow"
+                                    />
+                                    <div
+                                      className="absolute inset-0 flex cursor-pointer items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                      onClick={() =>
+                                        window.open(doc.url, "_blank")
+                                      }
+                                    >
+                                      <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
+                                    </div>
+                                    <div className="mt-1 truncate text-xs text-gray-700">
+                                      {doc.name.replace(/^[a-z0-9-]+_/, "")}
+                                    </div>
+                                  </div>
                                 ) : (
+                                  //  Other files
                                   <a
                                     href={doc.url}
                                     target="_blank"
@@ -748,6 +804,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                                 )}
                               </div>
                             </div>
+
                             <Avatar
                               initialColor="success"
                               className="mt-4 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
@@ -768,102 +825,133 @@ const ChatTemplate = ({ refreshTickets }) => {
                         </p>
                       )}
 
-                      {comments.map((comment) => {
-                        const canEdit = comment.created_by === currentUser?.id;
-                        return (
-                          <div
-                            key={comment.id}
-                            className={`group relative flex items-start gap-3 ${canEdit ? "justify-end" : "justify-start"}`}
+                      {comments.length > visibleCount && (
+                        <div className="my-3 text-center">
+                          <button
+                            onClick={() => setVisibleCount((prev) => prev + 20)}
+                            className="rounded bg-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-300"
                           >
-                            {!canEdit && (
-                              <Avatar
-                                initialColor="info"
-                                className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
-                                name={comment.name}
-                              />
-                            )}
+                            Load More
+                          </button>
+                        </div>
+                      )}
 
-                            <div className="flex max-w-[70%] flex-col">
-                              <div
-                                className={`mb-1 flex items-center gap-2 text-xs text-gray-400 ${canEdit ? "justify-end text-right" : "justify-start text-left"}`}
-                              >
-                                <span>
-                                  {moment(comment.created_at).fromNow()}
-                                </span>
-                                <span className="font-medium text-gray-900">
-                                  {comment.name}
-                                </span>
-                              </div>
+                      {comments
+                        .slice()
+                        .sort(
+                          (a, b) =>
+                            new Date(a.created_at) - new Date(b.created_at),
+                        )
+                        .slice(-visibleCount)
+                        .map((comment) => {
+                          const isOwner =
+                            comment.created_by === currentUser?.id;
+                          const isWithinOneMinute =
+                            moment(timeNow).diff(
+                              moment(comment.created_at),
+                              "minutes",
+                            ) < 1;
+                          const canEdit = isOwner && isWithinOneMinute;
 
-                              <div
-                                className={`rounded-xl p-3 break-words shadow-sm transition-all duration-300 sm:p-4 ${canEdit ? "ml-auto bg-teal-100 text-right hover:bg-teal-200" : "bg-gray-100 text-left hover:bg-gray-200"}`}
-                              >
-                                {editingCommentId === comment.id ? (
-                                  <div className="flex flex-col gap-2 sm:flex-row">
-                                    <input
-                                      type="text"
-                                      value={editingMessage}
-                                      onChange={(e) =>
-                                        setEditingMessage(e.target.value)
-                                      }
-                                      className="flex-1 rounded-md border border-gray-300 p-2 text-sm transition-all duration-200 focus:ring-2 focus:ring-teal-300 focus:outline-none"
-                                    />
-                                    <div className="mt-2 flex gap-2 sm:mt-0">
-                                      <button
-                                        onClick={handleSaveEdit}
-                                        className="rounded bg-teal-500 px-3 py-1 text-white transition-colors hover:bg-teal-600"
-                                      >
-                                        Save
-                                      </button>
-                                      <button
-                                        onClick={() =>
-                                          setEditingCommentId(null)
+                          return (
+                            <div
+                              ref={messagesEndRef}
+                              key={comment.id}
+                              className={`group relative flex items-start gap-3 ${isOwner ? "justify-end" : "justify-start"}`}
+                            >
+                              {!isOwner && (
+                                <Avatar
+                                  initialColor="info"
+                                  className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
+                                  name={comment.name}
+                                />
+                              )}
+
+                              <div className="flex max-w-[70%] flex-col">
+                                <div
+                                  className={`mb-1 flex items-center gap-2 text-xs text-gray-400 ${isOwner ? "justify-end text-right" : "justify-start text-left"}`}
+                                >
+                                  <span>
+                                    {moment(comment.created_at).fromNow()}
+                                  </span>
+                                  <span className="font-medium text-gray-900">
+                                    {comment.name}
+                                  </span>
+                                </div>
+
+                                <div
+                                  className={`rounded-xl p-3 break-words shadow-sm transition-all duration-300 sm:p-4 ${isOwner ? "ml-auto bg-teal-100 text-right hover:bg-teal-200" : "bg-gray-100 text-left hover:bg-gray-200"}`}
+                                >
+                                  {editingCommentId === comment.id ? (
+                                    <div className="flex flex-col gap-2 sm:flex-row">
+                                      <input
+                                        type="text"
+                                        value={editingMessage}
+                                        onChange={(e) =>
+                                          setEditingMessage(e.target.value)
                                         }
-                                        className="rounded border border-gray-300 px-3 py-1 text-gray-600 transition-colors hover:bg-gray-200"
-                                      >
-                                        Cancel
-                                      </button>
+                                        className="flex-1 rounded-md border border-gray-300 p-2 text-sm transition-all duration-200 focus:ring-2 focus:ring-teal-300 focus:outline-none"
+                                      />
+                                      <div className="mt-2 flex gap-2 sm:mt-0">
+                                        <button
+                                          onClick={handleSaveEdit}
+                                          className="rounded bg-teal-500 px-3 py-1 text-white transition-colors hover:bg-teal-600"
+                                        >
+                                          Save
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            setEditingCommentId(null)
+                                          }
+                                          className="rounded border border-gray-300 px-3 py-1 text-gray-600 transition-colors hover:bg-gray-200"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
                                     </div>
+                                  ) : (
+                                    <p className="whitespace-pre-wrap">
+                                      {comment.message}
+                                    </p>
+                                  )}
+                                </div>
+
+                                {isOwner && editingCommentId !== comment.id && (
+                                  <div className="mt-1 ml-auto flex justify-end gap-2 text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                                    {canEdit && (
+                                      <button
+                                        className="cursor-pointer hover:text-gray-700"
+                                        onClick={() =>
+                                          handleEditComment(comment)
+                                        }
+                                        title="Edit"
+                                      >
+                                        <PencilIcon className="h-4 w-4" />
+                                      </button>
+                                    )}
+                                    <button
+                                      className="cursor-pointer hover:text-red-600"
+                                      onClick={() =>
+                                        handleDeleteComment(comment.id)
+                                      }
+                                      title="Delete"
+                                    >
+                                      <TrashIcon className="h-4 w-4" />
+                                    </button>
                                   </div>
-                                ) : (
-                                  <p className="whitespace-pre-wrap">
-                                    {comment.message}
-                                  </p>
                                 )}
                               </div>
 
-                              {canEdit && editingCommentId !== comment.id && (
-                                <div className="mt-1 ml-auto flex justify-end gap-2 text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                                  <button
-                                    className="cursor-pointer hover:text-gray-700"
-                                    onClick={() => handleEditComment(comment)}
-                                    title="Edit"
-                                  >
-                                    <PencilIcon className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    className="cursor-pointer hover:text-red-600"
-                                    onClick={() =>
-                                      handleDeleteComment(comment.id)
-                                    }
-                                    title="Delete"
-                                  >
-                                    <TrashIcon className="h-4 w-4" />
-                                  </button>
-                                </div>
+                              {isOwner && (
+                                <Avatar
+                                  initialColor="success"
+                                  className="mt-4 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
+                                  name={comment.name}
+                                />
                               )}
                             </div>
-
-                            {canEdit && (
-                              <Avatar
-                                initialColor="success"
-                                className="mt-4 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10"
-                                name={comment.name}
-                              />
-                            )}
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
                     </div>
                   </div>
                 </div>
@@ -900,6 +988,7 @@ const ChatTemplate = ({ refreshTickets }) => {
                             if (!file) return;
                             setSelectedFile(file);
                           }}
+                          accept="*/*"
                         />
 
                         <div className="flex items-center gap-2">
@@ -998,11 +1087,17 @@ const ChatTemplate = ({ refreshTickets }) => {
       </div>
       {previewImage && (
         <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black">
-          <div className="">
+          <div
+            className={`rounded-lg shadow-lg ${
+              previewImage.toLowerCase().endsWith(".svg") ? "bg-white p-4" : ""
+            }`}
+          >
             <img
               src={previewImage}
               alt="preview"
-              className="h-96 w-fit rounded-lg shadow-lg"
+              className={`h-96 w-fit rounded-lg ${
+                previewImage.toLowerCase().endsWith(".svg") ? "" : ""
+              }`}
             />
             <XMarkIcon
               className="absolute top-2 right-2 h-8 w-8 cursor-pointer bg-white text-black"

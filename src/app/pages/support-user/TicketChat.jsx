@@ -53,7 +53,7 @@ export default function TicketChat() {
           backToTickets();
         }}
       />
-      <TicketInfo details={headerDetails} ticketId={ticketId} />
+      <TicketInfo details={headerDetails} ticketId={ticketId} infoLoading={loading}/>
     </>
   );
 }
