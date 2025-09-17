@@ -515,7 +515,7 @@ export const uploadSupportDocument = async (supportId, file) => {
 
     const finalUrl = `/support/upload/documents/${supportId}`;
     const formData = new FormData();
-    formData.append("file", file); // ✅ backend expects "file"
+    formData.append("file", file); 
 
     console.log("SupportTicketsService → Uploading document:", finalUrl, file);
 
