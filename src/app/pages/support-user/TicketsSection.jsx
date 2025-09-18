@@ -166,7 +166,7 @@ export default function TicketsSection({ filter, setFilter }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-gray-900">My Support Tickets</h2>
-        <div className="w-32">
+        <div className="w-45">
           <Select
             className="text-sm border border-black rounded-md px-3 py-2 cursor-pointer"
             value={filter}
