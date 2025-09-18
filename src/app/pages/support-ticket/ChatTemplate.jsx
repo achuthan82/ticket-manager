@@ -18,7 +18,6 @@ import {
   editComment,
   assignSupportTicket,
   uploadSupportDocument,
-  // getSupportDocuments,
 } from "../../../utils/SupportTicketService";
 import { toast } from "sonner";
 import moment from "moment";
@@ -41,11 +40,10 @@ const ChatTemplate = ({ refreshTickets }) => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingMessage, setEditingMessage] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
-  // const [documents, setDocuments] = useState([]);
   const [sendEmailNotification, setSendEmailNotification] = useState(false);
   const [timeNow, setTimeNow] = useState(Date.now());
- 
- const [visibleCount, setVisibleCount] = useState(20);
+
+  const [visibleCount, setVisibleCount] = useState(20);
   // image popup
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -131,7 +129,7 @@ const ChatTemplate = ({ refreshTickets }) => {
           };
           setSelectedTicket(firstTicket);
 
-          // ✅ Fetch comments & documents immediately for the first ticket
+          //  Fetch comments & documents immediately for the first ticket
           fetchComments(firstTicket.id);
         }
       } else if (response.status === 204) {
@@ -163,7 +161,6 @@ const ChatTemplate = ({ refreshTickets }) => {
       } else {
         toast.error(`Failed to load comments: ${res.error}`);
       }
-
     } catch (err) {
       console.error("Error fetching comments/documents:", err);
       toast.error("Error fetching comments/documents");
@@ -362,7 +359,7 @@ const ChatTemplate = ({ refreshTickets }) => {
       return;
     }
 
-    // ✅ Get the full object
+    //  Get the full object
     const assigneeObj = assignees.find((a) => a.name === newAssignee);
     if (!assigneeObj) {
       toast.error("Invalid assignee selected");
@@ -476,21 +473,14 @@ const ChatTemplate = ({ refreshTickets }) => {
     }, 0);
   };
 
-  // Auto scroll when comments change
-  // useEffect(() => {
-  //   if (messagesEndRef.current) {
-  //     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-  //   }
-  // }, [comments]);
-const prevCommentsLength = useRef(comments.length);
+  const prevCommentsLength = useRef(comments.length);
 
-useEffect(() => {
-  if (!isLoadingMore && comments.length > prevCommentsLength.current) {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }
-  prevCommentsLength.current = comments.length;
-}, [comments, isLoadingMore]);
-
+  useEffect(() => {
+    if (!isLoadingMore && comments.length > prevCommentsLength.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    prevCommentsLength.current = comments.length;
+  }, [comments, isLoadingMore]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -523,9 +513,9 @@ useEffect(() => {
                 </Button>
               </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+              <div className="flex flex-col gap-1 sm:flex-row">
                 <Select
-                  className="max-w-[180px] min-w-[120px] flex-1 text-xs"
+                  className="max-w-[180px] min-w-[110px] flex-1 text-xs"
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   data={statusOptions.map((s) => ({
@@ -536,7 +526,7 @@ useEffect(() => {
                 />
 
                 <Select
-                  className="max-w-[180px] min-w-[110px] flex-1 text-xs"
+                  className="max-w-[180px] min-w-[115px] flex-1 text-xs"
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
                   data={priorityOptions.map((p) => ({
@@ -748,7 +738,7 @@ useEffect(() => {
                           data={[
                             "Unassigned",
                             ...assignees
-                              .filter((a) => !a.is_assigned) // ✅ only free agents
+                              .filter((a) => !a.is_assigned) // showing only free agents
                               .map((a) => a.name),
                           ]}
                           onChange={(e) => updateAssignee(e.target.value)}
@@ -811,11 +801,13 @@ useEffect(() => {
                             comment.attachment,
                           );
                           const isPdf = /\.pdf$/i.test(comment.attachment);
-                          const isDoc = /\.(doc|docx)$/i.test(
-                            comment.attachment,
-                          );
-                          const isDocx = /\.(doc|docx)$/i.test(comment.attachment_url);
-
+                          const isDoc = /\.doc$/i.test(comment.attachment);
+                          const isDocx = /\.docx$/i.test(comment.attachment);
+                          const getShortFileName = (name, maxLength = 25) => {
+                            if (!name) return "";
+                            if (name.length <= maxLength) return name;
+                            return name.slice(0, maxLength) + "...";
+                          };
 
                           return (
                             <div
@@ -902,6 +894,16 @@ useEffect(() => {
                                               >
                                                 <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
                                               </div>
+                                              {/* Shortened filename under image */}
+                                              {/* <div className="mt-1 truncate text-xs text-gray-700">
+                                                {getShortFileName(
+                                                  comment.attachment.replace(
+                                                    /^[a-z0-9-]+_/,
+                                                    "",
+                                                  ),
+                                                  25,
+                                                )}
+                                              </div> */}
                                             </div>
                                           ) : isPdf ? (
                                             //  Inline PDF Preview
@@ -923,16 +925,21 @@ useEffect(() => {
                                                 <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
                                               </div>
                                               <div className="mt-1 truncate text-xs text-gray-700">
-                                                {comment.attachment.replace(
-                                                  /^[a-z0-9-]+_/,
-                                                  "",
+                                                {getShortFileName(
+                                                  comment.attachment.replace(
+                                                    /^[a-z0-9-]+_/,
+                                                    "",
+                                                  ),
+                                                  25,
                                                 )}
                                               </div>
                                             </div>
                                           ) : isDoc ? (
                                             <div className="group relative mt-2 inline-block">
                                               <iframe
-                                                src={`https://docs.google.com/gview?url=${encodeURIComponent(comment.attachment_url)}&embedded=true`}
+                                                src={`https://docs.google.com/gview?url=${encodeURIComponent(
+                                                  comment.attachment_url,
+                                                )}&embedded=true`}
                                                 title={comment.attachment}
                                                 className="max-h-[250px] max-w-[300px] rounded border shadow"
                                               />
@@ -948,16 +955,21 @@ useEffect(() => {
                                                 <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
                                               </div>
                                               <div className="mt-1 truncate text-xs text-gray-700">
-                                                {comment.attachment.replace(
-                                                  /^[a-z0-9-]+_/,
-                                                  "",
+                                                {getShortFileName(
+                                                  comment.attachment.replace(
+                                                    /^[a-z0-9-]+_/,
+                                                    "",
+                                                  ),
+                                                  25,
                                                 )}
                                               </div>
                                             </div>
                                           ) : isDocx ? (
                                             <div className="group relative mt-2 inline-block">
                                               <iframe
-                                                src={`https://docs.google.com/gview?url=${encodeURIComponent(comment.attachment_url)}&embedded=true`}
+                                                src={`https://docs.google.com/gview?url=${encodeURIComponent(
+                                                  comment.attachment_url,
+                                                )}&embedded=true`}
                                                 title={comment.attachment}
                                                 className="max-h-[250px] max-w-[300px] rounded border shadow"
                                               />
@@ -973,9 +985,12 @@ useEffect(() => {
                                                 <ArrowsPointingOutIcon className="h-10 w-10 text-white drop-shadow-lg" />
                                               </div>
                                               <div className="mt-1 truncate text-xs text-gray-700">
-                                                {comment.attachment.replace(
-                                                  /^[a-z0-9-]+_/,
-                                                  "",
+                                                {getShortFileName(
+                                                  comment.attachment.replace(
+                                                    /^[a-z0-9-]+_/,
+                                                    "",
+                                                  ),
+                                                  25,
                                                 )}
                                               </div>
                                             </div>
@@ -988,7 +1003,13 @@ useEffect(() => {
                                               className="truncate text-blue-600 underline hover:text-blue-800"
                                               title={comment.attachment}
                                             >
-                                              {comment.attachment}
+                                              {getShortFileName(
+                                                comment.attachment.replace(
+                                                  /^[a-z0-9-]+_/,
+                                                  "",
+                                                ),
+                                                25,
+                                              )}
                                             </a>
                                           )}
                                         </div>
@@ -998,7 +1019,8 @@ useEffect(() => {
 
                                 {isOwner &&
                                   editingCommentId !== comment.id &&
-                                  !isImage && (
+                                  (!comment.attachment ||
+                                    comment.attachment === "false") && (
                                     <div className="mt-1 ml-auto flex justify-end gap-2 text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                                       {canEdit && (
                                         <button
@@ -1041,7 +1063,7 @@ useEffect(() => {
 
               {/* Reply Section */}
               {/* commented flex-1 in the below div */}
-              <div className=" border-t border-gray-300 bg-white p-2 sm:p-3 md:p-4">
+              <div className="border-t border-gray-300 bg-white p-2 sm:p-3 md:p-4">
                 <div className="flex w-full flex-col sm:flex-row sm:items-start sm:space-x-3">
                   <div className="mb-2 flex flex-shrink-0 justify-center sm:mb-0 sm:justify-start">
                     <Avatar
@@ -1091,7 +1113,7 @@ useEffect(() => {
                                 {selectedFile.name}
                               </span>
                               <button
-                                className="text-xs text-red-500 hover:text-red-700"
+                                className="cursor-pointer text-xs text-red-500 hover:text-red-700"
                                 onClick={() => setSelectedFile(null)}
                               >
                                 ✕
