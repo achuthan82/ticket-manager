@@ -285,7 +285,7 @@ useEffect(() => {
                               <div>
                                 <div>
                                   {isImage ? (
-                                    //  Image Preview
+                                    //  Image Previewyarn
                                     <div className="group relative mt-2 inline-block">
                                       <img
                                         className="max-h-[250px] max-w-[300px] rounded object-cover"
